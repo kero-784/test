@@ -355,6 +355,8 @@
         const BARCODE_HEADER_STORAGE_KEY = 'barcodeHeader';
         const NAME_HEADER_STORAGE_KEY = 'nameHeader';
         const CURRENT_DATE_STORAGE_KEY = 'currentDate';
+        const DATABASE_STORAGE_KEY = 'inventoryDatabase'; // You can use this if you decide to store database in localStorage as well
+        const GOOGLE_SHEET_CSV_URL = "YOUR_GOOGLE_SHEET_CSV_URL_HERE"; // Define Google Sheet URL constant
         // const encryptionKey = "YourSecretEncryptionKey"; // **Replace with a strong, randomly generated key if using encryption - Keep this secret!**
 
 
@@ -366,7 +368,6 @@
         let barcodeHeader = '';
         let nameHeader = '';
         let expiryHeaderCount = 0;
-        const googleSheetCSVURL = "YOUR_GOOGLE_SHEET_CSV_URL_HERE"; // Replace with your Google Sheet CSV URL - CORS Proxy Removed
         const dbName = "inventoryDB";
         const dbStoreName = "inventoryStore";
         let cachedRecordHeaders = null; // Variable to cache record table headers
@@ -436,16 +437,20 @@
                 const storedHeaderMap = await getDataFromIndexedDB(db, 'headerMap'); // No key needed anymore
                 database = await getAllDataFromIndexedDB(db, dbStoreName);
 
-                if (storedHeaderMap) { // Check if storedHeaderMap is not undefined
-                    headerMap = storedHeaderMap;
+                if (storedHeaderMap && storedHeaderMap.target && storedHeaderMap.target.result) { // Check if storedHeaderMap and its result are valid
+                    headerMap = storedHeaderMap.target.result;
                 } else {
-                    headerMap = {}; // Initialize headerMap to empty object if not found in DB
-                    console.warn("No headerMap found in IndexedDB, using default empty headerMap.");
+                    headerMap = {}; // Initialize headerMap to empty object if not found in DB or invalid
+                    console.warn("No headerMap found in IndexedDB or invalid data, using default empty headerMap.");
                 }
 
-                 if(database.length > 0){
+
+                 if(database && database.length > 0){ // Check if database is valid before enabling buttons
                     searchButton.disabled = false;
                      viewDataButton.disabled = false;
+                 } else {
+                    searchButton.disabled = true;
+                    viewDataButton.disabled = true;
                  }
                 db.close();
 
@@ -512,11 +517,11 @@
                     let results = event.target.result;
                     if (storeName === 'headerMapStore' && results && results.length > 0) {
                         // Assuming headerMap is the first (and only) entry in headerMapStore after import
-                        resolve(results[0]); // Access the first result if headerMapStore
+                        resolve({ target: { result: results[0] } }); // Resolve with object like event.target.result for headerMap - Changed to return object
                     } else if (storeName !== 'headerMapStore') {
-                        resolve(results); // Resolve all data for other stores
+                        resolve({ target: { result: results } }); // Resolve with object like event.target.result for other stores - Changed to return object
                     } else {
-                        resolve(undefined); // Resolve undefined if no data found in headerMapStore
+                        resolve({ target: { result: undefined } }); // Resolve with object like event.target.result if no data found in headerMapStore - Changed to return object
                     }
                 };
              });
@@ -529,7 +534,7 @@
         });
 
         importGoogleSheetButton.addEventListener('click', () => {
-            fetchDataFromGoogleSheet(googleSheetCSVURL);
+            fetchDataFromGoogleSheet(GOOGLE_SHEET_CSV_URL); // Use constant here
         });
 
         fileInput.addEventListener('change', handleFileImport);
@@ -1132,13 +1137,43 @@
         //     }
         // }
 
+        async function autoLoadDatabaseFromGoogleSheet() { // Renamed for clarity and to indicate Google Sheet source
+            let databaseURL = GOOGLE_SHEET_CSV_URL; // Use the constant
 
-        async function init() {
-            await fetchDataFromGoogleSheet(googleSheetCSVURL);
-            await loadDataFromLocalStorage();
+            console.log("Auto-loading database from Google Sheet CSV URL:", databaseURL);
+
+            try {
+                const response = await fetch(databaseURL);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const csvText = await response.text();
+                const parsedData = parseCSV(csvText); // Reuse your parseCSV function from Inventory Manager
+
+                if (parsedData && parsedData.data.length > 0) { // Use .data for your parseCSV output structure
+                    await processGoogleSheetCSVData(parsedData.headers, parsedData.data); // Reuse your processGoogleSheetCSVData
+                    showAlert('Database auto-loaded from Google Sheet successfully!'); // Use showAlert
+                } else {
+                    showAlert('No data found in Google Sheet or error parsing data during auto-load.'); // Use showAlert
+                }
+            } catch (error) {
+                console.error('Error auto-loading database from Google Sheet:', error);
+                showAlert(`Error auto-loading database from Google Sheet: ${error.message}`, true); // Use showAlert for errors
+                // Fallback to loading from local storage or IndexedDB if auto-load fails (optional, depends on desired behavior)
+                await loadDataFromLocalStorage(); // Keep the fallback to localStorage/IndexedDB in case Google Sheet load fails
+            }
         }
 
-        init();
+
+        async function init() {
+            await autoLoadDatabaseFromGoogleSheet(); // Try to auto-load from Google Sheet first
+            await loadDataFromLocalStorage(); // Then load from localStorage/IndexedDB to ensure data from previous sessions is loaded too
+        }
+
+
+        window.onload = function () {
+            init(); // Call init which will handle auto-loading and loading from storage
+        };
     </script>
 </body>
 </html>
