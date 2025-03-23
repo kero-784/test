@@ -356,7 +356,7 @@
         const NAME_HEADER_STORAGE_KEY = 'nameHeader';
         const CURRENT_DATE_STORAGE_KEY = 'currentDate';
         const DATABASE_STORAGE_KEY = 'inventoryDatabase'; // You can use this if you decide to store database in localStorage as well
-        const GOOGLE_SHEET_CSV_URL = "YOUR_GOOGLE_SHEET_CSV_URL_HERE"; // Define Google Sheet URL constant
+        const GOOGLE_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTAxhP_rdJ4DjetuN1vfWZOrmvmlJViBYDWz0KtMql6Hle4EJW2n6Ce7v0zKiJZFQ/pub?output=csv"; // **UPDATED with your provided Google Sheet URL!**
         // const encryptionKey = "YourSecretEncryptionKey"; // **Replace with a strong, randomly generated key if using encryption - Keep this secret!**
 
 
@@ -615,8 +615,8 @@
                 const db = await openDatabase();
                 await storeDatatoIndexedDB(db, dbStoreName, database); // Store database, auto-key - CORRECTED CALL
                 await storeDatatoIndexedDB(db, 'headerMapStore', headerMap); // Store headerMap, auto-key - CORRECTED CALL
-                localStorage.setItem(BARCODE_HEADER_STORAGE_KEY, barcodeHeader);
-                localStorage.setItem(NAME_HEADER_STORAGE_KEY, nameHeader);
+                 localStorage.setItem(BARCODE_HEADER_STORAGE_KEY, barcodeHeader);
+                 localStorage.setItem(NAME_HEADER_STORAGE_KEY, nameHeader);
 
                 db.close();
             } catch (error) {
