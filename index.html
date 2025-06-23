@@ -1,363 +1,605 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inventory Manager</title>
-    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+    <title>Advanced Grocery Data Entry</title>
+    <!-- Google Fonts: Poppins -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <style>
-        /* All CSS styles remain the same */
-        body, html { margin: 0; padding: 0; font-family: 'Roboto', sans-serif; background-color: #f3f3f3; color: #212121; line-height: 1.5; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
-        #currentDateDisplay { position: fixed; top: 16px; right: 16px; font-size: 0.85em; color: #757575; }
-        .container { max-width: 960px; margin: 20px auto; padding: 24px; }
-        h1 { text-align: center; color: #3F51B5; margin-bottom: 24px; font-size: 2rem; font-family: 'Roboto Condensed', sans-serif; font-weight: 700; }
-        .database-section-container { background-color: #fff; border-radius: 4px; padding: 24px; margin-bottom: 16px; box-shadow: 0 2px 2px 0 rgba(0,0,0,0.14), 0 3px 1px -2px rgba(0,0,0,0.12), 0 1px 5px 0 rgba(0,0,0,0.2); }
-        .database-section-container h2 { font-size: 1.3rem; color: #212121; margin-top: 0; margin-bottom: 16px; font-weight: 500; font-family: 'Roboto Condensed', sans-serif; border-bottom: 1px solid #e0e0e0; padding-bottom: 8px; }
-        button { padding: 10px 16px; margin: 4px; cursor: pointer; border: none; border-radius: 4px; color: white; background-color: #3F51B5; font-size: 0.9rem; text-transform: uppercase; box-shadow: 0 2px 2px 0 rgba(0,0,0,0.14), 0 3px 1px -2px rgba(0,0,0,0.12), 0 1px 5px 0 rgba(0,0,0,0.2); transition: box-shadow 0.3s ease, background-color 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 8px; }
-        button:hover { box-shadow: 0 4px 5px 0 rgba(0,0,0,0.25), 0 1px 10px 0 rgba(0,0,0,0.22), 0 2px 4px -1px rgba(0,0,0,0.3); background-color: #303F9F; }
-        button:focus { outline: none; box-shadow: 0 0 0 2px rgba(159, 168, 218, 0.5); }
-        button:disabled { background-color: #BDBDBD; color: #757575; cursor: not-allowed; box-shadow: none; }
-        .secondary-button { background-color: transparent; color: #757575; box-shadow: none; font-size: 0.85rem; padding: 6px 12px; }
-        .secondary-button:hover:not(:disabled) { background-color: rgba(159, 168, 218, 0.1); color: #3F51B5; box-shadow: none; }
-        .secondary-button:focus { box-shadow: 0 0 0 2px rgba(159, 168, 218, 0.3); }
-        .remove-button { background-color: #F44336; }
-        .remove-button:hover { background-color: #D32F2F; }
-        .save-expiry-button { background-color: #4CAF50; }
-        .save-expiry-button:hover { background-color: #388E3C; }
-        .material-icons { vertical-align: middle; }
-        input[type="text"], input[type="number"] { padding: 12px; margin: 4px; border: 1px solid #BDBDBD; border-radius: 4px; font-size: 0.9rem; outline: none; box-shadow: none; }
-        input[type="text"]:focus, input[type="number"]:focus { border-color: #3F51B5; box-shadow: 0 0 0 1px #3F51B5; }
-        table { width: 100%; border-collapse: collapse; margin-top: 16px; background-color: white; box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24); border-radius: 4px; overflow: hidden; border: 1px solid #e0e0e0; }
-        th, td { padding: 12px; text-align: left; font-size: 0.85rem; white-space: nowrap; border-bottom: 1px solid #e0e0e0; }
-        th { background-color: #f5f5f5; color: #757575; font-weight: 500; text-transform: uppercase; letter-spacing: 0.03em; }
-        tr:last-child td { border-bottom: none; }
-        .expiry-input-group { display: flex; align-items: center; margin-bottom: 12px; gap: 8px; }
-        #dataPopup { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); justify-content: center; align-items: center; z-index: 1000; overflow: auto; }
-        #dataPopupContent { background-color: #fff; padding: 32px; border-radius: 4px; box-shadow: 0 9px 46px rgba(0, 0, 0, 0.12), 0 11px 15px -7px rgba(0, 0, 0, 0.2); max-height: 90vh; max-width: 90vw; position: relative; }
-        .closePopup { position: absolute; top: 12px; right: 16px; font-size: 24px; cursor: pointer; color: #757575; }
-        #searchResultTable { display: none; margin-top: 16px; }
-        @media (max-width: 768px) { .container { padding: 16px; margin: 16px auto; } h1 { font-size: 1.8rem; } .expiry-input-group { flex-direction: column; align-items: stretch; } }
+        /* CSS Variables for Theming */
+        :root {
+            --font-family: 'Poppins', sans-serif;
+            --primary-color: #4f46e5;
+            --primary-hover: #4338ca;
+            --danger-color: #dc2626;
+            
+            /* Light Theme */
+            --bg-gradient-start: #f0f9ff;
+            --bg-gradient-end: #e0f2fe;
+            --card-bg: rgba(255, 255, 255, 0.9);
+            --text-primary: #1e293b;
+            --text-secondary: #475569;
+            --border-color: #e2e8f0;
+            --input-bg: #f8fafc;
+            --shadow-color: rgba(71, 85, 105, 0.1);
+            --sticky-shadow: rgba(0, 0, 0, 0.1);
+            --backdrop-color: rgba(248, 250, 252, 0.5);
+
+            --border-radius-lg: 16px;
+            --border-radius-md: 10px;
+            --transition-speed: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        [data-theme="dark"] {
+            --primary-color: #818cf8;
+            --primary-hover: #6366f1;
+            --bg-gradient-start: #1e293b;
+            --bg-gradient-end: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.9);
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --border-color: #334155;
+            --input-bg: #334155;
+            --shadow-color: rgba(0, 0, 0, 0.2);
+            --sticky-shadow: rgba(0, 0, 0, 0.5);
+            --backdrop-color: rgba(15, 23, 42, 0.5);
+        }
+        
+        /* General & Layout */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+        body { font-family: var(--font-family); background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end)); color: var(--text-primary); min-height: 100vh; padding-bottom: 200px; }
+        .app-header { padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; }
+        .app-header h1 { font-size: 1.5rem; font-weight: 600; }
+        .header-actions { display: flex; align-items: center; gap: 1rem; }
+        
+        /* Homepage */
+        .homepage-container { display: flex; justify-content: center; align-items: center; gap: 1.5rem; padding: 2rem 1rem; flex-wrap: wrap; }
+        .homepage-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: var(--border-radius-lg); padding: 2rem; text-align: center; cursor: pointer; box-shadow: 0 4px 15px var(--shadow-color); backdrop-filter: blur(10px); transition: transform var(--transition-speed), box-shadow var(--transition-speed); flex-basis: 300px; }
+        .homepage-card:hover { transform: translateY(-8px); box-shadow: 0 10px 25px var(--shadow-color); }
+        .homepage-card i { font-size: 2.5rem; color: var(--primary-color); margin-bottom: 1rem; }
+        .homepage-card span { font-size: 1.1rem; font-weight: 500; display: block; }
+
+        /* Main Workspace */
+        .workspace-container { max-width: 1200px; margin: 0 auto; padding: 0 1rem; }
+        .list-container { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: var(--border-radius-lg); padding: 1.5rem; box-shadow: 0 4px 15px var(--shadow-color); backdrop-filter: blur(10px); }
+        .list-header-controls { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; gap: 1rem; }
+        #searchInput { width: 100%; max-width: 400px; }
+        
+        /* Item Search List */
+        .item-list-wrapper { max-height: 60vh; overflow-y: auto; border: 1px solid var(--border-color); border-radius: var(--border-radius-md); }
+        .item-list { list-style-type: none; }
+        .item-list li { display: grid; grid-template-columns: 1fr 1fr 3fr 1fr; gap: 1rem; padding: 0.85rem 1rem; border-bottom: 1px solid var(--border-color); transition: background-color var(--transition-speed); cursor: pointer; }
+        .item-list li:last-child { border-bottom: none; }
+        .item-list li.list-header-row { font-weight: 600; background-color: var(--input-bg); position: sticky; top: 0; z-index: 10; cursor: default; }
+        .item-list li:not(.list-header-row):hover { background-color: rgba(79, 70, 229, 0.05); }
+        [data-theme="dark"] .item-list li:not(.list-header-row):hover { background-color: rgba(129, 140, 248, 0.1); }
+        
+        /* Modal Dialog (for data entry) */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--backdrop-color); backdrop-filter: blur(5px); display: flex; justify-content: center; z-index: 1000; opacity: 0; visibility: hidden; transition: opacity var(--transition-speed), visibility var(--transition-speed); padding: 1rem; align-items: flex-start; overflow-y: auto; }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .modal-content { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: var(--border-radius-lg); box-shadow: 0 10px 30px var(--shadow-color); width: 100%; max-width: 600px; transform: scale(0.95); transition: transform var(--transition-speed); display: flex; flex-direction: column; max-height: 90vh; margin-top: 5vh; }
+        .modal-overlay.active .modal-content { transform: scale(1); }
+        .modal-header { flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.5rem; border-bottom: 1px solid var(--border-color); }
+        .modal-header h2 { font-size: 1.25rem; font-weight: 600; }
+        .modal-close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-secondary); transition: color var(--transition-speed); }
+        .modal-close-btn:hover { color: var(--text-primary); }
+        .modal-body { flex-grow: 1; overflow-y: auto; padding: 1.5rem; }
+        .modal-footer { flex-shrink: 0; display: flex; justify-content: flex-end; gap: 1rem; padding: 1rem 1.5rem; border-top: 1px solid var(--border-color); }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+        .form-group.full-width { grid-column: span 2; }
+
+        /* Pending Changes Panel */
+        .pending-changes-panel { position: fixed; bottom: 0; left: 0; width: 100%; z-index: 500; background: var(--card-bg); border-top: 1px solid var(--border-color); box-shadow: 0 -5px 20px var(--shadow-color); border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0; backdrop-filter: blur(10px); transition: transform var(--transition-speed); transform: translateY(calc(100% - 60px)); }
+        .pending-changes-panel.open { transform: translateY(0); }
+        .panel-header { padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+        .panel-content { padding: 0 1.5rem 1.5rem 1.5rem; max-height: 40vh; overflow-y: auto; }
+        .panel-actions { display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem; }
+        
+        /* UNIFIED RESPONSIVE TABLE WITH STICKY COLUMNS */
+        .table-wrapper {
+            overflow-x: auto;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-md);
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            min-width: 900px; /* Increased width to accommodate new column */
+            font-size: 0.9em;
+        }
+        th, td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+            text-align: right;
+            white-space: nowrap;
+            background-color: var(--card-bg); /* Set base background for sticky cells */
+        }
+        th {
+            background-color: var(--input-bg);
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+        tbody tr:last-child td { border-bottom: none; }
+        tbody tr:hover td { background-color: var(--input-bg); }
+        
+        /* Sticky Name Column (Right side for RTL) */
+        th.sticky-col-name, td.sticky-col-name {
+            position: sticky;
+            right: 0; 
+            z-index: 1;
+            box-shadow: -2px 0 5px -2px var(--sticky-shadow);
+        }
+        th.sticky-col-name { z-index: 3; }
+
+        /* Sticky Delete Column (Left side for RTL) */
+        th.sticky-col-action, td.sticky-col-action {
+            position: sticky;
+            left: 0;
+            z-index: 1;
+            box-shadow: 2px 0 5px -2px var(--sticky-shadow);
+            text-align: center;
+        }
+        th.sticky-col-action { z-index: 3; }
+        .delete-icon { color: var(--danger-color); cursor: pointer; font-size: 1.2rem; }
+        
+        /* Generic Form & Button Styles */
+        .form-group { display: flex; flex-direction: column; gap: 0.5rem; }
+        input, select { width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: var(--border-radius-md); background-color: var(--input-bg); color: var(--text-primary); font-size: 1rem; font-family: var(--font-family); }
+        .btn { padding: 0.75rem 1.5rem; border-radius: var(--border-radius-md); cursor: pointer; font-size: 1rem; font-weight: 500; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; border: 1px solid transparent; transition: all var(--transition-speed); }
+        .btn-primary { background-color: var(--primary-color); color: #fff; }
+        .btn-primary:hover { background-color: var(--primary-hover); }
+        .btn-secondary { background-color: transparent; color: var(--text-primary); border-color: var(--border-color); }
+        .btn-danger { background-color: var(--danger-color); color: #fff; }
+        
+        /* Theme Toggle */
+        .theme-switch-wrapper { display: flex; align-items: center; gap: 8px; }
+        .theme-switch { display: inline-block; height: 24px; position: relative; width: 44px; }
+        .theme-switch input { display: none; }
+        .slider { background-color: #ccc; bottom: 0; cursor: pointer; left: 0; position: absolute; right: 0; top: 0; transition: .4s; border-radius: 34px; }
+        .slider:before { background-color: #fff; bottom: 4px; content: ""; height: 16px; left: 4px; position: absolute; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--primary-color); }
+        input:checked + .slider:before { transform: translateX(20px); }
+
+        @media (max-width: 640px) {
+            .form-grid { grid-template-columns: 1fr; }
+            .form-group.full-width { grid-column: span 1; }
+            .item-list li { grid-template-columns: 2fr 1fr; grid-template-areas: "name status" "code plu"; }
+            .item-list li span:nth-child(1) { grid-area: code; }
+            .item-list li span:nth-child(2) { grid-area: plu; }
+            .item-list li span:nth-child(3) { grid-area: name; font-size: 1.1em; font-weight: 500; }
+            .item-list li span:nth-child(4) { grid-area: status; justify-self: end; }
+            .list-header-row { display: none; }
+        }
     </style>
 </head>
 <body>
-    <div id="currentDateDisplay"></div>
-    <div class="container">
-        <h1>Inventory Manager</h1>
 
-        <section class="database-section-container">
-            <h2>Database Management</h2>
-            <button id="viewDataButton" class="secondary-button" disabled><span class="material-icons">visibility</span>View Products</button>
-            <button id="clearDatabaseButton" class="secondary-button" disabled><span class="material-icons">delete_sweep</span>Clear Records</button>
-            <button id="exportButton" class="secondary-button" disabled><span class="material-icons">file_download</span>Export Records</button>
-        </section>
-
-        <section class="database-section-container">
-            <h2>Search Inventory</h2>
-            <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 20px;">
-                <input type="text" id="searchBarcodeInput" placeholder="Enter Barcode to Search">
-                <button id="searchButton" disabled><span class="material-icons">search</span>Search</button>
+    <header class="app-header">
+        <h1><i class="fa-solid fa-store"></i> إدارة الأصناف</h1>
+        <div class="header-actions">
+            <button class="btn btn-secondary" onclick="showHomepage()"><i class="fa-solid fa-house"></i> الرئيسية</button>
+            <div class="theme-switch-wrapper">
+                <i class="fas fa-sun"></i>
+                <label class="theme-switch" for="checkbox">
+                    <input type="checkbox" id="checkbox" />
+                    <div class="slider round"></div>
+                </label>
+                <i class="fas fa-moon"></i>
             </div>
-            <table id="searchResultTable">
-                <thead></thead>
-                <tbody id="searchResultTableBody"></tbody>
-            </table>
-        </section>
+        </div>
+    </header>
 
-        <section class="database-section-container">
-            <h2>Record Entry</h2>
-            <div style="margin-bottom: 16px;">
-                <button id="addExpiryButton"><span class="material-icons">add</span>Add Expiry</button>
-                <button id="clearFieldsButton" class="secondary-button"><span class="material-icons">clear_all</span>Clear Fields</button>
+    <main id="app-main">
+        <!-- Homepage View -->
+        <div id="homepage" class="homepage-container">
+            <div class="homepage-card" onclick="showWorkspace('edit')">
+                <i class="fas fa-tags"></i>
+                <span>تعديل أسعار الأصناف</span>
             </div>
-            <div id="expiryInputs"></div>
-            <button id="saveButton" disabled class="save-expiry-button"><span class="material-icons">save</span>Save Entry</button>
-        </section>
-
-        <section class="database-section-container">
-            <h2>Inventory Records</h2>
-            <table id="recordTable">
-                <thead></thead>
-                <tbody id="recordTableBody"></tbody>
-            </table>
-        </section>
-
-        <div id="dataPopup" style="display:none">
-            <div id="dataPopupContent">
-                <span class="closePopup">×</span>
-                <table id="popupTable"></table>
+            <div class="homepage-card" onclick="showWorkspace('add')">
+                <i class="fas fa-plus-circle"></i>
+                <span>إضافة صنف جديد</span>
             </div>
+        </div>
+
+        <!-- Workspace View -->
+        <div id="workspace" class="workspace-container" style="display: none;">
+            <div class="list-container">
+                <div class="list-header-controls">
+                    <input type="text" id="searchInput" class="btn" placeholder="بحث بالاسم أو الكود...">
+                    <button id="showAddItemModalBtn" class="btn btn-primary"><i class="fa-solid fa-plus"></i> إضافة صنف جديد</button>
+                </div>
+                <div class="item-list-wrapper">
+                    <ul id="itemList" class="item-list">
+                        <li class="list-header-row">
+                            <span>الكود</span>
+                            <span>كود PLU</span>
+                            <span>الاسم</span>
+                            <span>الحالة</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal for Editing an Item -->
+    <div id="editItemModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header"><h2>تعديل بيانات الصنف</h2><button class="modal-close-btn">×</button></div>
+            <div class="modal-body">
+                <div class="form-grid">
+                    <div class="form-group full-width"><label>الاسم</label><div class="uneditable-display" id="nameDisplay"></div></div>
+                    <div class="form-group"><label>الكود</label><div class="uneditable-display" id="codeDisplay"></div></div>
+                    <div class="form-group"><label>الحالة الحالية</label><div class="uneditable-display" id="statusDisplay"></div></div>
+                </div>
+                <hr style="border:none; border-top: 1px solid var(--border-color); margin: 1.5rem 0;">
+                <div class="form-grid">
+                    <div class="form-group"><label for="costInput">التكلفة</label><input type="number" id="costInput" step="0.001" placeholder="أدخل التكلفة"></div>
+                    <div class="form-group"><label for="supplierInput">المورد</label><input type="text" id="supplierInput" placeholder="اسم المورد"></div>
+                    <div class="form-group"><label for="cairoMarginInput">نسبة القاهرة (%)</label><input type="number" id="cairoMarginInput" step="0.001" placeholder="أدخل النسبة"></div>
+                    <div class="form-group"><label for="coastMarginInput">نسبة الساحل (%)</label><input type="number" id="coastMarginInput" step="0.001" placeholder="أدخل النسبة"></div>
+                    <div class="form-group"><label for="cairoCostInput">سعر القاهرة</label><input type="number" id="cairoCostInput" step="0.001" placeholder="أدخل السعر يدوياً"></div>
+                    <div class="form-group"><label for="sahelCostInput">سعر الساحل</label><input type="number" id="sahelCostInput" step="0.001" placeholder="أدخل السعر يدوياً"></div>
+                    <div class="form-group"><label for="newStatusInput">الحالة الجديدة</label><select id="newStatusInput"><option value="" selected>بدون تغيير</option><option value="جاري">جاري</option><option value="موقوف">موقوف</option></select></div>
+                    <div class="form-group"><label for="expiryInput">صلاحية (يوم)</label><input type="number" id="expiryInput" placeholder="e.g., 30"></div>
+                </div>
+            </div>
+            <div class="modal-footer"><button class="btn btn-secondary modal-close-btn">إلغاء</button><button id="addButton" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> حفظ التغييرات</button></div>
         </div>
     </div>
 
-    <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+    <!-- Modal for Adding a New Item -->
+    <div id="addNewItemModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header"><h2>إضافة صنف جديد</h2><button class="modal-close-btn">×</button></div>
+            <div class="modal-body">
+                <div class="form-grid">
+                    <div class="form-group full-width"><label for="newItemName">اسم الصنف</label><input type="text" id="newItemName" placeholder="مثال: جبنة فيتا"></div>
+                    <div class="form-group"><label for="newItemCost">التكلفة</label><input type="number" id="newItemCost" step="0.001" placeholder="أدخل التكلفة"></div>
+                    <div class="form-group"><label for="newItemSupplier">المورد</label><input type="text" id="newItemSupplier" placeholder="اسم المورد"></div>
+                    <div class="form-group"><label for="newItemCairoMargin">نسبة القاهرة (%)</label><input type="number" id="newItemCairoMargin" step="0.001" placeholder="أدخل النسبة"></div>
+                    <div class="form-group"><label for="newItemCoastMargin">نسبة الساحل (%)</label><input type="number" id="newItemCoastMargin" step="0.001" placeholder="أدخل النسبة"></div>
+                    <div class="form-group"><label for="newItemCairoCost">سعر القاهرة</label><input type="number" id="newItemCairoCost" step="0.001" placeholder="أدخل السعر يدوياً"></div>
+                    <div class="form-group"><label for="newItemSahelCost">سعر الساحل</label><input type="number" id="newItemSahelCost" step="0.001" placeholder="أدخل السعر يدوياً"></div>
+                    <div class="form-group full-width"><label for="newItemExpiry">صلاحية (يوم)</label><input type="number" id="newItemExpiry" placeholder="e.g., 90"></div>
+                </div>
+            </div>
+            <div class="modal-footer"><button class="btn btn-secondary modal-close-btn">إلغاء</button><button id="addNewItemButton" class="btn btn-primary"><i class="fa-solid fa-plus"></i> إضافة الصنف</button></div>
+        </div>
+    </div>
+
+    <!-- Pending Changes Panel -->
+    <div id="pendingChangesPanel" class="pending-changes-panel">
+        <div class="panel-header" onclick="togglePanel()"><h3><i class="fa-solid fa-list-check"></i> التغييرات المعلقة (<span id="changesCount">0</span>)</h3><i id="panelToggleIcon" class="fa-solid fa-chevron-up panel-toggle-icon"></i></div>
+        <div class="panel-content">
+            <div class="panel-actions"><button id="extractButton" class="btn btn-secondary"><i class="fas fa-file-excel"></i> Excel</button><button id="saveImageButton" class="btn btn-secondary"><i class="fas fa-file-image"></i> صورة</button><button id="clearTableButton" class="btn btn-danger"><i class="fas fa-trash-alt"></i> مسح الكل</button></div>
+            <div id="editChanges" class="table-wrapper"><h4>تعديلات الأسعار</h4><table id="dataTable"><thead><tr><th>الكود</th><th class="sticky-col-name">الاسم</th><th>التكلفة</th><th>القاهرة</th><th>الساحل</th><th>المورد</th><th>الحالة الجديدة</th><th>الصلاحية</th><th class="sticky-col-action">حذف</th></tr></thead><tbody id="dataTableBody"></tbody></table></div>
+            <hr style="border:none; border-top: 1px solid var(--border-color); margin: 1.5rem 0;">
+            <div id="newChanges" class="table-wrapper"><h4>أصناف جديدة</h4><table id="dataTableNewItem"><thead><tr><th class="sticky-col-name">الاسم</th><th>التكلفة</th><th>القاهرة</th><th>الساحل</th><th>المورد</th><th>الصلاحية</th><th class="sticky-col-action">حذف</th></tr></thead><tbody id="dataTableBodyNewItem"></tbody></table></div>
+        </div>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script>
-        // --- Configuration ---
-        // PASTE YOUR DEPLOYED WEB APP URL HERE
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzRjhg14sJxi9Qbf-ar_5-2eYglz6gjzyefBarYAk4PGO00J_gmCqzi1iDN9RyZdyBj/exec';
+        document.addEventListener('DOMContentLoaded', () => {
+            initTheme();
+            initModalClosers();
+            fetchDataFromGoogleSheet();
+            setupEventListeners(); // Consolidated event listener setup
+        });
 
-        // --- Global Variables ---
         let database = [];
-        let currentItem = null;
-        let enteredRecords = [];
-        let headerMap = {};
-        const barcodeHeader = 'barcode';
+        let selectedItem = null;
+        const googleSheetURL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRfw5j64mu2wbzx-22AGTlXGWKgCKnssOPjNHrQ6xo-_zDBloRVL2DoTmWSKPFfzg/pub?output=csv';
 
-        // --- Get HTML Elements ---
-        const searchBarcodeInput = document.getElementById('searchBarcodeInput');
-        const searchButton = document.getElementById('searchButton');
-        const searchResultTable = document.getElementById('searchResultTable');
-        const searchResultTableBody = document.getElementById('searchResultTableBody');
-        const expiryInputs = document.getElementById('expiryInputs');
-        const addExpiryButton = document.getElementById('addExpiryButton');
-        const saveButton = document.getElementById('saveButton');
-        const clearFieldsButton = document.getElementById('clearFieldsButton');
-        const recordTableBody = document.getElementById('recordTableBody');
-        const exportButton = document.getElementById('exportButton');
-        const viewDataButton = document.getElementById('viewDataButton');
-        const clearDatabaseButton = document.getElementById('clearDatabaseButton');
-        const dataPopup = document.getElementById('dataPopup');
-        const currentDateDisplay = document.getElementById('currentDateDisplay');
-        const closePopup = document.querySelector('.closePopup');
-
-        // --- Utility Functions ---
-        function getCurrentDateTime() {
-            const now = new Date();
-            const day = String(now.getDate()).padStart(2, '0');
-            const month = String(now.getMonth() + 1).padStart(2, '0');
-            const year = now.getFullYear();
-            const hours = String(now.getHours()).padStart(2, '0');
-            const minutes = String(now.getMinutes()).padStart(2, '0');
-            return `${day}/${month}/${year} ${hours}:${minutes}`;
-        }
-        
-        async function apiCall(action, payload = {}) {
-            try {
-                const response = await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    redirect: 'follow', // Important for Apps Script
-                    body: JSON.stringify({ action, payload })
-                });
-                const result = await response.json();
-                if (result.status !== 'success') {
-                    throw new Error(result.message);
-                }
-                return result.data;
-            } catch (error) {
-                console.error(`Error during API call for action '${action}':`, error);
-                alert(`An error occurred: ${error.message}. Please check the console.`);
-                throw error; // Re-throw to stop further execution
-            }
-        }
-
-        // --- Data Initialization ---
-        async function initializeData() {
-            currentDateDisplay.textContent = `Date: ${getCurrentDateTime().split(' ')[0]}`;
-            
-            try {
-                // Fetch both product list and entered records in parallel
-                const [productsData, recordsData] = await Promise.all([
-                    apiCall('getProducts'),
-                    apiCall('getRecords')
-                ]);
-
-                // Process Product List
-                if (!productsData || productsData.length < 2) {
-                     throw new Error("No product data received from the backend.");
-                }
-                const headers = productsData[0];
-                if (!headers.includes(barcodeHeader)) {
-                    throw new Error(`The required header '${barcodeHeader}' was not found in your master Products sheet.`);
-                }
-                headers.forEach((header, index) => { headerMap[header] = index; });
-                database = productsData.slice(1);
-                console.log("Master product list loaded.");
-                
-                // Process Entered Records
-                enteredRecords = recordsData;
-                renderEnteredRecords();
-                console.log("Entered records loaded.");
-
-                // Enable UI
-                alert('Application data loaded successfully!');
-                viewDataButton.disabled = false;
-                searchButton.disabled = false;
-
-            } catch (error) {
-                // This will catch errors from either API call
-                console.error("Failed to initialize application:", error);
-                alert("Could not initialize the application. Please ensure your script URL is correct and check the developer console for more details.");
-            }
-        }
-        
-        initializeData();
-
-        // --- Search Functionality ---
-        searchButton.addEventListener('click', () => {
-            const barcode = searchBarcodeInput.value.trim();
-            if(!barcode) return alert('Please enter a barcode to search!');
-            if(database.length === 0) return alert('Main inventory data has not loaded yet.');
-
-            const barcodeIndex = headerMap[barcodeHeader];
-            const foundItem = database.find(item => item[barcodeIndex] && item[barcodeIndex].toString() === barcode);
-            
-            if (foundItem) {
-                currentItem = foundItem;
-                renderSearchResultTable(foundItem);
-                expiryInputs.innerHTML = '';
-                addExpiryEntry();
-                saveButton.disabled = false;
-            } else {
-                alert("No item found with this barcode!");
-                currentItem = null;
-                searchResultTable.style.display = 'none';
-                expiryInputs.innerHTML = '';
-                saveButton.disabled = true;
-            }
-        });
-
-        function renderSearchResultTable(foundItem) {
-            const head = searchResultTable.querySelector('thead');
-            head.innerHTML = '<tr>' + Object.keys(headerMap).map(h => `<th>${h}</th>`).join('') + '</tr>';
-            
-            searchResultTableBody.innerHTML = '<tr>' + Object.keys(headerMap).map(h => `<td>${foundItem[headerMap[h]] || ''}</td>`).join('') + '</tr>';
-            searchResultTable.style.display = 'table';
-        }
-
-        // --- Expiry Date Management ---
-        addExpiryButton.addEventListener('click', addExpiryEntry);
-        function addExpiryEntry() { /* ... function remains the same ... */ }
-        function isValidDate(dateString) { /* ... function remains the same ... */ }
-        
-        // --- Save, Clear, Export Functions (pointing to API) ---
-        saveButton.addEventListener('click', async () => {
-            if (!currentItem) return alert("Please search for an item first.");
-            // Validation logic... (remains the same)
-
-            const itemData = {};
-            Object.keys(headerMap).forEach(header => {
-                itemData[header] = currentItem[headerMap[header]];
+        function initTheme() {
+            const themeToggle = document.getElementById('checkbox');
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            themeToggle.checked = savedTheme === 'dark';
+            themeToggle.addEventListener('change', function() {
+                const theme = this.checked ? 'dark' : 'light';
+                document.documentElement.setAttribute('data-theme', theme);
+                localStorage.setItem('theme', theme);
             });
-
-            const existingRecordIndex = enteredRecords.findIndex(rec => rec[barcodeHeader] === itemData[barcodeHeader]);
-            let recordToSave = existingRecordIndex > -1 ? {...enteredRecords[existingRecordIndex]} : { ...itemData };
-            
-            // Logic to add expiry dates to recordToSave... (remains the same)
-            recordToSave.recordTime = getCurrentDateTime();
-            
-            saveButton.disabled = true;
-            saveButton.innerHTML = '<span class="material-icons">hourglass_top</span> Saving...';
-            try {
-                await apiCall('saveRecord', recordToSave);
-                alert('Entry saved successfully!');
-                
-                // Refresh local data
-                if (existingRecordIndex > -1) {
-                    enteredRecords[existingRecordIndex] = recordToSave;
-                } else {
-                    enteredRecords.push(recordToSave);
-                }
-                renderEnteredRecords();
-                clearFields();
-                searchBarcodeInput.value = '';
-                searchResultTable.style.display = 'none';
-            } catch(e) { /* Error already handled by apiCall */ }
-            finally {
-                saveButton.disabled = false;
-                saveButton.innerHTML = '<span class="material-icons">save</span>Save Entry';
-            }
-        });
-
-        clearDatabaseButton.addEventListener('click', async () => {
-            if (confirm("Are you sure you want to clear ALL entered records from the backend? This cannot be undone.")) {
-                try {
-                    await apiCall('clearRecords');
-                    enteredRecords = [];
-                    renderEnteredRecords();
-                    alert("All entered records have been cleared from the backend.");
-                } catch(e) { /* Error handled */ }
-            }
-        });
-
-        exportButton.addEventListener('click', async () => {
-            if (enteredRecords.length === 0) return alert('No records to export.');
-            if (confirm("This will export all records to an Excel file and then CLEAR them from the backend. Continue?")) {
-                const worksheet = XLSX.utils.json_to_sheet(enteredRecords);
-                const workbook = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(workbook, worksheet, 'Inventory Records');
-                XLSX.writeFile(workbook, `inventory_records_${getCurrentDateTime().split(' ')[0].replace(/\//g, '-')}.xlsx`);
-                
-                alert('Data exported. Now clearing backend records...');
-                await clearDatabaseButton.click(); // Re-use the clear button logic
-            }
-        });
+        }
         
-        // --- Full implementation of smaller functions ---
-        function addExpiryEntry() {
-            const entryDiv = document.createElement('div');
-            entryDiv.className = 'expiry-input-group';
-            entryDiv.innerHTML = `<input type="text" placeholder="Expiry Date (dd/mm/yyyy)"><input type="number" placeholder="Quantity" min="1"><button class="remove-button"><span class="material-icons">remove_circle_outline</span></button>`;
-            const dateInput = entryDiv.querySelector('input[type="text"]');
-            dateInput.addEventListener('input', (e) => {
-                let val = e.target.value.replace(/\D/g, '');
-                if (val.length > 2) val = val.slice(0, 2) + '/' + val.slice(2);
-                if (val.length > 5) val = val.slice(0, 5) + '/' + val.slice(5, 9);
-                e.target.value = val;
-            });
-            dateInput.addEventListener('blur', (e) => { if (e.target.value && !isValidDate(e.target.value)) { alert('Invalid date! Must be dd/mm/yyyy and in the future.'); e.target.value = ''; } });
-            entryDiv.querySelector('.remove-button').addEventListener('click', () => entryDiv.remove());
-            expiryInputs.appendChild(entryDiv);
+        function showHomepage() {
+            document.getElementById('homepage').style.display = 'flex';
+            document.getElementById('workspace').style.display = 'none';
         }
-        function isValidDate(dateString) {
-            if (!/^\d{2}\/\d{2}\/\d{4}$/.test(dateString)) return false;
-            const [day, month, year] = dateString.split('/').map(Number);
-            const date = new Date(year, month - 1, day);
-            if (date.getFullYear() !== year || date.getMonth() + 1 !== month || date.getDate() !== day) return false;
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            return date > today;
+        function showWorkspace(mode) {
+            document.getElementById('homepage').style.display = 'none';
+            document.getElementById('workspace').style.display = 'flex';
+            if (mode === 'add') openModal(document.getElementById('addNewItemModal'));
         }
-        function clearFields() { expiryInputs.innerHTML = ''; }
-        function renderEnteredRecords() {
-            const tableHead = recordTable.querySelector('thead');
-            const tableBody = recordTable.querySelector('tbody');
-            tableHead.innerHTML = '';
-            tableBody.innerHTML = '';
-            if (enteredRecords.length === 0) {
-                tableBody.innerHTML = '<tr><td colspan="100%" style="text-align:center;color:#757575;">No records entered yet.</td></tr>';
-                exportButton.disabled = true;
-                clearDatabaseButton.disabled = true;
+        
+        function initModalClosers() {
+            document.querySelectorAll('.modal-overlay').forEach(o => o.addEventListener('click', e => { if (e.target === o) closeModal(o); }));
+            document.querySelectorAll('.modal-close-btn').forEach(b => b.addEventListener('click', () => closeModal(b.closest('.modal-overlay'))));
+        }
+        function openModal(modal) { modal.classList.add('active'); }
+        function closeModal(modal) { modal.classList.remove('active'); }
+
+        async function fetchDataFromGoogleSheet() {
+            try {
+                const response = await fetch(googleSheetURL);
+                const csvText = await response.text();
+                const rows = csvText.trim().split('\n');
+                const headers = rows[0].split(',').map(h => h.trim().toLowerCase());
+                const indices = {
+                    code: headers.indexOf('code'), plu: headers.indexOf('plu'), name: headers.indexOf('name'),
+                    status: headers.indexOf('status'), cairoMargin: headers.indexOf('cairo margin'), coastMargin: headers.indexOf('coast margin')
+                };
+                database = rows.slice(1).map(row => {
+                    const values = row.split(',');
+                    const cairoMargin = parseFloat(values[indices.cairoMargin]?.trim());
+                    const coastMargin = parseFloat(values[indices.coastMargin]?.trim());
+                    return {
+                        code: values[indices.code]?.trim() || '',
+                        pluCode: values[indices.plu]?.trim() || '',
+                        name: values[indices.name]?.trim() || '',
+                        status: values[indices.status]?.trim() || '',
+                        cairoMargin: !isNaN(cairoMargin) ? cairoMargin : 0,
+                        coastMargin: !isNaN(coastMargin) ? coastMargin : 0
+                    };
+                }).filter(item => item.code || item.name);
+                renderList(database);
+            } catch (error) {
+                console.error("Data Fetch Error:", error);
+                alert("حدث خطأ أثناء تحميل البيانات.");
+            }
+        }
+        
+        function renderList(listData) {
+            const itemList = document.getElementById('itemList');
+            const headerRow = itemList.querySelector('.list-header-row');
+            itemList.innerHTML = '';
+            itemList.appendChild(headerRow);
+            if (!listData.length) {
+                const li = document.createElement('li');
+                li.innerHTML = `<span>لا توجد نتائج</span>`;
+                li.style.gridColumn = 'span 4';
+                itemList.appendChild(li);
                 return;
             }
-            const allHeaders = new Set();
-            enteredRecords.forEach(record => Object.keys(record).forEach(key => allHeaders.add(key)));
-            const headerOrder = ['barcode', 'name', 'recordTime', ...[...allHeaders].filter(h => !['barcode', 'name', 'recordTime'].includes(h)).sort()];
-            tableHead.innerHTML = '<tr>' + headerOrder.filter(h => allHeaders.has(h)).map(h => `<th>${h}</th>`).join('') + '</tr>';
-            enteredRecords.forEach(record => {
-                const row = document.createElement('tr');
-                row.innerHTML = headerOrder.filter(h => allHeaders.has(h)).map(h => `<td>${record[h] || ''}</td>`).join('');
-                tableBody.appendChild(row);
+            listData.forEach(item => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <span>${item.code || 'N/A'}</span>
+                    <span>${item.pluCode || 'N/A'}</span>
+                    <span>${item.name || 'N/A'}</span>
+                    <span>${item.status || 'N/A'}</span>`;
+                li.addEventListener('click', () => selectItemForEditing(item));
+                itemList.appendChild(li);
             });
-            exportButton.disabled = false;
-            clearDatabaseButton.disabled = false;
         }
-        viewDataButton.addEventListener('click', () => {
-            if (database.length === 0) return alert("Main inventory data not loaded.");
-            const popupTable = document.getElementById('popupTable');
-            popupTable.innerHTML = '';
-            const headers = Object.keys(headerMap);
-            popupTable.innerHTML = '<thead><tr>' + headers.map(h => `<th>${h}</th>`).join('') + '</tr></thead><tbody>' +
-                database.map(rowArray => '<tr>' + headers.map(h => `<td>${rowArray[headerMap[h]] || ''}</td>`).join('') + '</tr>').join('') + '</tbody>';
-            dataPopup.style.display = 'flex';
-        });
-        closePopup.addEventListener('click', () => dataPopup.style.display = 'none');
-        window.addEventListener('click', (event) => { if (event.target === dataPopup) dataPopup.style.display = 'none'; });
-        searchBarcodeInput.addEventListener('keydown', (event) => { if (event.key === 'Enter') { event.preventDefault(); searchButton.click(); } });
-        window.addEventListener('load', () => searchBarcodeInput.focus());
+        
+        function selectItemForEditing(item) {
+            selectedItem = item;
+            document.getElementById('nameDisplay').textContent = item.name;
+            document.getElementById('codeDisplay').textContent = item.code;
+            document.getElementById('statusDisplay').textContent = item.status;
+            document.getElementById('cairoMarginInput').value = item.cairoMargin > 0 ? item.cairoMargin.toFixed(3) : '';
+            document.getElementById('coastMarginInput').value = item.coastMargin > 0 ? item.coastMargin.toFixed(3) : '';
+            resetEditModalInputs();
+            // REMOVED: Do not pre-calculate prices when the modal opens.
+            openModal(document.getElementById('editItemModal'));
+        }
+        
+        const formatDecimal = numStr => (!numStr || isNaN(parseFloat(numStr))) ? '' : parseFloat(numStr).toFixed(3);
+        const calculatePrice = (cost, margin) => (cost > 0 && margin >= 0 && margin < 100) ? cost / (1 - (margin / 100)) : 0;
+        
+        function updateCalculatedPrices(isNewItem) {
+            const costInput = document.getElementById(isNewItem ? 'newItemCost' : 'costInput');
+            const cairoMarginInput = document.getElementById(isNewItem ? 'newItemCairoMargin' : 'cairoMarginInput');
+            const coastMarginInput = document.getElementById(isNewItem ? 'newItemCoastMargin' : 'coastMarginInput');
+            const cairoCostOutput = document.getElementById(isNewItem ? 'newItemCairoCost' : 'cairoCostInput');
+            const sahelCostOutput = document.getElementById(isNewItem ? 'newItemSahelCost' : 'sahelCostInput');
+
+            const cost = parseFloat(costInput.value);
+            if (isNaN(cost) || cost <= 0) {
+                if (costInput.value.trim() === '') {
+                    cairoCostOutput.value = '';
+                    sahelCostOutput.value = '';
+                }
+                return;
+            }
+
+            const cairoPrice = calculatePrice(cost, parseFloat(cairoMarginInput.value));
+            const sahelPrice = calculatePrice(cost, parseFloat(coastMarginInput.value));
+            cairoCostOutput.value = cairoPrice > 0 ? cairoPrice.toFixed(3) : '';
+            sahelCostOutput.value = sahelPrice > 0 ? sahelPrice.toFixed(3) : '';
+        }
+
+        // --- NEW FUNCTION ---
+        // Handles the cost input for the edit modal, prompting the user for action.
+        function handleCostInput() {
+            const costInput = document.getElementById('costInput');
+            const cost = parseFloat(costInput.value);
+
+            if (isNaN(cost) || cost <= 0) {
+                document.getElementById('cairoCostInput').value = '';
+                document.getElementById('sahelCostInput').value = '';
+                return;
+            }
+            
+            const cairoMarginInput = document.getElementById('cairoMarginInput');
+            const coastMarginInput = document.getElementById('coastMarginInput');
+            const hasCairoMargin = cairoMarginInput.value.trim() !== '' && !isNaN(parseFloat(cairoMarginInput.value));
+            const hasCoastMargin = coastMarginInput.value.trim() !== '' && !isNaN(parseFloat(coastMarginInput.value));
+
+            // Only prompt if there are existing margins to apply.
+            if (hasCairoMargin || hasCoastMargin) {
+                if (confirm("هل تريد حساب سعر البيع من النسبة المسجلة سابقا؟")) {
+                    // User confirmed. Calculate prices based on the new cost and existing margins.
+                    updateCalculatedPrices(false);
+                } else {
+                    // User declined. Clear price fields to allow for manual entry.
+                    document.getElementById('cairoCostInput').value = '';
+                    document.getElementById('sahelCostInput').value = '';
+                }
+            }
+        }
+
+        function setupEventListeners() {
+            document.getElementById('searchInput').addEventListener('input', e => {
+                const term = e.target.value.toLowerCase();
+                const filtered = database.filter(item => Object.values(item).some(val => String(val).toLowerCase().includes(term)));
+                renderList(filtered);
+            });
+
+            document.getElementById('showAddItemModalBtn').addEventListener('click', () => openModal(document.getElementById('addNewItemModal')));
+
+            // --- UPDATED EVENT LISTENERS ---
+            // Use 'change' event for cost input to prompt user only after they finish entering the value.
+            document.getElementById('costInput').addEventListener('change', handleCostInput); 
+            
+            // For the edit modal, if margins are changed, update prices instantly if a cost is present.
+            ['cairoMarginInput', 'coastMarginInput'].forEach(id => {
+                document.getElementById(id).addEventListener('input', () => updateCalculatedPrices(false));
+            });
+
+            // Keep original instant calculation behavior for the "Add New Item" modal.
+            ['newItemCost', 'newItemCairoMargin', 'newItemCoastMargin'].forEach(id => {
+                document.getElementById(id).addEventListener('input', () => updateCalculatedPrices(true));
+            });
+
+            document.getElementById('addButton').addEventListener('click', () => {
+                if (!selectedItem) { alert('الرجاء اختيار صنف أولاً.'); return; }
+                const tableBody = document.getElementById('dataTableBody');
+                const newRow = tableBody.insertRow();
+                newRow.innerHTML = `
+                    <td>${selectedItem.code}</td>
+                    <td class="sticky-col-name">${selectedItem.name}</td>
+                    <td>${formatDecimal(document.getElementById('costInput').value)}</td>
+                    <td>${formatDecimal(document.getElementById('cairoCostInput').value)}</td>
+                    <td>${formatDecimal(document.getElementById('sahelCostInput').value)}</td>
+                    <td>${document.getElementById('supplierInput').value}</td>
+                    <td>${document.getElementById('newStatusInput').value || 'بدون تغيير'}</td>
+                    <td>${document.getElementById('expiryInput').value || ''}</td>
+                    <td class="sticky-col-action"><i class="fas fa-trash-alt delete-icon"></i></td>`;
+                newRow.querySelector('.delete-icon').onclick = () => { newRow.remove(); updateChangesCount(); };
+                closeModal(document.getElementById('editItemModal'));
+                updateChangesCount();
+                if (!document.getElementById('pendingChangesPanel').classList.contains('open')) togglePanel();
+            });
+            
+            document.getElementById('addNewItemButton').addEventListener('click', () => {
+                const name = document.getElementById('newItemName').value;
+                if (!name.trim()) { alert('الرجاء إدخال اسم الصنف.'); return; }
+                const tableBody = document.getElementById('dataTableBodyNewItem');
+                const newRow = tableBody.insertRow();
+                newRow.innerHTML = `
+                    <td class="sticky-col-name">${name}</td>
+                    <td>${formatDecimal(document.getElementById('newItemCost').value)}</td>
+                    <td>${formatDecimal(document.getElementById('newItemCairoCost').value)}</td>
+                    <td>${formatDecimal(document.getElementById('newItemSahelCost').value)}</td>
+                    <td>${document.getElementById('newItemSupplier').value}</td>
+                    <td>${document.getElementById('newItemExpiry').value || ''}</td>
+                    <td class="sticky-col-action"><i class="fas fa-trash-alt delete-icon"></i></td>`;
+                newRow.querySelector('.delete-icon').onclick = () => { newRow.remove(); updateChangesCount(); };
+                closeModal(document.getElementById('addNewItemModal'));
+                resetAddModal();
+                updateChangesCount();
+                if (!document.getElementById('pendingChangesPanel').classList.contains('open')) togglePanel();
+            });
+
+            document.getElementById('clearTableButton').addEventListener('click', () => {
+                document.getElementById('dataTableBody').innerHTML = '';
+                document.getElementById('dataTableBodyNewItem').innerHTML = '';
+                updateChangesCount();
+            });
+
+            document.getElementById('extractButton').addEventListener('click', () => {
+                const wb = XLSX.utils.book_new();
+                if (document.getElementById('dataTableBody').rows.length > 0) {
+                    const ws1 = XLSX.utils.table_to_sheet(document.getElementById('dataTable'));
+                    XLSX.utils.book_append_sheet(wb, ws1, "تعديلات الأسعار");
+                }
+                if (document.getElementById('dataTableBodyNewItem').rows.length > 0) {
+                    const ws2 = XLSX.utils.table_to_sheet(document.getElementById('dataTableNewItem'));
+                    XLSX.utils.book_append_sheet(wb, ws2, "أصناف جديدة");
+                }
+                if (wb.SheetNames.length > 0) XLSX.writeFile(wb, "grocery_changes.xlsx");
+                else alert("لا توجد تغييرات للتصدير.");
+            });
+            
+            document.getElementById('saveImageButton').addEventListener('click', () => {
+                const captureContainer = document.createElement('div');
+                captureContainer.style.position = 'absolute';
+                captureContainer.style.left = '-9999px';
+                captureContainer.style.top = '0';
+                captureContainer.style.width = '1200px';
+                captureContainer.style.direction = 'rtl';
+                captureContainer.style.padding = '1.5rem';
+                captureContainer.style.background = document.documentElement.getAttribute('data-theme') === 'dark' ? 
+                    'linear-gradient(135deg, #1e293b, #0f172a)' : 
+                    'linear-gradient(135deg, #f0f9ff, #e0f2fe)';
+                
+                let contentAdded = false;
+                const editTableRows = document.getElementById('dataTableBody').rows.length;
+                const newItemTableRows = document.getElementById('dataTableBodyNewItem').rows.length;
+
+                if (editTableRows > 0) {
+                    const editChangesWrapper = document.getElementById('editChanges');
+                    captureContainer.appendChild(editChangesWrapper.cloneNode(true));
+                    contentAdded = true;
+                }
+
+                if (editTableRows > 0 && newItemTableRows > 0) {
+                    const separator = document.createElement('hr');
+                    separator.style.border = 'none';
+                    separator.style.borderTop = '1px solid var(--border-color)';
+                    separator.style.margin = '1.5rem 0';
+                    captureContainer.appendChild(separator);
+                }
+
+                if (newItemTableRows > 0) {
+                    const newChangesWrapper = document.getElementById('newChanges');
+                    captureContainer.appendChild(newChangesWrapper.cloneNode(true));
+                    contentAdded = true;
+                }
+
+                if (!contentAdded) {
+                    alert('لا توجد بيانات لحفظها كصورة.');
+                    return;
+                }
+                
+                document.body.appendChild(captureContainer);
+                
+                const isDarkMode = document.documentElement.getAttribute('data-theme') === 'dark';
+                html2canvas(captureContainer, {
+                    scale: 2,
+                    useCORS: true,
+                    backgroundColor: isDarkMode ? '#0f172a' : '#f0f9ff'
+                }).then(canvas => {
+                    const link = document.createElement('a');
+                    link.download = 'pending_changes.png';
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                }).catch(err => {
+                    console.error('Image capture failed:', err);
+                    alert('حدث خطأ أثناء حفظ الصورة.');
+                }).finally(() => {
+                    document.body.removeChild(captureContainer);
+                });
+            });
+        }
+        
+        function resetEditModalInputs() { ['costInput', 'supplierInput', 'cairoCostInput', 'sahelCostInput', 'newStatusInput', 'expiryInput'].forEach(id => document.getElementById(id).value = ''); }
+        function resetAddModal() { document.getElementById('addNewItemModal').querySelectorAll('input, select').forEach(el => el.value = ''); }
+        function togglePanel() { document.getElementById('pendingChangesPanel').classList.toggle('open'); }
+        function updateChangesCount() { document.getElementById('changesCount').textContent = document.getElementById('dataTableBody').rows.length + document.getElementById('dataTableBodyNewItem').rows.length; }
     </script>
 </body>
 </html>
