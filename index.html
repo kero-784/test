@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced Grocery Data Entry</title>
+    <title> Grocery Data Entry</title>
     <!-- Google Fonts: Poppins -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -299,7 +299,10 @@
 
         let database = [];
         let selectedItem = null;
-        const googleSheetURL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRfw5j64mu2wbzx-22AGTlXGWKgCKnssOPjNHrQ6xo-_zDBloRVL2DoTmWSKPFfzg/pub?output=csv';
+        
+        // --- IMPORTANT ---
+        // PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL HERE
+        const googleSheetURL = 'https://script.google.com/macros/s/AKfycby6TfvR6G8J_5ltXaJO_bX1FkJLMhdKH6SI9Z1fLNk5cGYXZjaUJHsb5Te4k6hMT1zp3g/exec';
 
         function initTheme() {
             const themeToggle = document.getElementById('checkbox');
@@ -330,33 +333,42 @@
         function openModal(modal) { modal.classList.add('active'); }
         function closeModal(modal) { modal.classList.remove('active'); }
 
+        // --- UPDATED DATA FETCHING FUNCTION ---
         async function fetchDataFromGoogleSheet() {
+            if (googleSheetURL === 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL') {
+                alert("الرجاء تحديث رابط Google Apps Script في الكود أولاً.");
+                return;
+            }
             try {
                 const response = await fetch(googleSheetURL);
-                const csvText = await response.text();
-                const rows = csvText.trim().split('\n');
-                const headers = rows[0].split(',').map(h => h.trim().toLowerCase());
-                const indices = {
-                    code: headers.indexOf('code'), plu: headers.indexOf('plu'), name: headers.indexOf('name'),
-                    status: headers.indexOf('status'), cairoMargin: headers.indexOf('cairo margin'), coastMargin: headers.indexOf('coast margin')
-                };
-                database = rows.slice(1).map(row => {
-                    const values = row.split(',');
-                    const cairoMargin = parseFloat(values[indices.cairoMargin]?.trim());
-                    const coastMargin = parseFloat(values[indices.coastMargin]?.trim());
+                if (!response.ok) {
+                    throw new Error(`Network response was not ok: ${response.statusText}`);
+                }
+                const data = await response.json();
+
+                if (data.error) { // Check for custom error from Apps Script
+                    throw new Error(`Google Sheet script error: ${data.error}`);
+                }
+
+                // Map the JSON data from Google Apps Script to the app's internal format
+                database = data.map(item => {
+                    const cairoMargin = parseFloat(item.cairoMargin);
+                    const coastMargin = parseFloat(item.coastMargin);
                     return {
-                        code: values[indices.code]?.trim() || '',
-                        pluCode: values[indices.plu]?.trim() || '',
-                        name: values[indices.name]?.trim() || '',
-                        status: values[indices.status]?.trim() || '',
+                        code: item.code?.toString().trim() || '',
+                        pluCode: item.plu?.toString().trim() || '', // Map 'plu' to 'pluCode'
+                        name: item.name?.toString().trim() || '',
+                        status: item.status?.toString().trim() || '',
                         cairoMargin: !isNaN(cairoMargin) ? cairoMargin : 0,
-                        coastMargin: !isNaN(coastMargin) ? coastMargin : 0
+                        coastMargin: !isNaN(coastMargin) ? coastMargin : 0,
+                        barcode: item.barcode?.toString().trim() || '' // Store barcode for potential future use
                     };
-                }).filter(item => item.code || item.name);
+                }).filter(item => item.code || item.name); // Filter out empty rows
+
                 renderList(database);
             } catch (error) {
                 console.error("Data Fetch Error:", error);
-                alert("حدث خطأ أثناء تحميل البيانات.");
+                alert(`حدث خطأ أثناء تحميل البيانات: ${error.message}`);
             }
         }
         
@@ -392,7 +404,6 @@
             document.getElementById('cairoMarginInput').value = item.cairoMargin > 0 ? item.cairoMargin.toFixed(3) : '';
             document.getElementById('coastMarginInput').value = item.coastMargin > 0 ? item.coastMargin.toFixed(3) : '';
             resetEditModalInputs();
-            // REMOVED: Do not pre-calculate prices when the modal opens.
             openModal(document.getElementById('editItemModal'));
         }
         
@@ -421,8 +432,6 @@
             sahelCostOutput.value = sahelPrice > 0 ? sahelPrice.toFixed(3) : '';
         }
 
-        // --- NEW FUNCTION ---
-        // Handles the cost input for the edit modal, prompting the user for action.
         function handleCostInput() {
             const costInput = document.getElementById('costInput');
             const cost = parseFloat(costInput.value);
@@ -438,13 +447,10 @@
             const hasCairoMargin = cairoMarginInput.value.trim() !== '' && !isNaN(parseFloat(cairoMarginInput.value));
             const hasCoastMargin = coastMarginInput.value.trim() !== '' && !isNaN(parseFloat(coastMarginInput.value));
 
-            // Only prompt if there are existing margins to apply.
             if (hasCairoMargin || hasCoastMargin) {
                 if (confirm("هل تريد حساب سعر البيع من النسبة المسجلة سابقا؟")) {
-                    // User confirmed. Calculate prices based on the new cost and existing margins.
                     updateCalculatedPrices(false);
                 } else {
-                    // User declined. Clear price fields to allow for manual entry.
                     document.getElementById('cairoCostInput').value = '';
                     document.getElementById('sahelCostInput').value = '';
                 }
@@ -459,17 +465,12 @@
             });
 
             document.getElementById('showAddItemModalBtn').addEventListener('click', () => openModal(document.getElementById('addNewItemModal')));
-
-            // --- UPDATED EVENT LISTENERS ---
-            // Use 'change' event for cost input to prompt user only after they finish entering the value.
             document.getElementById('costInput').addEventListener('change', handleCostInput); 
             
-            // For the edit modal, if margins are changed, update prices instantly if a cost is present.
             ['cairoMarginInput', 'coastMarginInput'].forEach(id => {
                 document.getElementById(id).addEventListener('input', () => updateCalculatedPrices(false));
             });
 
-            // Keep original instant calculation behavior for the "Add New Item" modal.
             ['newItemCost', 'newItemCairoMargin', 'newItemCoastMargin'].forEach(id => {
                 document.getElementById(id).addEventListener('input', () => updateCalculatedPrices(true));
             });
