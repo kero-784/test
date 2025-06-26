@@ -50,7 +50,7 @@
 
     <script>
         // --- CONFIGURATION ---
-        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyOn1yUO0NbhuYCTI7SEUdWcIn80OVTxHpoed5mqmQuMP4PSbrBGksoQY2Ocft0HCmEuQ/exec'; 
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyZALo_LWOQ8sgtLZ4aVLVHMteKLt8orx5MY-TPZSCgE6gFTK_1jvt9GYP477r4OSKW8Q/exec'; 
 
         // --- DOM ELEMENTS ---
         const loader = document.getElementById('loader');
@@ -107,7 +107,26 @@
         // --- CORE FUNCTIONS ---
         const showLoader = (show) => { loader.style.display = show ? 'block' : 'none'; };
         const showToast = (message, type = 'success') => { const toast = document.createElement('div'); toast.className = `toast ${type}`; toast.textContent = message; toastContainer.appendChild(toast); setTimeout(() => { toast.classList.add('exit'); toast.addEventListener('animationend', () => toast.remove()); }, 5000); };
-        const renderSuppliers = (suppliers) => { supplierGrid.innerHTML = ''; if (!suppliers || suppliers.length === 0) { const message = searchInput.value ? 'No suppliers match your search.' : 'No suppliers found. Click "Add Supplier" to start!'; supplierGrid.innerHTML = `<p id="no-suppliers-msg">${message}</p>`; return; } suppliers.forEach(supplier => { const card = document.createElement('div'); card.className = 'supplier-card'; card.dataset.code = supplier.SupplierCode; card.innerHTML = `<div class="card-header"><h3>${supplier.SupplierName||'N/A'}</h3><span class="code">${supplier.SupplierCode||'N/A'}</span></div><div class="card-body"><p><strong>Invoice Discount:</strong> ${supplier.InvoiceDiscount||0}%</p><p><strong>Return Period:</strong> ${supplier.ReturnPeriod||0} days</p></div><div class="card-footer"><button class="btn btn-edit">Edit</button><button class="btn btn-delete">Delete</button></div>`; supplierGrid.appendChild(card); }); };
+        
+        // --- CHANGE 1: Corrected percentage display ---
+        const renderSuppliers = (suppliers) => { 
+            supplierGrid.innerHTML = ''; 
+            if (!suppliers || suppliers.length === 0) { 
+                const message = searchInput.value ? 'No suppliers match your search.' : 'No suppliers found. Click "Add Supplier" to start!'; 
+                supplierGrid.innerHTML = `<p id="no-suppliers-msg">${message}</p>`; 
+                return; 
+            } 
+            suppliers.forEach(supplier => { 
+                const card = document.createElement('div'); 
+                card.className = 'supplier-card'; 
+                card.dataset.code = supplier.SupplierCode; 
+                // Convert decimal to percentage for display (e.g., 0.1 -> 10)
+                const discountPercent = (parseFloat(supplier.InvoiceDiscount || 0) * 100).toFixed(2).replace(/\.00$/, '');
+                
+                card.innerHTML = `<div class="card-header"><h3>${supplier.SupplierName||'N/A'}</h3><span class="code">${supplier.SupplierCode||'N/A'}</span></div><div class="card-body"><p><strong>Invoice Discount:</strong> ${discountPercent}%</p><p><strong>Return Period:</strong> ${supplier.ReturnPeriod||0} days</p></div><div class="card-footer"><button class="btn btn-edit">Edit</button><button class="btn btn-delete">Delete</button></div>`; 
+                supplierGrid.appendChild(card); 
+            }); 
+        };
 
         const fetchSuppliers = async () => {
             logToUI("Attempting to fetch all suppliers...", "info");
@@ -136,7 +155,6 @@
             }
         };
         
-        // --- UPDATED AND SIMPLIFIED POSTDATA FUNCTION ---
         const postData = async (action, data) => {
             logToUI(`Attempting to POST action: '${action}'...`, "info");
             showLoader(true);
@@ -148,7 +166,6 @@
                 const response = await fetch(GOOGLE_SCRIPT_URL, {
                     method: 'POST',
                     body: JSON.stringify(payload),
-                    // The 'headers' property is intentionally removed to avoid preflight issues.
                 });
 
                 logToUI(`Received response from server. Status: ${response.status}`, "info");
@@ -172,12 +189,46 @@
             }
         };
 
-        const handleFormSubmit = (e) => { e.preventDefault(); const mode = document.getElementById('formMode').value; const supplierData = { SupplierCode: document.getElementById('supplierCode').value.trim(), SupplierName: document.getElementById('supplierName').value.trim(), InvoiceDiscount: document.getElementById('invoiceDiscount').value, ReturnPeriod: document.getElementById('returnPeriod').value, }; const action = mode === 'add' ? 'create' : 'update'; if (mode === 'edit') { supplierData.originalSupplierCode = document.getElementById('originalSupplierCode').value; } postData(action, supplierData); };
+        // --- CHANGE 2: Correctly handle form submission data ---
+        const handleFormSubmit = (e) => { 
+            e.preventDefault(); 
+            const mode = document.getElementById('formMode').value; 
+            const supplierData = { 
+                SupplierCode: document.getElementById('supplierCode').value.trim(), 
+                SupplierName: document.getElementById('supplierName').value.trim(), 
+                // Convert user input (e.g., 10) to a decimal (0.1) before sending
+                InvoiceDiscount: parseFloat(document.getElementById('invoiceDiscount').value || 0) / 100,
+                ReturnPeriod: document.getElementById('returnPeriod').value, 
+            }; 
+            const action = mode === 'add' ? 'create' : 'update'; 
+            if (mode === 'edit') { 
+                supplierData.originalSupplierCode = document.getElementById('originalSupplierCode').value; 
+            } 
+            postData(action, supplierData); 
+        };
         const handleDelete = (supplierCode) => { if (!confirm(`Delete supplier ${supplierCode}?`)) return; postData('delete', { supplierCode }); };
-        const showModal = (mode = 'add', supplier = null) => { document.getElementById('formMode').value = mode; supplierForm.reset(); if (mode === 'add') { document.getElementById('modalTitle').textContent = 'Add New Supplier'; document.getElementById('supplierCode').disabled = false; } else if (mode === 'edit' && supplier) { document.getElementById('modalTitle').textContent = 'Edit Supplier'; document.getElementById('supplierCode').value = supplier.SupplierCode; document.getElementById('supplierName').value = supplier.SupplierName; document.getElementById('invoiceDiscount').value = supplier.InvoiceDiscount; document.getElementById('returnPeriod').value = supplier.ReturnPeriod; document.getElementById('originalSupplierCode').value = supplier.SupplierCode; document.getElementById('supplierCode').disabled = false; } modal.classList.add('show'); };
+        
+        // --- CHANGE 3: Correctly populate the form for editing ---
+        const showModal = (mode = 'add', supplier = null) => { 
+            document.getElementById('formMode').value = mode; 
+            supplierForm.reset(); 
+            if (mode === 'add') { 
+                document.getElementById('modalTitle').textContent = 'Add New Supplier'; 
+                document.getElementById('supplierCode').disabled = false; 
+            } else if (mode === 'edit' && supplier) { 
+                document.getElementById('modalTitle').textContent = 'Edit Supplier'; 
+                document.getElementById('supplierCode').value = supplier.SupplierCode; 
+                document.getElementById('supplierName').value = supplier.SupplierName; 
+                // Convert decimal (e.g., 0.1) to a whole number (10) for the form input
+                document.getElementById('invoiceDiscount').value = (parseFloat(supplier.InvoiceDiscount || 0) * 100); 
+                document.getElementById('returnPeriod').value = supplier.ReturnPeriod; 
+                document.getElementById('originalSupplierCode').value = supplier.SupplierCode; 
+                document.getElementById('supplierCode').disabled = false; 
+            } 
+            modal.classList.add('show'); 
+        };
         const hideModal = () => { modal.classList.remove('show'); };
         
-        // --- FIXED SEARCH FUNCTION ---
         const handleFilter = (e) => { const searchTerm = e.target.value.toLowerCase(); const filteredSuppliers = allSuppliers.filter(s => String(s.SupplierName || '').toLowerCase().includes(searchTerm) || String(s.SupplierCode || '').toLowerCase().includes(searchTerm)); renderSuppliers(filteredSuppliers); };
         
         // --- EVENT LISTENERS ---
