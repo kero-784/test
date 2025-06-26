@@ -1,392 +1,285 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title> Grocery Data Entry</title>
-    <!-- Google Fonts: Poppins -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Font Awesome CDN -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <title>Supplier Management Hub</title>
     <style>
-        /* CSS Variables for Theming */
-        :root {
-            --font-family: 'Poppins', sans-serif;
-            --primary-color: #4f46e5;
-            --primary-hover: #4338ca;
-            --danger-color: #dc2626;
-            
-            /* Light Theme */
-            --bg-gradient-start: #f0f9ff;
-            --bg-gradient-end: #e0f2fe;
-            --card-bg: rgba(255, 255, 255, 0.9);
-            --text-primary: #1e293b;
-            --text-secondary: #475569;
-            --border-color: #e2e8f0;
-            --input-bg: #f8fafc;
-            --shadow-color: rgba(71, 85, 105, 0.1);
-            --sticky-shadow: rgba(0, 0, 0, 0.1);
-            --backdrop-color: rgba(248, 250, 252, 0.5);
-
-            --border-radius-lg: 16px;
-            --border-radius-md: 10px;
-            --transition-speed: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        [data-theme="dark"] {
-            --primary-color: #818cf8;
-            --primary-hover: #6366f1;
-            --bg-gradient-start: #1e293b;
-            --bg-gradient-end: #0f172a;
-            --card-bg: rgba(30, 41, 59, 0.9);
-            --text-primary: #f1f5f9;
-            --text-secondary: #94a3b8;
-            --border-color: #334155;
-            --input-bg: #334155;
-            --shadow-color: rgba(0, 0, 0, 0.2);
-            --sticky-shadow: rgba(0, 0, 0, 0.5);
-            --backdrop-color: rgba(15, 23, 42, 0.5);
-        }
-        
-        /* General & Layout */
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        html { scroll-behavior: smooth; }
-        body { font-family: var(--font-family); background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end)); color: var(--text-primary); min-height: 100vh; padding-bottom: 200px; }
-        .app-header { padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; }
-        .app-header h1 { font-size: 1.5rem; font-weight: 600; }
-        .header-actions { display: flex; align-items: center; gap: 1rem; }
-        
-        /* Homepage */
-        .homepage-container { display: flex; justify-content: center; align-items: center; gap: 1.5rem; padding: 2rem 1rem; flex-wrap: wrap; }
-        .homepage-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: var(--border-radius-lg); padding: 2rem; text-align: center; cursor: pointer; box-shadow: 0 4px 15px var(--shadow-color); backdrop-filter: blur(10px); transition: transform var(--transition-speed), box-shadow var(--transition-speed); flex-basis: 300px; }
-        .homepage-card:hover { transform: translateY(-8px); box-shadow: 0 10px 25px var(--shadow-color); }
-        .homepage-card i { font-size: 2.5rem; color: var(--primary-color); margin-bottom: 1rem; }
-        .homepage-card span { font-size: 1.1rem; font-weight: 500; display: block; }
-
-        /* Main Workspace */
-        .workspace-container { max-width: 1200px; margin: 0 auto; padding: 0 1rem; }
-        .list-container { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: var(--border-radius-lg); padding: 1.5rem; box-shadow: 0 4px 15px var(--shadow-color); backdrop-filter: blur(10px); }
-        .list-header-controls { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; gap: 1rem; }
-        #searchInput { width: 100%; max-width: 300px; }
-        #sheetSelector { width: 100%; max-width: 250px; }
-        
-        /* Item Search List */
-        .item-list-wrapper { max-height: 60vh; overflow-y: auto; border: 1px solid var(--border-color); border-radius: var(--border-radius-md); }
-        .item-list { list-style-type: none; }
-        .item-list li { display: grid; grid-template-columns: 1fr 1fr 3fr 1fr; gap: 1rem; padding: 0.85rem 1rem; border-bottom: 1px solid var(--border-color); transition: background-color var(--transition-speed); cursor: pointer; }
-        .item-list li:last-child { border-bottom: none; }
-        .item-list li.list-header-row { font-weight: 600; background-color: var(--input-bg); position: sticky; top: 0; z-index: 10; cursor: default; }
-        .item-list li:not(.list-header-row):hover { background-color: rgba(79, 70, 229, 0.05); }
-        [data-theme="dark"] .item-list li:not(.list-header-row):hover { background-color: rgba(129, 140, 248, 0.1); }
-        
-        /* Modals, Tables, Forms, etc. (No changes here) */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--backdrop-color); backdrop-filter: blur(5px); display: flex; justify-content: center; z-index: 1000; opacity: 0; visibility: hidden; transition: opacity var(--transition-speed), visibility var(--transition-speed); padding: 1rem; align-items: flex-start; overflow-y: auto; }
-        .modal-overlay.active { opacity: 1; visibility: visible; }
-        .modal-content { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: var(--border-radius-lg); box-shadow: 0 10px 30px var(--shadow-color); width: 100%; max-width: 600px; transform: scale(0.95); transition: transform var(--transition-speed); display: flex; flex-direction: column; max-height: 90vh; margin-top: 5vh; }
-        .modal-overlay.active .modal-content { transform: scale(1); }
-        .modal-header { flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.5rem; border-bottom: 1px solid var(--border-color); }
-        .modal-header h2 { font-size: 1.25rem; font-weight: 600; }
-        .modal-close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-secondary); transition: color var(--transition-speed); }
-        .modal-close-btn:hover { color: var(--text-primary); }
-        .modal-body { flex-grow: 1; overflow-y: auto; padding: 1.5rem; }
-        .modal-footer { flex-shrink: 0; display: flex; justify-content: flex-end; gap: 1rem; padding: 1rem 1.5rem; border-top: 1px solid var(--border-color); }
-        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
-        .form-group.full-width { grid-column: span 2; }
-        .pending-changes-panel { position: fixed; bottom: 0; left: 0; width: 100%; z-index: 500; background: var(--card-bg); border-top: 1px solid var(--border-color); box-shadow: 0 -5px 20px var(--shadow-color); border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0; backdrop-filter: blur(10px); transition: transform var(--transition-speed); transform: translateY(calc(100% - 60px)); }
-        .pending-changes-panel.open { transform: translateY(0); }
-        .panel-header { padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
-        .panel-content { padding: 0 1.5rem 1.5rem 1.5rem; max-height: 40vh; overflow-y: auto; }
-        .panel-actions { display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem; }
-        .table-wrapper { overflow-x: auto; border: 1px solid var(--border-color); border-radius: var(--border-radius-md); }
-        table { border-collapse: collapse; width: 100%; min-width: 900px; font-size: 0.9em; }
-        th, td { padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-color); text-align: right; white-space: nowrap; background-color: var(--card-bg); }
-        th { background-color: var(--input-bg); position: sticky; top: 0; z-index: 2; }
-        tbody tr:last-child td { border-bottom: none; }
-        tbody tr:hover td { background-color: var(--input-bg); }
-        th.sticky-col-name, td.sticky-col-name { position: sticky; right: 0; z-index: 1; box-shadow: -2px 0 5px -2px var(--sticky-shadow); }
-        th.sticky-col-name { z-index: 3; }
-        th.sticky-col-action, td.sticky-col-action { position: sticky; left: 0; z-index: 1; box-shadow: 2px 0 5px -2px var(--sticky-shadow); text-align: center; }
-        th.sticky-col-action { z-index: 3; }
-        .delete-icon { color: var(--danger-color); cursor: pointer; font-size: 1.2rem; }
-        .form-group { display: flex; flex-direction: column; gap: 0.5rem; }
-        input, select { width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: var(--border-radius-md); background-color: var(--input-bg); color: var(--text-primary); font-size: 1rem; font-family: var(--font-family); }
-        .btn { padding: 0.75rem 1.5rem; border-radius: var(--border-radius-md); cursor: pointer; font-size: 1rem; font-weight: 500; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; border: 1px solid transparent; transition: all var(--transition-speed); }
-        .btn-primary { background-color: var(--primary-color); color: #fff; }
-        .btn-primary:hover { background-color: var(--primary-hover); }
-        .btn-secondary { background-color: transparent; color: var(--text-primary); border-color: var(--border-color); }
-        .btn-danger { background-color: var(--danger-color); color: #fff; }
-        .theme-switch-wrapper { display: flex; align-items: center; gap: 8px; }
-        .theme-switch { display: inline-block; height: 24px; position: relative; width: 44px; }
-        .theme-switch input { display: none; }
-        .slider { background-color: #ccc; bottom: 0; cursor: pointer; left: 0; position: absolute; right: 0; top: 0; transition: .4s; border-radius: 34px; }
-        .slider:before { background-color: #fff; bottom: 4px; content: ""; height: 16px; left: 4px; position: absolute; transition: .4s; border-radius: 50%; }
-        input:checked + .slider { background-color: var(--primary-color); }
-        input:checked + .slider:before { transform: translateX(20px); }
-        @media (max-width: 640px) {
-            .form-grid { grid-template-columns: 1fr; }
-            .form-group.full-width { grid-column: span 1; }
-            .item-list li { grid-template-columns: 2fr 1fr; grid-template-areas: "name status" "code plu"; }
-            .item-list li span:nth-child(1) { grid-area: code; }
-            .item-list li span:nth-child(2) { grid-area: plu; }
-            .item-list li span:nth-child(3) { grid-area: name; font-size: 1.1em; font-weight: 500; }
-            .item-list li span:nth-child(4) { grid-area: status; justify-self: end; }
-            .list-header-row { display: none; }
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        :root{--bg-color:#121212;--surface-color:rgba(255,255,255,0.05);--glass-blur:15px;--border-color:rgba(255,255,255,0.1);--primary-color:#6a5acd;--primary-glow:rgba(106,90,205,0.4);--text-color:#e0e0e0;--text-secondary-color:#a0a0a0;--success-color:#28a745;--error-color:#dc3545;--border-radius:12px;--shadow:0 8px 32px 0 rgba(0,0,0,0.37)}*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Inter',sans-serif;background-color:var(--bg-color);color:var(--text-color);background-image:radial-gradient(circle at 1% 1%,var(--primary-glow) 0,transparent 30%),radial-gradient(circle at 99% 99%,var(--primary-glow) 0,transparent 40%);min-height:100vh;line-height:1.6}.container{max-width:1200px;margin:0 auto;padding:2rem}header{display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem;flex-wrap:wrap;gap:1rem}header h1{font-size:2.5rem;font-weight:700;background:linear-gradient(45deg,var(--primary-color),#af72d8);-webkit-background-clip:text;-webkit-text-fill-color:transparent}.actions{display:flex;gap:1rem;align-items:center}.btn{background:rgba(255,255,255,0.1);border:1px solid var(--border-color);color:var(--text-color);padding:.75rem 1.5rem;border-radius:var(--border-radius);cursor:pointer;font-weight:500;transition:all .3s ease;backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}.btn:hover{background:var(--primary-color);border-color:var(--primary-color);box-shadow:0 0 15px var(--primary-glow)}.search-input{background:var(--surface-color);border:1px solid var(--border-color);color:var(--text-color);padding:.75rem 1rem;border-radius:var(--border-radius);width:100%;max-width:300px;font-size:1rem;transition:all .3s ease}.search-input:focus{outline:none;border-color:var(--primary-color);box-shadow:0 0 10px var(--primary-glow)}#supplier-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.5rem}.supplier-card{background:var(--surface-color);border:1px solid var(--border-color);border-radius:var(--border-radius);padding:1.5rem;backdrop-filter:blur(var(--glass-blur));-webkit-backdrop-filter:blur(var(--glass-blur));box-shadow:var(--shadow);transition:transform .3s ease,box-shadow .3s ease;display:flex;flex-direction:column;gap:1rem}.supplier-card:hover{transform:translateY(-5px);box-shadow:0 0 25px var(--primary-glow)}.card-header{display:flex;justify-content:space-between;align-items:flex-start}.card-header h3{font-size:1.25rem;color:var(--text-color);max-width:80%}.card-header .code{font-size:.9rem;background:var(--primary-color);color:#fff;padding:.25rem .5rem;border-radius:6px;font-weight:600}.card-body p{font-size:.95rem;color:var(--text-secondary-color)}.card-body strong{color:var(--text-color);font-weight:500}.card-footer{margin-top:auto;padding-top:1rem;border-top:1px solid var(--border-color);display:flex;gap:.5rem;justify-content:flex-end}.card-footer .btn{padding:.5rem 1rem;font-size:.9rem}.btn-edit{background:rgba(106,90,205,0.2);border-color:rgba(106,90,205,0.5)}.btn-edit:hover{background:var(--primary-color);border-color:var(--primary-color)}.btn-delete{background:rgba(220,53,69,0.2);border-color:rgba(220,53,69,0.5)}.btn-delete:hover{background:var(--error-color);border-color:var(--error-color)}#loader{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:60px;height:60px;border:5px solid var(--surface-color);border-top-color:var(--primary-color);border-radius:50%;animation:spin 1s linear infinite;z-index:1001}@keyframes spin{to{transform:translate(-50%,-50%) rotate(360deg)}}#modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.7);display:flex;justify-content:center;align-items:center;z-index:1000;opacity:0;visibility:hidden;transition:opacity .3s ease,visibility .3s ease}#modal.show{opacity:1;visibility:visible}.modal-content{background:var(--surface-color);border:1px solid var(--border-color);border-radius:var(--border-radius);padding:2.5rem;backdrop-filter:blur(var(--glass-blur));-webkit-backdrop-filter:blur(var(--glass-blur));box-shadow:var(--shadow);width:90%;max-width:500px;transform:scale(.95);transition:transform .3s ease}#modal.show .modal-content{transform:scale(1)}.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem}.modal-header h2{font-size:1.75rem}.close-btn{font-size:2rem;background:none;border:none;color:var(--text-secondary-color);cursor:pointer;transition:color .3s ease}.close-btn:hover{color:var(--text-color)}.form-group{margin-bottom:1.5rem}.form-group label{display:block;margin-bottom:.5rem;color:var(--text-secondary-color);font-weight:500}.form-group input{width:100%;padding:.75rem 1rem;background:rgba(0,0,0,.2);border:1px solid var(--border-color);border-radius:var(--border-radius);color:var(--text-color);font-size:1rem}.form-group input:focus{outline:none;border-color:var(--primary-color)}.modal-footer{display:flex;justify-content:flex-end;gap:1rem;margin-top:2rem}#no-suppliers-msg{text-align:center;padding:3rem;color:var(--text-secondary-color);grid-column:1 / -1;background:var(--surface-color);border-radius:var(--border-radius);border:1px solid var(--border-color)}#toast-container{position:fixed;bottom:20px;right:20px;z-index:2000;display:flex;flex-direction:column;gap:10px}.toast{padding:12px 20px;border-radius:var(--border-radius);color:#fff;font-weight:500;box-shadow:0 4px 15px rgba(0,0,0,.2);opacity:0;transform:translateX(100%);animation:slideIn .5s forwards}.toast.exit{animation:slideOut .5s forwards}@keyframes slideIn{to{opacity:1;transform:translateX(0)}}@keyframes slideOut{to{opacity:0;transform:translateX(100%)}}.toast.success{background:var(--success-color)}.toast.error{background:var(--error-color)}
     </style>
 </head>
 <body>
 
-    <header class="app-header">
-        <h1><i class="fa-solid fa-store"></i> إدارة الأصناف</h1>
-        <div class="header-actions">
-            <button class="btn btn-secondary" onclick="showHomepage()"><i class="fa-solid fa-house"></i> الرئيسية</button>
-            <div class="theme-switch-wrapper">
-                <i class="fas fa-sun"></i>
-                <label class="theme-switch" for="checkbox">
-                    <input type="checkbox" id="checkbox" />
-                    <div class="slider round"></div>
-                </label>
-                <i class="fas fa-moon"></i>
+    <div class="container">
+        <header>
+            <h1>Supplier Hub</h1>
+            <div class="actions">
+                <input type="search" id="searchInput" class="search-input" placeholder="Search suppliers...">
+                <button id="addSupplierBtn" class="btn">Add Supplier</button>
             </div>
-        </div>
-    </header>
+        </header>
 
-    <main id="app-main">
-        <div id="homepage" class="homepage-container">
-            <div class="homepage-card" onclick="showWorkspace()">
-                <i class="fas fa-tags"></i>
-                <span>تعديل بيانات الأصناف</span>
+        <main>
+            <div id="loader" style="display: none;"></div>
+            <div id="supplier-grid">
+                <!-- Supplier cards will be injected here by JavaScript -->
             </div>
-        </div>
+        </main>
+    </div>
 
-        <div id="workspace" class="workspace-container" style="display: none;">
-            <div class="list-container">
-                <div class="list-header-controls">
-                    <select id="sheetSelector" class="btn"></select>
-                    <input type="text" id="searchInput" class="btn" placeholder="بحث بالاسم أو الكود..." disabled>
-                    <button id="showAddItemModalBtn" class="btn btn-primary" disabled><i class="fa-solid fa-plus"></i> إضافة صنف جديد</button>
-                </div>
-                <div class="item-list-wrapper">
-                    <ul id="itemList" class="item-list">
-                        <li class="list-header-row">
-                            <span>الكود</span>
-                            <span>كود PLU</span>
-                            <span>الاسم</span>
-                            <span>الحالة</span>
-                        </li>
-                    </ul>
-                </div>
+    <!-- Add/Edit Modal -->
+    <div id="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Add New Supplier</h2>
+                <button id="closeModalBtn" class="close-btn">&times;</button>
             </div>
-        </div>
-    </main>
-
-    <!-- All Modals and the Pending Changes Panel are unchanged -->
-    <div id="editItemModal" class="modal-overlay"> ... </div>
-    <div id="addNewItemModal" class="modal-overlay"> ... </div>
-    <div id="pendingChangesPanel" class="pending-changes-panel"> ... </div>
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            initTheme();
-            initModalClosers();
-            initializeApp();
-            setupEventListeners();
-        });
-
-        let database = [];
-        let selectedItem = null;
-        
-        // PASTE YOUR LATEST DEPLOYMENT URL HERE
-        const googleSheetURL = 'https://script.google.com/macros/s/AKfycbzZnB-1snzdPUkwj-54srTCK8RcRyDakkqww9D00tQFoGhXrhYGcyCfJmBp9qSLSkbaHA/exec';
-
-        function initializeApp() {
-            fetchSheetNames();
-        }
-
-        async function fetchSheetNames() {
-            const selector = document.getElementById('sheetSelector');
-            selector.innerHTML = `<option>جار تحميل القوائم...</option>`;
-            selector.disabled = true;
-
-            try {
-                const response = await fetch(`${googleSheetURL}?action=getSheetNames`);
-                const result = await response.json();
-
-                if (!result.success) throw new Error(result.error);
-
-                selector.innerHTML = `<option value="">-- اختر قائمة الأصناف --</option>`;
-                result.data.forEach(sheetName => {
-                    const option = document.createElement('option');
-                    option.value = sheetName;
-                    option.textContent = sheetName;
-                    selector.appendChild(option);
-                });
-                selector.disabled = false;
-            } catch (error) {
-                selector.innerHTML = `<option>خطأ في التحميل</option>`;
-                alert(`فشل تحميل قوائم الأصناف: ${error.message}`);
-            }
-        }
-
-        async function fetchAndDisplaySheetData(sheetName) {
-            const searchInput = document.getElementById('searchInput');
-            const addItemBtn = document.getElementById('showAddItemModalBtn');
-            searchInput.disabled = true;
-            addItemBtn.disabled = true;
-            renderList([]);
-
-            if (!sheetName) return;
-
-            try {
-                // *** THIS IS THE ONLY LINE THAT CHANGED IN THIS FUNCTION ***
-                // The URL is now simpler: ?sheet=YourSheetName
-                const fullUrl = `${googleSheetURL}?sheet=${encodeURIComponent(sheetName)}`;
-
-                const response = await fetch(fullUrl);
-                if (!response.ok) throw new Error(`Network response was not ok: ${response.statusText}`);
+            <form id="supplierForm">
+                <input type="hidden" id="formMode" value="add">
+                <input type="hidden" id="originalSupplierCode">
                 
-                const result = await response.json();
-                if (!result.success) throw new Error(result.error);
+                <div class="form-group">
+                    <label for="supplierCode">Supplier Code</label>
+                    <input type="text" id="supplierCode" required>
+                </div>
+                <div class="form-group">
+                    <label for="supplierName">Supplier Name</label>
+                    <input type="text" id="supplierName" required>
+                </div>
+                <div class="form-group">
+                    <label for="invoiceDiscount">Invoice Discount (%)</label>
+                    <input type="number" id="invoiceDiscount" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="returnPeriod">Return Period (days)</label>
+                    <input type="number" id="returnPeriod" required>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" id="cancelBtn" class="btn">Cancel</button>
+                    <button type="submit" id="saveBtn" class="btn">Save Supplier</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div id="toast-container"></div>
 
-                const data = result.data;
-                database = data.map(item => ({
-                    code: item.code?.toString().trim() || '',
-                    pluCode: item.plu?.toString().trim() || '',
-                    name: item.name?.toString().trim() || '',
-                    status: item.status?.toString().trim() || '',
-                    cairoMargin: parseFloat(item['cairo margin']) || 0,
-                    coastMargin: parseFloat(item['coast margin']) || 0,
-                    barcode: item.barcode?.toString().trim() || ''
-                })).filter(item => item.code || item.name);
+    <script>
+        // --- CONFIGURATION ---
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw3Jyvbrn9fWTTBtLQfMreD3uq1I6iL0QcwJV354Oc8azbYnbGm6W3Wmv_0TcqSkqVk6g/exec'; // <-- IMPORTANT: PASTE YOUR URL HERE
 
-                renderList(database);
-                searchInput.disabled = false;
-                addItemBtn.disabled = false;
+        // --- DOM ELEMENTS ---
+        const loader = document.getElementById('loader');
+        const supplierGrid = document.getElementById('supplier-grid');
+        const searchInput = document.getElementById('searchInput');
+        const addSupplierBtn = document.getElementById('addSupplierBtn');
+        const modal = document.getElementById('modal');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const cancelBtn = document.getElementById('cancelBtn');
+        const supplierForm = document.getElementById('supplierForm');
+        const modalTitle = document.getElementById('modalTitle');
+        const saveBtn = document.getElementById('saveBtn');
+        const formModeInput = document.getElementById('formMode');
+        const originalSupplierCodeInput = document.getElementById('originalSupplierCode');
+        const toastContainer = document.getElementById('toast-container');
+        
+        let allSuppliers = [];
 
-            } catch (error) {
-                alert(`حدث خطأ أثناء تحميل بيانات "${sheetName}": ${error.message}`);
-                renderList([]);
-            }
-        }
-        
-        // --- The rest of your JavaScript functions are unchanged ---
-        // (initTheme, showHomepage, renderList, selectItemForEditing, etc.)
-        // I have removed them from this view for brevity, but they are in the full HTML above.
+        // --- CORE FUNCTIONS ---
 
-        function initTheme() {
-            const themeToggle = document.getElementById('checkbox');
-            const savedTheme = localStorage.getItem('theme') || 'light';
-            document.documentElement.setAttribute('data-theme', savedTheme);
-            themeToggle.checked = savedTheme === 'dark';
-            themeToggle.addEventListener('change', function() {
-                const theme = this.checked ? 'dark' : 'light';
-                document.documentElement.setAttribute('data-theme', theme);
-                localStorage.setItem('theme', theme);
-            });
-        }
+        const showLoader = (show) => {
+            loader.style.display = show ? 'block' : 'none';
+        };
         
-        function showHomepage() {
-            document.getElementById('homepage').style.display = 'flex';
-            document.getElementById('workspace').style.display = 'none';
-        }
-        function showWorkspace() {
-            document.getElementById('homepage').style.display = 'none';
-            document.getElementById('workspace').style.display = 'block';
-        }
-        
-        function initModalClosers() {
-            document.querySelectorAll('.modal-overlay').forEach(o => o.addEventListener('click', e => { if (e.target === o) closeModal(o); }));
-            document.querySelectorAll('.modal-close-btn').forEach(b => b.addEventListener('click', () => closeModal(b.closest('.modal-overlay'))));
-        }
-        function openModal(modal) { modal.classList.add('active'); }
-        function closeModal(modal) { modal.classList.remove('active'); }
-        
-        function renderList(listData) {
-            const itemList = document.getElementById('itemList');
-            const headerRow = itemList.querySelector('.list-header-row');
-            itemList.innerHTML = '';
-            itemList.appendChild(headerRow);
-            if (!listData.length) {
-                const li = document.createElement('li');
-                li.innerHTML = `<span>لا توجد بيانات</span>`;
-                li.style.gridColumn = 'span 4';
-                li.style.textAlign = 'center';
-                itemList.appendChild(li);
+        const showToast = (message, type = 'success') => {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            toastContainer.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.add('exit');
+                toast.addEventListener('animationend', () => toast.remove());
+            }, 5000); // Increased duration for error messages
+        };
+
+        const renderSuppliers = (suppliers) => {
+            supplierGrid.innerHTML = '';
+            if (!suppliers || suppliers.length === 0) {
+                const message = searchInput.value ? 'No suppliers match your search.' : 'No suppliers found. Click "Add Supplier" to start!';
+                supplierGrid.innerHTML = `<p id="no-suppliers-msg">${message}</p>`;
                 return;
             }
-            listData.forEach(item => {
-                const li = document.createElement('li');
-                li.innerHTML = `
-                    <span>${item.code || 'N/A'}</span>
-                    <span>${item.pluCode || 'N/A'}</span>
-                    <span>${item.name || 'N/A'}</span>
-                    <span>${item.status || 'N/A'}</span>`;
-                li.addEventListener('click', () => selectItemForEditing(item));
-                itemList.appendChild(li);
+            
+            suppliers.forEach(supplier => {
+                const card = document.createElement('div');
+                card.className = 'supplier-card';
+                card.innerHTML = `
+                    <div class="card-header">
+                        <h3>${supplier.SupplierName || 'N/A'}</h3>
+                        <span class="code">${supplier.SupplierCode || 'N/A'}</span>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Invoice Discount:</strong> ${supplier.InvoiceDiscount || 0}%</p>
+                        <p><strong>Return Period:</strong> ${supplier.ReturnPeriod || 0} days</p>
+                    </div>
+                    <div class="card-footer">
+                        <button class="btn btn-edit" data-code="${supplier.SupplierCode}">Edit</button>
+                        <button class="btn btn-delete" data-code="${supplier.SupplierCode}">Delete</button>
+                    </div>
+                `;
+                supplierGrid.appendChild(card);
             });
-        }
-        
-        function selectItemForEditing(item) {
-            selectedItem = item;
-            document.getElementById('nameDisplay').textContent = item.name;
-            document.getElementById('codeDisplay').textContent = item.code;
-            document.getElementById('statusDisplay').textContent = item.status;
-            document.getElementById('cairoMarginInput').value = item.cairoMargin > 0 ? item.cairoMargin.toFixed(3) : '';
-            document.getElementById('coastMarginInput').value = item.coastMargin > 0 ? item.coastMargin.toFixed(3) : '';
-            resetEditModalInputs();
-            openModal(document.getElementById('editItemModal'));
-        }
-        
-        const formatDecimal = numStr => (!numStr || isNaN(parseFloat(numStr))) ? '' : parseFloat(numStr).toFixed(3);
-        const calculatePrice = (cost, margin) => (cost > 0 && margin >= 0 && margin < 100) ? cost / (1 - (margin / 100)) : 0;
-        
-        function updateCalculatedPrices(isNewItem) {
-            const costInput = document.getElementById(isNewItem ? 'newItemCost' : 'costInput');
-            const cairoMarginInput = document.getElementById(isNewItem ? 'newItemCairoMargin' : 'cairoMarginInput');
-            const coastMarginInput = document.getElementById(isNewItem ? 'newItemCoastMargin' : 'coastMarginInput');
-            const cairoCostOutput = document.getElementById(isNewItem ? 'newItemCairoCost' : 'cairoCostInput');
-            const sahelCostOutput = document.getElementById(isNewItem ? 'newItemSahelCost' : 'sahelCostInput');
-            const cost = parseFloat(costInput.value);
-            if (isNaN(cost) || cost <= 0) { if (costInput.value.trim() === '') { cairoCostOutput.value = ''; sahelCostOutput.value = ''; } return; }
-            const cairoPrice = calculatePrice(cost, parseFloat(cairoMarginInput.value));
-            const sahelPrice = calculatePrice(cost, parseFloat(coastMarginInput.value));
-            cairoCostOutput.value = cairoPrice > 0 ? cairoPrice.toFixed(3) : '';
-            sahelCostOutput.value = sahelPrice > 0 ? sahelPrice.toFixed(3) : '';
-        }
+        };
 
-        function handleCostInput() {
-            const costInput = document.getElementById('costInput');
-            const cost = parseFloat(costInput.value);
-            if (isNaN(cost) || cost <= 0) { document.getElementById('cairoCostInput').value = ''; document.getElementById('sahelCostInput').value = ''; return; }
-            const cairoMarginInput = document.getElementById('cairoMarginInput');
-            const coastMarginInput = document.getElementById('coastMarginInput');
-            const hasCairoMargin = cairoMarginInput.value.trim() !== '' && !isNaN(parseFloat(cairoMarginInput.value));
-            const hasCoastMargin = coastMarginInput.value.trim() !== '' && !isNaN(parseFloat(coastMarginInput.value));
-            if (hasCairoMargin || hasCoastMargin) { if (confirm("هل تريد حساب سعر البيع من النسبة المسجلة سابقا؟")) { updateCalculatedPrices(false); } else { document.getElementById('cairoCostInput').value = ''; document.getElementById('sahelCostInput').value = ''; } }
-        }
-
-        function setupEventListeners() {
-            document.getElementById('sheetSelector').addEventListener('change', (e) => { fetchAndDisplaySheetData(e.target.value); });
-            document.getElementById('searchInput').addEventListener('input', e => { const term = e.target.value.toLowerCase(); if (!database.length) return; const filtered = database.filter(item => Object.values(item).some(val => String(val).toLowerCase().includes(term))); renderList(filtered); });
-            document.getElementById('showAddItemModalBtn').addEventListener('click', () => openModal(document.getElementById('addNewItemModal')));
-            document.getElementById('costInput').addEventListener('change', handleCostInput); 
-            ['cairoMarginInput', 'coastMarginInput'].forEach(id => { document.getElementById(id).addEventListener('input', () => updateCalculatedPrices(false)); });
-            ['newItemCost', 'newItemCairoMargin', 'newItemCoastMargin'].forEach(id => { document.getElementById(id).addEventListener('input', () => updateCalculatedPrices(true)); });
-            document.getElementById('addButton').addEventListener('click', () => { if (!selectedItem) { alert('الرجاء اختيار صنف أولاً.'); return; } const tableBody = document.getElementById('dataTableBody'); const newRow = tableBody.insertRow(); newRow.innerHTML = `<td>${selectedItem.code}</td><td class="sticky-col-name">${selectedItem.name}</td><td>${formatDecimal(document.getElementById('costInput').value)}</td><td>${formatDecimal(document.getElementById('cairoCostInput').value)}</td><td>${formatDecimal(document.getElementById('sahelCostInput').value)}</td><td>${document.getElementById('supplierInput').value}</td><td>${document.getElementById('newStatusInput').value || 'بدون تغيير'}</td><td>${document.getElementById('expiryInput').value || ''}</td><td class="sticky-col-action"><i class="fas fa-trash-alt delete-icon"></i></td>`; newRow.querySelector('.delete-icon').onclick = () => { newRow.remove(); updateChangesCount(); }; closeModal(document.getElementById('editItemModal')); updateChangesCount(); if (!document.getElementById('pendingChangesPanel').classList.contains('open')) togglePanel(); });
-            document.getElementById('addNewItemButton').addEventListener('click', () => { const name = document.getElementById('newItemName').value; if (!name.trim()) { alert('الرجاء إدخال اسم الصنف.'); return; } const tableBody = document.getElementById('dataTableBodyNewItem'); const newRow = tableBody.insertRow(); newRow.innerHTML = `<td class="sticky-col-name">${name}</td><td>${formatDecimal(document.getElementById('newItemCost').value)}</td><td>${formatDecimal(document.getElementById('newItemCairoCost').value)}</td><td>${formatDecimal(document.getElementById('newItemSahelCost').value)}</td><td>${document.getElementById('newItemSupplier').value}</td><td>${document.getElementById('newItemExpiry').value || ''}</td><td class="sticky-col-action"><i class="fas fa-trash-alt delete-icon"></i></td>`; newRow.querySelector('.delete-icon').onclick = () => { newRow.remove(); updateChangesCount(); }; closeModal(document.getElementById('addNewItemModal')); resetAddModal(); updateChangesCount(); if (!document.getElementById('pendingChangesPanel').classList.contains('open')) togglePanel(); });
-            document.getElementById('clearTableButton').addEventListener('click', () => { document.getElementById('dataTableBody').innerHTML = ''; document.getElementById('dataTableBodyNewItem').innerHTML = ''; updateChangesCount(); });
-            document.getElementById('extractButton').addEventListener('click', () => { const wb = XLSX.utils.book_new(); if (document.getElementById('dataTableBody').rows.length > 0) { const ws1 = XLSX.utils.table_to_sheet(document.getElementById('dataTable')); XLSX.utils.book_append_sheet(wb, ws1, "تعديلات الأسعار"); } if (document.getElementById('dataTableBodyNewItem').rows.length > 0) { const ws2 = XLSX.utils.table_to_sheet(document.getElementById('dataTableNewItem')); XLSX.utils.book_append_sheet(wb, ws2, "أصناف جديدة"); } if (wb.SheetNames.length > 0) XLSX.writeFile(wb, "grocery_changes.xlsx"); else alert("لا توجد تغييرات للتصدير."); });
-            document.getElementById('saveImageButton').addEventListener('click', () => { const captureContainer = document.createElement('div'); captureContainer.style.position = 'absolute'; captureContainer.style.left = '-9999px'; captureContainer.style.top = '0'; captureContainer.style.width = '1200px'; captureContainer.style.direction = 'rtl'; captureContainer.style.padding = '1.5rem'; captureContainer.style.background = document.documentElement.getAttribute('data-theme') === 'dark' ? 'linear-gradient(135deg, #1e293b, #0f172a)' : 'linear-gradient(135deg, #f0f9ff, #e0f2fe)'; let contentAdded = false; const editTableRows = document.getElementById('dataTableBody').rows.length; const newItemTableRows = document.getElementById('dataTableBodyNewItem').rows.length; if (editTableRows > 0) { const editChangesWrapper = document.getElementById('editChanges'); captureContainer.appendChild(editChangesWrapper.cloneNode(true)); contentAdded = true; } if (editTableRows > 0 && newItemTableRows > 0) { const separator = document.createElement('hr'); separator.style.border = 'none'; separator.style.borderTop = '1px solid var(--border-color)'; separator.style.margin = '1.5rem 0'; captureContainer.appendChild(separator); } if (newItemTableRows > 0) { const newChangesWrapper = document.getElementById('newChanges'); captureContainer.appendChild(newChangesWrapper.cloneNode(true)); contentAdded = true; } if (!contentAdded) { alert('لا توجد بيانات لحفظها كصورة.'); return; } document.body.appendChild(captureContainer); const isDarkMode = document.documentElement.getAttribute('data-theme') === 'dark'; html2canvas(captureContainer, { scale: 2, useCORS: true, backgroundColor: isDarkMode ? '#0f172a' : '#f0f9ff' }).then(canvas => { const link = document.createElement('a'); link.download = 'pending_changes.png'; link.href = canvas.toDataURL('image/png'); link.click(); }).catch(err => { console.error('Image capture failed:', err); alert('حدث خطأ أثناء حفظ الصورة.'); }).finally(() => { document.body.removeChild(captureContainer); }); });
-        }
+        const fetchSuppliers = async () => {
+            showLoader(true);
+            supplierGrid.innerHTML = '';
+            try {
+                const response = await fetch(GOOGLE_SCRIPT_URL);
+                if (!response.ok) { // Catches HTTP errors (e.g., 404, 500)
+                    throw new Error(`Network error: ${response.status} ${response.statusText}`);
+                }
+                const result = await response.json();
+                
+                if (result.success) {
+                    allSuppliers = result.data;
+                    renderSuppliers(allSuppliers);
+                } else {
+                    // Catches application-level errors from Apps Script
+                    throw new Error(result.message || 'An unknown error occurred in the script.');
+                }
+            } catch (error) {
+                console.error('Fetch Error:', error);
+                showToast(error.message, 'error');
+                supplierGrid.innerHTML = `<p id="no-suppliers-msg">Error loading data. <br><small>${error.message}</small></p>`;
+            } finally {
+                showLoader(false);
+            }
+        };
         
-        function resetEditModalInputs() { ['costInput', 'supplierInput', 'cairoCostInput', 'sahelCostInput', 'newStatusInput', 'expiryInput'].forEach(id => document.getElementById(id).value = ''); }
-        function resetAddModal() { document.getElementById('addNewItemModal').querySelectorAll('input, select').forEach(el => el.value = ''); }
-        function togglePanel() { document.getElementById('pendingChangesPanel').classList.toggle('open'); }
-        function updateChangesCount() { document.getElementById('changesCount').textContent = document.getElementById('dataTableBody').rows.length + document.getElementById('dataTableBodyNewItem').rows.length; }
+        /**
+         * Generic function to handle POST requests (Create, Update, Delete)
+         */
+        const postData = async (action, data) => {
+            showLoader(true);
+            saveBtn.disabled = true; // Prevent double-clicks
+            try {
+                const payload = { action, data };
+                const response = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(payload),
+                    headers: { 'Content-Type': 'application/json' },
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    showToast(result.data.message || 'Operation successful!');
+                    hideModal();
+                    await fetchSuppliers(); // Refresh data from sheet
+                } else {
+                    throw new Error(result.message || `Failed to perform action: ${action}`);
+                }
+            } catch (error) {
+                console.error(`${action} Error:`, error);
+                showToast(error.message, 'error');
+            } finally {
+                showLoader(false);
+                saveBtn.disabled = false;
+            }
+        };
+
+        const handleFormSubmit = (e) => {
+            e.preventDefault();
+            const mode = formModeInput.value;
+            
+            const supplierData = {
+                SupplierCode: document.getElementById('supplierCode').value.trim(),
+                SupplierName: document.getElementById('supplierName').value.trim(),
+                InvoiceDiscount: document.getElementById('invoiceDiscount').value,
+                ReturnPeriod: document.getElementById('returnPeriod').value,
+            };
+
+            const action = mode === 'add' ? 'create' : 'update';
+            if (mode === 'edit') {
+                supplierData.originalSupplierCode = originalSupplierCodeInput.value;
+            }
+            
+            postData(action, supplierData);
+        };
+        
+        const handleDelete = (supplierCode) => {
+            if (!confirm(`Are you sure you want to delete supplier ${supplierCode}? This action cannot be undone.`)) {
+                return;
+            }
+            postData('delete', { supplierCode });
+        };
+        
+        // --- MODAL & UI LOGIC ---
+
+        const showModal = (mode = 'add', supplier = null) => {
+            formModeInput.value = mode;
+            supplierForm.reset();
+            
+            if (mode === 'add') {
+                modalTitle.textContent = 'Add New Supplier';
+                document.getElementById('supplierCode').disabled = false;
+            } else if (mode === 'edit' && supplier) {
+                modalTitle.textContent = 'Edit Supplier';
+                document.getElementById('supplierCode').value = supplier.SupplierCode;
+                document.getElementById('supplierName').value = supplier.SupplierName;
+                document.getElementById('invoiceDiscount').value = supplier.InvoiceDiscount;
+                document.getElementById('returnPeriod').value = supplier.ReturnPeriod;
+                originalSupplierCodeInput.value = supplier.SupplierCode; // Keep track of the original code
+                document.getElementById('supplierCode').disabled = false; // Allow editing code, backend handles mapping
+            }
+            modal.classList.add('show');
+        };
+
+        const hideModal = () => {
+            modal.classList.remove('show');
+        };
+
+        const handleFilter = (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            const filteredSuppliers = allSuppliers.filter(supplier =>
+                (supplier.SupplierName || '').toLowerCase().includes(searchTerm) ||
+                (supplier.SupplierCode || '').toLowerCase().includes(searchTerm)
+            );
+            renderSuppliers(filteredSuppliers);
+        };
+        
+        // --- EVENT LISTENERS ---
+        document.addEventListener('DOMContentLoaded', fetchSuppliers);
+
+        addSupplierBtn.addEventListener('click', () => showModal('add'));
+        closeModalBtn.addEventListener('click', hideModal);
+        cancelBtn.addEventListener('click', hideModal);
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) hideModal();
+        });
+        
+        supplierForm.addEventListener('submit', handleFormSubmit);
+        searchInput.addEventListener('input', handleFilter);
+        
+        supplierGrid.addEventListener('click', (e) => {
+            const target = e.target.closest('.btn'); // More robust event delegation
+            if (!target) return;
+
+            const card = target.closest('.supplier-card');
+            const code = card.querySelector('.code').textContent;
+
+            if (target.classList.contains('btn-edit')) {
+                const supplierToEdit = allSuppliers.find(s => s.SupplierCode == code);
+                if (supplierToEdit) showModal('edit', supplierToEdit);
+            }
+            
+            if (target.classList.contains('btn-delete')) {
+                handleDelete(code);
+            }
+        });
+
     </script>
 </body>
 </html>
