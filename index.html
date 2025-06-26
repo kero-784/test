@@ -8,7 +8,7 @@
         /* All CSS from before remains the same, with additions for the debug panel */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
         :root{--bg-color:#121212;--surface-color:rgba(255,255,255,0.05);--glass-blur:15px;--border-color:rgba(255,255,255,0.1);--primary-color:#6a5acd;--primary-glow:rgba(106,90,205,0.4);--text-color:#e0e0e0;--text-secondary-color:#a0a0a0;--success-color:#28a745;--error-color:#dc3545;--warning-color:#ffc107;--border-radius:12px;--shadow:0 8px 32px 0 rgba(0,0,0,0.37)}*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Inter',sans-serif;background-color:var(--bg-color);color:var(--text-color);background-image:radial-gradient(circle at 1% 1%,var(--primary-glow) 0,transparent 30%),radial-gradient(circle at 99% 99%,var(--primary-glow) 0,transparent 40%);min-height:100vh;line-height:1.6}.container{max-width:1200px;margin:0 auto;padding:2rem}header{display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem;flex-wrap:wrap;gap:1rem}header h1{font-size:2.5rem;font-weight:700;background:linear-gradient(45deg,var(--primary-color),#af72d8);-webkit-background-clip:text;-webkit-text-fill-color:transparent}.actions{display:flex;gap:1rem;align-items:center;flex-wrap:wrap}.btn{background:rgba(255,255,255,0.1);border:1px solid var(--border-color);color:var(--text-color);padding:.75rem 1.5rem;border-radius:var(--border-radius);cursor:pointer;font-weight:500;transition:all .3s ease;backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}.btn:hover{background:var(--primary-color);border-color:var(--primary-color);box-shadow:0 0 15px var(--primary-glow)}.search-input{background:var(--surface-color);border:1px solid var(--border-color);color:var(--text-color);padding:.75rem 1rem;border-radius:var(--border-radius);width:100%;max-width:300px;font-size:1rem;transition:all .3s ease}.search-input:focus{outline:none;border-color:var(--primary-color);box-shadow:0 0 10px var(--primary-glow)}#supplier-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.5rem}.supplier-card{background:var(--surface-color);border:1px solid var(--border-color);border-radius:var(--border-radius);padding:1.5rem;backdrop-filter:blur(var(--glass-blur));-webkit-backdrop-filter:blur(var(--glass-blur));box-shadow:var(--shadow);transition:transform .3s ease,box-shadow .3s ease;display:flex;flex-direction:column;gap:1rem}.supplier-card:hover{transform:translateY(-5px);box-shadow:0 0 25px var(--primary-glow)}.card-header{display:flex;justify-content:space-between;align-items:flex-start}.card-header h3{font-size:1.25rem;color:var(--text-color);max-width:80%}.card-header .code{font-size:.9rem;background:var(--primary-color);color:#fff;padding:.25rem .5rem;border-radius:6px;font-weight:600}.card-body p{font-size:.95rem;color:var(--text-secondary-color)}.card-body strong{color:var(--text-color);font-weight:500}.card-footer{margin-top:auto;padding-top:1rem;border-top:1px solid var(--border-color);display:flex;gap:.5rem;justify-content:flex-end}.card-footer .btn{padding:.5rem 1rem;font-size:.9rem}.btn-edit{background:rgba(106,90,205,0.2);border-color:rgba(106,90,205,0.5)}.btn-edit:hover{background:var(--primary-color);border-color:var(--primary-color)}.btn-delete{background:rgba(220,53,69,0.2);border-color:rgba(220,53,69,0.5)}.btn-delete:hover{background:var(--error-color);border-color:var(--error-color)}#loader{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:60px;height:60px;border:5px solid var(--surface-color);border-top-color:var(--primary-color);border-radius:50%;animation:spin 1s linear infinite;z-index:1001}@keyframes spin{to{transform:translate(-50%,-50%) rotate(360deg)}}#modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.7);display:flex;justify-content:center;align-items:center;z-index:1000;opacity:0;visibility:hidden;transition:opacity .3s ease,visibility .3s ease}#modal.show{opacity:1;visibility:visible}.modal-content{background:var(--surface-color);border:1px solid var(--border-color);border-radius:var(--border-radius);padding:2.5rem;backdrop-filter:blur(var(--glass-blur));-webkit-backdrop-filter:blur(var(--glass-blur));box-shadow:var(--shadow);width:90%;max-width:500px;transform:scale(.95);transition:transform .3s ease}#modal.show .modal-content{transform:scale(1)}.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem}.modal-header h2{font-size:1.75rem}.close-btn{font-size:2rem;background:none;border:none;color:var(--text-secondary-color);cursor:pointer;transition:color .3s ease}.close-btn:hover{color:var(--text-color)}.form-group{margin-bottom:1.5rem}.form-group label{display:block;margin-bottom:.5rem;color:var(--text-secondary-color);font-weight:500}.form-group input{width:100%;padding:.75rem 1rem;background:rgba(0,0,0,.2);border:1px solid var(--border-color);border-radius:var(--border-radius);color:var(--text-color);font-size:1rem}.form-group input:focus{outline:none;border-color:var(--primary-color)}.modal-footer{display:flex;justify-content:flex-end;gap:1rem;margin-top:2rem}#no-suppliers-msg{text-align:center;padding:3rem;color:var(--text-secondary-color);grid-column:1 / -1;background:var(--surface-color);border-radius:var(--border-radius);border:1px solid var(--border-color)}#toast-container{position:fixed;bottom:20px;right:20px;z-index:2000;display:flex;flex-direction:column;gap:10px}.toast{padding:12px 20px;border-radius:var(--border-radius);color:#fff;font-weight:500;box-shadow:0 4px 15px rgba(0,0,0,.2);opacity:0;transform:translateX(100%);animation:slideIn .5s forwards}.toast.exit{animation:slideOut .5s forwards}@keyframes slideIn{to{opacity:1;transform:translateX(0)}}@keyframes slideOut{to{opacity:0;transform:translateX(100%)}}.toast.success{background:var(--success-color)}.toast.error{background:var(--error-color)}
-        /* --- NEW DEBUG STYLES --- */
+        /* --- DEBUG STYLES --- */
         .debug-panel{position:fixed;bottom:0;left:0;width:100%;background:rgba(0,0,0,0.9);border-top:2px solid var(--warning-color);max-height:40vh;display:flex;flex-direction:column;z-index:9998;transform:translateY(100%);transition:transform .3s ease-in-out}.debug-panel.show{transform:translateY(0)}.debug-header{display:flex;justify-content:space-between;align-items:center;padding:.5rem 1rem;background:rgba(255,255,255,.1)}.debug-header h3{color:var(--warning-color);font-size:1rem;margin:0}.debug-log{flex-grow:1;overflow-y:auto;padding:1rem;font-family:monospace;font-size:.85rem;color:#ddd;line-height:1.4}.debug-log p{margin:0 0 .5rem;word-break:break-all;border-bottom:1px solid #444;padding-bottom:.5rem}.debug-log .log-error{color:var(--error-color)}.debug-log .log-success{color:var(--success-color)}.debug-log .log-info{color:#58a6ff}.debug-controls{display:flex;gap:1rem;margin-top:1rem;padding:0 2rem 1rem 2rem}
     </style>
 </head>
@@ -34,12 +34,12 @@
         </div>
     </div>
 
-    <!-- MODAL (No changes) -->
+    <!-- MODAL -->
     <div id="modal"><div class="modal-content"><div class="modal-header"><h2 id="modalTitle">Add New Supplier</h2><button id="closeModalBtn" class="close-btn">&times;</button></div><form id="supplierForm"><input type="hidden" id="formMode" value="add"><input type="hidden" id="originalSupplierCode"><div class="form-group"><label for="supplierCode">Supplier Code</label><input type="text" id="supplierCode" required></div><div class="form-group"><label for="supplierName">Supplier Name</label><input type="text" id="supplierName" required></div><div class="form-group"><label for="invoiceDiscount">Invoice Discount (%)</label><input type="number" id="invoiceDiscount" step="0.01" required></div><div class="form-group"><label for="returnPeriod">Return Period (days)</label><input type="number" id="returnPeriod" required></div><div class="modal-footer"><button type="button" id="cancelBtn" class="btn">Cancel</button><button type="submit" id="saveBtn" class="btn">Save Supplier</button></div></form></div></div>
     
     <div id="toast-container"></div>
     
-    <!-- NEW DEBUG PANEL -->
+    <!-- DEBUG PANEL -->
     <div id="debugPanel" class="debug-panel">
         <div class="debug-header">
             <h3>Live Debug Log</h3>
@@ -50,7 +50,7 @@
 
     <script>
         // --- CONFIGURATION ---
-        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz-tcjG3lm2tkzsPZWp0fTOl1-1DR8liECJ4LLTLqUMKrQDTxNYJig5Up6i10_7CJt5cw/exec'; // <-- PASTE YOUR URL HERE
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyOn1yUO0NbhuYCTI7SEUdWcIn80OVTxHpoed5mqmQuMP4PSbrBGksoQY2Ocft0HCmEuQ/exec'; 
 
         // --- DOM ELEMENTS ---
         const loader = document.getElementById('loader');
@@ -63,7 +63,6 @@
         const supplierForm = document.getElementById('supplierForm');
         const saveBtn = document.getElementById('saveBtn');
         const toastContainer = document.getElementById('toast-container');
-        // New Debug Elements
         const testConnectionBtn = document.getElementById('testConnectionBtn');
         const toggleDebugBtn = document.getElementById('toggleDebugBtn');
         const debugPanel = document.getElementById('debugPanel');
@@ -72,7 +71,7 @@
         
         let allSuppliers = [];
 
-        // --- NEW DEBUG FUNCTIONS ---
+        // --- DEBUG FUNCTIONS ---
         const logToUI = (message, type = 'info') => {
             const now = new Date();
             const timestamp = `${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
@@ -80,14 +79,13 @@
             logEntry.className = `log-${type}`;
             logEntry.innerHTML = `<strong>[${timestamp}]</strong> ${message}`;
             debugLog.appendChild(logEntry);
-            debugLog.scrollTop = debugLog.scrollHeight; // Auto-scroll
+            debugLog.scrollTop = debugLog.scrollHeight;
         };
         
         const testBackendConnection = async () => {
             logToUI("Running connection test...", "info");
             showLoader(true);
             try {
-                // We add a unique query param to bypass any potential caching
                 const testUrl = `${GOOGLE_SCRIPT_URL}?action=test&t=${new Date().getTime()}`;
                 const response = await fetch(testUrl);
                 const result = await response.json();
@@ -106,10 +104,10 @@
             }
         };
 
-        // --- CORE FUNCTIONS (Updated with logging) ---
+        // --- CORE FUNCTIONS ---
         const showLoader = (show) => { loader.style.display = show ? 'block' : 'none'; };
         const showToast = (message, type = 'success') => { const toast = document.createElement('div'); toast.className = `toast ${type}`; toast.textContent = message; toastContainer.appendChild(toast); setTimeout(() => { toast.classList.add('exit'); toast.addEventListener('animationend', () => toast.remove()); }, 5000); };
-        const renderSuppliers = (suppliers) => { supplierGrid.innerHTML = ''; if (!suppliers || suppliers.length === 0) { const message = searchInput.value ? 'No suppliers match your search.' : 'No suppliers found. Click "Add Supplier" to start!'; supplierGrid.innerHTML = `<p id="no-suppliers-msg">${message}</p>`; return; } suppliers.forEach(supplier => { const card = document.createElement('div'); card.className = 'supplier-card'; card.innerHTML = `<div class="card-header"><h3>${supplier.SupplierName||'N/A'}</h3><span class="code">${supplier.SupplierCode||'N/A'}</span></div><div class="card-body"><p><strong>Invoice Discount:</strong> ${supplier.InvoiceDiscount||0}%</p><p><strong>Return Period:</strong> ${supplier.ReturnPeriod||0} days</p></div><div class="card-footer"><button class="btn btn-edit" data-code="${supplier.SupplierCode}">Edit</button><button class="btn btn-delete" data-code="${supplier.SupplierCode}">Delete</button></div>`; supplierGrid.appendChild(card); }); };
+        const renderSuppliers = (suppliers) => { supplierGrid.innerHTML = ''; if (!suppliers || suppliers.length === 0) { const message = searchInput.value ? 'No suppliers match your search.' : 'No suppliers found. Click "Add Supplier" to start!'; supplierGrid.innerHTML = `<p id="no-suppliers-msg">${message}</p>`; return; } suppliers.forEach(supplier => { const card = document.createElement('div'); card.className = 'supplier-card'; card.dataset.code = supplier.SupplierCode; card.innerHTML = `<div class="card-header"><h3>${supplier.SupplierName||'N/A'}</h3><span class="code">${supplier.SupplierCode||'N/A'}</span></div><div class="card-body"><p><strong>Invoice Discount:</strong> ${supplier.InvoiceDiscount||0}%</p><p><strong>Return Period:</strong> ${supplier.ReturnPeriod||0} days</p></div><div class="card-footer"><button class="btn btn-edit">Edit</button><button class="btn btn-delete">Delete</button></div>`; supplierGrid.appendChild(card); }); };
 
         const fetchSuppliers = async () => {
             logToUI("Attempting to fetch all suppliers...", "info");
@@ -138,6 +136,7 @@
             }
         };
         
+        // --- UPDATED AND SIMPLIFIED POSTDATA FUNCTION ---
         const postData = async (action, data) => {
             logToUI(`Attempting to POST action: '${action}'...`, "info");
             showLoader(true);
@@ -145,7 +144,13 @@
             try {
                 const payload = { action, data };
                 logToUI(`Payload: ${JSON.stringify(payload)}`, "info");
-                const response = await fetch(GOOGLE_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload), headers: { 'Content-Type': 'application/json' }});
+                
+                const response = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(payload),
+                    // The 'headers' property is intentionally removed to avoid preflight issues.
+                });
+
                 logToUI(`Received response from server. Status: ${response.status}`, "info");
                 const result = await response.json();
                 if (result.success) {
@@ -157,7 +162,8 @@
                     throw new Error(result.message || `Failed to perform action: ${action}`);
                 }
             } catch (error) {
-                logToUI(`POST ERROR on action '${action}': ${error.message}`, "error");
+                const errorMessage = `POST ERROR on action '${action}': ${error.message}. This is often a CORS policy error. Please ensure the Google Apps Script has been redeployed correctly.`;
+                logToUI(errorMessage, "error");
                 console.error(`${action} Error:`, error);
                 showToast(error.message, 'error');
             } finally {
@@ -171,7 +177,7 @@
         const showModal = (mode = 'add', supplier = null) => { document.getElementById('formMode').value = mode; supplierForm.reset(); if (mode === 'add') { document.getElementById('modalTitle').textContent = 'Add New Supplier'; document.getElementById('supplierCode').disabled = false; } else if (mode === 'edit' && supplier) { document.getElementById('modalTitle').textContent = 'Edit Supplier'; document.getElementById('supplierCode').value = supplier.SupplierCode; document.getElementById('supplierName').value = supplier.SupplierName; document.getElementById('invoiceDiscount').value = supplier.InvoiceDiscount; document.getElementById('returnPeriod').value = supplier.ReturnPeriod; document.getElementById('originalSupplierCode').value = supplier.SupplierCode; document.getElementById('supplierCode').disabled = false; } modal.classList.add('show'); };
         const hideModal = () => { modal.classList.remove('show'); };
         
-        // --- THIS FUNCTION IS NOW FIXED ---
+        // --- FIXED SEARCH FUNCTION ---
         const handleFilter = (e) => { const searchTerm = e.target.value.toLowerCase(); const filteredSuppliers = allSuppliers.filter(s => String(s.SupplierName || '').toLowerCase().includes(searchTerm) || String(s.SupplierCode || '').toLowerCase().includes(searchTerm)); renderSuppliers(filteredSuppliers); };
         
         // --- EVENT LISTENERS ---
@@ -185,7 +191,7 @@
         modal.addEventListener('click', (e) => { if (e.target === modal) hideModal(); });
         supplierForm.addEventListener('submit', handleFormSubmit);
         searchInput.addEventListener('input', handleFilter);
-        supplierGrid.addEventListener('click', (e) => { const target = e.target.closest('.btn'); if (!target) return; const code = target.dataset.code; if (target.classList.contains('btn-edit')) { const s = allSuppliers.find(sup => sup.SupplierCode == code); if (s) showModal('edit', s); } if (target.classList.contains('btn-delete')) { handleDelete(code); } });
+        supplierGrid.addEventListener('click', (e) => { const target = e.target.closest('.btn'); if (!target) return; const card = target.closest('.supplier-card'); const code = card.dataset.code; if (target.classList.contains('btn-edit')) { const s = allSuppliers.find(sup => String(sup.SupplierCode) === String(code)); if (s) showModal('edit', s); } if (target.classList.contains('btn-delete')) { handleDelete(code); } });
     </script>
 </body>
 </html>
