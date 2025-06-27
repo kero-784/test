@@ -111,7 +111,7 @@
         table {
             border-collapse: collapse;
             width: 100%;
-            min-width: 1000px; /* Increased width to accommodate PLU code */
+            min-width: 1000px;
             font-size: 0.9em;
         }
         th, td {
@@ -119,7 +119,7 @@
             border-bottom: 1px solid var(--border-color);
             text-align: right;
             white-space: nowrap;
-            background-color: var(--card-bg); /* Set base background for sticky cells */
+            background-color: var(--card-bg);
         }
         th {
             background-color: var(--input-bg);
@@ -130,7 +130,6 @@
         tbody tr:last-child td { border-bottom: none; }
         tbody tr:hover td { background-color: var(--input-bg); }
         
-        /* Sticky Name Column (Right side for RTL) */
         th.sticky-col-name, td.sticky-col-name {
             position: sticky;
             right: 0; 
@@ -139,7 +138,6 @@
         }
         th.sticky-col-name { z-index: 3; }
 
-        /* Sticky Delete Column (Left side for RTL) */
         th.sticky-col-action, td.sticky-col-action {
             position: sticky;
             left: 0;
@@ -284,7 +282,8 @@
             <div class="panel-actions">
                 <button id="extractButton" class="btn btn-secondary"><i class="fas fa-file-excel"></i> Excel</button>
                 <button id="saveImageButton" class="btn btn-secondary"><i class="fas fa-file-image"></i> صورة</button>
-                <label class="export-option"><input type="checkbox" id="excludeCoastCheckbox" /> إخفاء سعر الساحل</label>
+                <!-- *** MODIFICATION: Changed ID and label for checkbox *** -->
+                <label class="export-option"><input type="checkbox" id="excludeCostCheckbox" /> إخفاء التكلفة</label>
                 <button id="clearTableButton" class="btn btn-danger" style="margin-right: auto;"><i class="fas fa-trash-alt"></i> مسح الكل</button>
             </div>
             <div id="editChanges" class="table-wrapper"><h4>تعديلات الأسعار</h4><table id="dataTable"><thead><tr><th>الكود</th><th>كود PLU</th><th class="sticky-col-name">الاسم</th><th>التكلفة</th><th>القاهرة</th><th>الساحل</th><th>المورد</th><th>الحالة الجديدة</th><th>الصلاحية</th><th class="sticky-col-action">حذف</th></tr></thead><tbody id="dataTableBody"></tbody></table></div>
@@ -402,7 +401,7 @@
             document.getElementById('cairoMarginInput').value = item.cairoMargin > 0 ? item.cairoMargin.toFixed(3) : '';
             document.getElementById('coastMarginInput').value = item.coastMargin > 0 ? item.coastMargin.toFixed(3) : '';
             resetEditModalInputs();
-            updateCalculatedPrices(false); // Calculate initial suggested prices
+            updateCalculatedPrices(false); 
             openModal(document.getElementById('editItemModal'));
         }
         document.getElementById('showAddItemModalBtn').addEventListener('click', () => openModal(document.getElementById('addNewItemModal')));
@@ -439,7 +438,6 @@
             if (!selectedItem) { alert('الرجاء اختيار صنف أولاً.'); return; }
             const tableBody = document.getElementById('dataTableBody');
             const newRow = tableBody.insertRow();
-            // **MODIFICATION**: Added PLU Code column
             newRow.innerHTML = `
                 <td>${selectedItem.code}</td>
                 <td>${selectedItem.pluCode || 'N/A'}</td>
@@ -488,7 +486,6 @@
             updateChangesCount();
         });
         
-        // **NEW**: Helper function to clone a table and remove a column
         function cloneAndRemoveColumn(tableElement, columnIndex) {
             const clone = tableElement.cloneNode(true);
             for (const row of clone.rows) {
@@ -500,14 +497,14 @@
         }
 
         document.getElementById('extractButton').addEventListener('click', () => {
-            const excludeCoast = document.getElementById('excludeCoastCheckbox').checked;
+            const excludeCost = document.getElementById('excludeCostCheckbox').checked;
             const wb = XLSX.utils.book_new();
 
             if (document.getElementById('dataTableBody').rows.length > 0) {
                 let editTable = document.getElementById('dataTable');
-                if (excludeCoast) {
-                    // **MODIFICATION**: Clone and remove the 'Coast' column (index 5) if checked
-                    editTable = cloneAndRemoveColumn(editTable, 5); 
+                if (excludeCost) {
+                    // Remove the 'Cost' column (index 3) if checked
+                    editTable = cloneAndRemoveColumn(editTable, 3); 
                 }
                 const ws1 = XLSX.utils.table_to_sheet(editTable);
                 XLSX.utils.book_append_sheet(wb, ws1, "تعديلات الأسعار");
@@ -515,9 +512,9 @@
 
             if (document.getElementById('dataTableBodyNewItem').rows.length > 0) {
                 let newTable = document.getElementById('dataTableNewItem');
-                 if (excludeCoast) {
-                    // **MODIFICATION**: Clone and remove the 'Coast' column (index 3) if checked
-                    newTable = cloneAndRemoveColumn(newTable, 3);
+                 if (excludeCost) {
+                    // Remove the 'Cost' column (index 1) if checked
+                    newTable = cloneAndRemoveColumn(newTable, 1);
                 }
                 const ws2 = XLSX.utils.table_to_sheet(newTable);
                 XLSX.utils.book_append_sheet(wb, ws2, "أصناف جديدة");
@@ -531,9 +528,8 @@
         });
         
         document.getElementById('saveImageButton').addEventListener('click', () => {
-            const excludeCoast = document.getElementById('excludeCoastCheckbox').checked;
+            const excludeCost = document.getElementById('excludeCostCheckbox').checked;
             const captureContainer = document.createElement('div');
-            // Basic styles for the container
             Object.assign(captureContainer.style, {
                 position: 'absolute', left: '-9999px', top: '0', width: '1200px',
                 direction: 'rtl', padding: '1.5rem',
@@ -548,10 +544,10 @@
 
             if (editTableRows > 0) {
                 let editChangesWrapper = document.getElementById('editChanges').cloneNode(true);
-                if (excludeCoast) {
-                    // **MODIFICATION**: Find the table inside the clone and remove the column
+                if (excludeCost) {
+                    // Find the table inside the clone and remove the 'Cost' column (index 3)
                     let tableToModify = editChangesWrapper.querySelector('#dataTable');
-                    let newTable = cloneAndRemoveColumn(tableToModify, 5);
+                    let newTable = cloneAndRemoveColumn(tableToModify, 3);
                     tableToModify.parentNode.replaceChild(newTable, tableToModify);
                 }
                 captureContainer.appendChild(editChangesWrapper);
@@ -559,7 +555,6 @@
             }
 
             if (editTableRows > 0 && newItemTableRows > 0) {
-                // Add a visual separator for the image
                 const separator = document.createElement('hr');
                 Object.assign(separator.style, { border: 'none', borderTop: '1px solid var(--border-color)', margin: '1.5rem 0' });
                 captureContainer.appendChild(separator);
@@ -567,10 +562,10 @@
 
             if (newItemTableRows > 0) {
                  let newChangesWrapper = document.getElementById('newChanges').cloneNode(true);
-                 if (excludeCoast) {
-                    // **MODIFICATION**: Find the table inside the clone and remove the column
+                 if (excludeCost) {
+                    // Find the table inside the clone and remove the 'Cost' column (index 1)
                     let tableToModify = newChangesWrapper.querySelector('#dataTableNewItem');
-                    let newTable = cloneAndRemoveColumn(tableToModify, 3);
+                    let newTable = cloneAndRemoveColumn(tableToModify, 1);
                     tableToModify.parentNode.replaceChild(newTable, tableToModify);
                 }
                 captureContainer.appendChild(newChangesWrapper);
