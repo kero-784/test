@@ -19,6 +19,10 @@
             --label-padding: 5px; --label-border-radius: 8px; --price-box-bg: rgba(255, 255, 255, 0.85);
             --price-box-border-color: var(--label-price-color); --label-item-font-size: 16px;
             --label-item-font-weight: 700; --label-item-text-transform: none; --label-price-font-size: 24px;
+            
+            /* New Variables for Pre-printed Positioning */
+            --pre-item-top: 50%; --pre-item-right: 50%;
+            --pre-price-top: 80%; --pre-price-right: 20%;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -42,8 +46,7 @@
         h3 { font-size: 1.5rem; font-weight: 700; color: var(--primary-color); margin: 40px 0 25px 0; border-bottom: 2px solid; padding-bottom: 15px;}
 
         button {
-            background-color: var(--primary-color);
-            color: white; border: none; padding: 12px 25px; border-radius: var(--radius-md); font-family: 'Cairo', sans-serif;
+            background-color: var(--primary-color); color: white; border: none; padding: 12px 25px; border-radius: var(--radius-md); font-family: 'Cairo', sans-serif;
             font-size: 1rem; font-weight: 600; cursor: pointer; transition: var(--transition); box-shadow: var(--shadow);
             display: inline-flex; align-items: center; justify-content: center; gap: 8px;
         }
@@ -96,6 +99,7 @@
         }
         #print-button { margin-top: 25px; }
         
+        /* Default Layout */
         .price-label {
             display: flex; flex-direction: row; align-items: center;
             overflow: hidden; background-color: white; color: var(--text-color); font-family: 'Cairo', sans-serif;
@@ -121,23 +125,44 @@
         
         #layout-calculation-status { background-color: #eef2ff; padding: 10px; border-radius: var(--radius-md); text-align: center; font-weight: 600; color: #4338ca; margin-top: 15px; display:none; }
         .helper-text { font-size: 13px; color: var(--muted-text); margin-top: 5px; line-height: 1.5; }
+        #preprinted-controls { display: none; }
 
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: var(--bg-color); }
         ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
         
-        /* Styles for Pre-printed Mode Preview */
-        #a4-sheet.preprinted-mode .price-label {
+        /* --- NEW: Pre-printed Mode Layout Overrides --- */
+        .price-label.is-preprinted {
+            position: relative; /* Establish positioning context */
             background-color: transparent;
             border: 1px dashed #9ca3af; /* A faint guide for alignment */
         }
-        #a4-sheet.preprinted-mode .label-logo-area {
-            opacity: 0.15; /* Show faint logo for positioning reference in preview */
+        /* Hide original layout elements */
+        .is-preprinted .label-logo-area { display: none; }
+        .is-preprinted .label-price-container { border: none; background: transparent; }
+        
+        /* Position Item Name and Price absolutely */
+        .is-preprinted .label-info-area,
+        .is-preprinted .label-price-area {
+            position: absolute;
+            padding: 0;
+            width: auto;
+            transform: translate(var(--pre-item-right), var(--pre-item-top)); /* Default transform */
         }
-        #a4-sheet.preprinted-mode .label-price-container {
-            border: none;
-            background-color: transparent;
+        
+        .is-preprinted .label-info-area {
+            top: var(--pre-item-top);
+            right: var(--pre-item-right);
+            transform: translate(50%, -50%); /* Centering trick */
+            text-align: center;
+        }
+
+        .is-preprinted .label-price-area {
+            top: var(--pre-price-top);
+            right: var(--pre-price-right);
+            transform: translate(50%, -50%); /* Centering trick */
+            text-align: center;
         }
 
         @media print {
@@ -146,29 +171,15 @@
             #a4-sheet { transform: none !important; box-shadow: none !important; border: none !important; padding: 0 !important; margin: 0 !important; width: 100% !important; height: 100% !important; display: grid !important; }
             .price-label { page-break-inside: avoid !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; border-color: #000 !important; }
 
-            /* --- Styles for printing on pre-printed forms --- */
             .price-label.is-preprinted {
                 background: transparent !important;
                 border: none !important;
                 box-shadow: none !important;
             }
-            .price-label.is-preprinted .label-logo-area {
-                display: none !important; /* Completely hide logo area on print */
-            }
-            .price-label.is-preprinted .label-price-container {
-                border: none !important;
-                background: transparent !important;
-            }
             .price-label.is-preprinted .label-info-area,
-            .price-label.is-preprinted .label-price {
+            .price-label.is-preprinted .label-price,
+            .price-label.is-preprinted .label-price-area {
                 color: #000 !important; /* Ensure text is black for printing */
-            }
-            /* --- CORRECTED --- 
-               This rule now ensures the text remains centered during printing,
-               matching the on-screen preview.
-            */
-            .price-label.is-preprinted .label-info-area {
-                text-align: center; 
             }
         }
     </style>
@@ -219,14 +230,37 @@
                     </p>
                 </div>
             </div>
+
+            <fieldset id="preprinted-controls">
+                <legend>إحداثيات الطباعة</legend>
+                <p class="helper-text" style="margin-bottom: 20px;">
+                    استخدم هذه المنزلقات لمحاذاة النص مع النموذج المطبوع مسبقًا بدقة.
+                </p>
+                <div class="control-group">
+                    <label>موضع اسم الصنف (أفقي): <span id="pre-item-right-value" class="slider-value">50</span>%</label>
+                    <input type="range" id="pre-item-right" min="0" max="100" value="50">
+                </div>
+                <div class="control-group">
+                    <label>موضع اسم الصنف (رأسي): <span id="pre-item-top-value" class="slider-value">50</span>%</label>
+                    <input type="range" id="pre-item-top" min="0" max="100" value="50">
+                </div>
+                <div class="control-group">
+                    <label>موضع السعر (أفقي): <span id="pre-price-right-value" class="slider-value">20</span>%</label>
+                    <input type="range" id="pre-price-right" min="0" max="100" value="20">
+                </div>
+                <div class="control-group">
+                    <label>موضع السعر (رأسي): <span id="pre-price-top-value" class="slider-value">80</span>%</label>
+                    <input type="range" id="pre-price-top" min="0" max="100" value="80">
+                </div>
+            </fieldset>
             
             <fieldset>
                 <legend>تخطيط الصفحة</legend>
                  <div id="layout-calculation-status"></div>
             </fieldset>
 
-            <fieldset id="border-fieldset">
-                <legend>الإطار والحدود</legend>
+            <fieldset id="design-fieldset">
+                <legend>الإطار والألوان</legend>
                 <div class="control-group"><label>الحشو (px): <span id="label-padding-value" class="slider-value">5</span></label><input type="range" id="label-padding" min="0" max="20" value="5"></div>
                 <div class="control-group grid-3">
                     <div><label>عرض الإطار (px)</label><input type="number" id="label-border-width" value="1" min="0"></div>
@@ -234,6 +268,11 @@
                     <div><label>نمط الإطار</label><select id="label-border-style"><option value="dashed">متقطع (Dashed)</option><option value="solid">صلب (Solid)</option><option value="dotted">منقط (Dotted)</option><option value="double">مزدوج (Double)</option></select></div>
                 </div>
                  <div class="control-group"><label>حواف دائرية (px): <span id="label-border-radius-value" class="slider-value">8</span></label><input type="range" id="label-border-radius" min="0" max="30" value="8"></div>
+                 <div class="control-group grid-3">
+                    <div><label>خلفية السعر</label><input type="color" id="price-box-bg" value="#ffffff"></div>
+                    <div><label>إطار السعر</label><input type="color" id="price-box-border-color" value="#ef4444"></div>
+                    <div><label>لون السعر</label><input type="color" id="label-price-color" value="#ef4444"></div>
+                </div>
             </fieldset>
 
             <fieldset>
@@ -246,15 +285,6 @@
                     <div><label>وزن الخط</label><select id="item-font-weight"><option value="400">عادي</option><option value="700" selected>عريض</option></select></div>
                     <div><label>حالة الأحرف</label><select id="item-text-transform"><option value="none">عادي</option><option value="uppercase">أحرف كبيرة (Uppercase)</option></select></div>
                  </div>
-            </fieldset>
-
-            <fieldset id="colors-fieldset">
-                <legend>الألوان</legend>
-                <div class="control-group grid-3">
-                    <div><label>خلفية السعر</label><input type="color" id="price-box-bg" value="#ffffff"></div>
-                    <div><label>إطار السعر</label><input type="color" id="price-box-border-color" value="#ef4444"></div>
-                    <div><label>لون السعر</label><input type="color" id="label-price-color" value="#ef4444"></div>
-                </div>
             </fieldset>
         </aside>
     </div>
@@ -271,11 +301,9 @@ document.addEventListener('DOMContentLoaded', function() {
     };
     
     const state = {
-        allItems: [], 
-        selectedItemIds: new Set(),
-        currentLogoSrc: 'https://i.ibb.co/L8y2zfb/logo.png', // Using a hosted logo for reliability
-        currentPreviewData: null, 
-        searchTags: []
+        allItems: [], selectedItemIds: new Set(),
+        currentLogoSrc: 'https://i.ibb.co/L8y2zfb/logo.png',
+        currentPreviewData: null, searchTags: []
     };
     
     const dom = {
@@ -288,15 +316,16 @@ document.addEventListener('DOMContentLoaded', function() {
         a4Sheet: document.getElementById('a4-sheet'), printButton: document.getElementById('print-button'),
         layoutStatus: document.getElementById('layout-calculation-status'),
         preprintedModeCheckbox: document.getElementById('preprinted-mode'),
-        borderFieldset: document.getElementById('border-fieldset'),
-        colorsFieldset: document.getElementById('colors-fieldset'),
+        designFieldset: document.getElementById('design-fieldset'),
+        preprintedControls: document.getElementById('preprinted-controls'),
         controls: {}
     };
 
     const controlIds = [
         'label-padding', 'label-border-width', 'label-border-color', 'label-border-style', 'label-border-radius', 
         'item-font-size', 'price-font-size', 'item-font-weight', 'item-text-transform', 
-        'price-box-bg', 'price-box-border-color', 'label-price-color'
+        'price-box-bg', 'price-box-border-color', 'label-price-color',
+        'pre-item-top', 'pre-item-right', 'pre-price-top', 'pre-price-right' // New positioning controls
     ];
     controlIds.forEach(id => {
         const camelCaseId = id.replace(/-(\w)/g, (match, p1) => p1.toUpperCase());
@@ -315,15 +344,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const findCommon = (arr) => {
         if (!arr || arr.length === 0) return '';
-        const wordsArr = arr.map(s => String(s).split(' '));
-        let common = [];
+        const wordsArr = arr.map(s => String(s).split(' ')); let common = [];
         for (let i = 0; i < wordsArr[0].length; i++) {
             let word = wordsArr[0][i];
-            if (wordsArr.every(words => words[i] === word)) {
-                common.push(word);
-            } else {
-                break; 
-            }
+            if (wordsArr.every(words => words[i] === word)) { common.push(word); } else { break; }
         }
         return common.join(' ');
     };
@@ -331,15 +355,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const extractUnit = (name) => {
         const units = ['ملل', 'مل', 'جم', 'جرام', 'كجم', 'لتر', 'متر'];
         const regex = new RegExp(`(\\d*\\.?\\d+\\s?(${units.join('|')}))($|\\s)`);
-        const match = name.match(regex);
-        return match ? match[1].trim() : null;
+        const match = name.match(regex); return match ? match[1].trim() : null;
     };
 
     const renderItems = (items) => {
         dom.itemList.innerHTML = '';
         if (items.length === 0) {
-            dom.itemList.innerHTML = '<p style="text-align:center; padding: 20px; color: var(--muted-text);">لا توجد نتائج مطابقة</p>';
-            return;
+            dom.itemList.innerHTML = '<p style="text-align:center; padding: 20px; color: var(--muted-text);">لا توجد نتائج مطابقة</p>'; return;
         }
         items.forEach(item => {
             const isSelected = state.selectedItemIds.has(item.id);
@@ -374,9 +396,7 @@ document.addEventListener('DOMContentLoaded', function() {
             tagEl.className = 'search-tag';
             tagEl.innerHTML = `<span class="field">${tag.field_label}:</span><span>${tag.value}</span><button class="search-tag-remove">${icons.close}</button>`;
             tagEl.querySelector('.search-tag-remove').addEventListener('click', () => {
-                state.searchTags.splice(index, 1);
-                renderSearchTags();
-                handleAdvancedSearch();
+                state.searchTags.splice(index, 1); renderSearchTags(); handleAdvancedSearch();
             });
             dom.searchContainer.insertBefore(tagEl, dom.searchInput);
         });
@@ -388,6 +408,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const { controls } = dom;
 
         const root = document.documentElement.style;
+        const isPreprinted = dom.preprintedModeCheckbox.checked;
+
+        // Set CSS variables from controls
         Object.entries({
             '--label-padding': `${controls.labelPadding.value}px`, '--label-border-width': `${controls.labelBorderWidth.value}px`,
             '--label-border-style': controls.labelBorderStyle.value, '--label-border-color': controls.labelBorderColor.value,
@@ -395,6 +418,8 @@ document.addEventListener('DOMContentLoaded', function() {
             '--price-box-border-color': controls.priceBoxBorderColor.value, '--label-price-color': controls.labelPriceColor.value,
             '--label-item-font-size': `${controls.itemFontSize.value}px`, '--label-item-font-weight': controls.itemFontWeight.value,
             '--label-item-text-transform': controls.itemTextTransform.value, '--label-price-font-size': `${controls.priceFontSize.value}px`,
+            '--pre-item-top': `${controls.preItemTop.value}%`, '--pre-item-right': `${controls.preItemRight.value}%`,
+            '--pre-price-top': `${controls.prePriceTop.value}%`, '--pre-price-right': `${controls.prePriceRight.value}%`
         }).forEach(([prop, val]) => root.setProperty(prop, val));
 
         const PAGE_HEIGHT_MM = 297, MARGIN_MM = 10, PRINTABLE_HEIGHT = PAGE_HEIGHT_MM - (MARGIN_MM * 2);
@@ -408,16 +433,14 @@ document.addEventListener('DOMContentLoaded', function() {
         dom.a4Sheet.style.gridTemplateColumns = `1fr`;
         dom.a4Sheet.style.gridAutoRows = `${labelHeight}mm`;
         dom.a4Sheet.style.gap = `${gap}mm`;
-        dom.a4Sheet.classList.toggle('preprinted-mode', dom.preprintedModeCheckbox.checked);
+        dom.a4Sheet.classList.toggle('preprinted-mode', isPreprinted);
 
         const logoHtml = `<img src="${state.currentLogoSrc}" alt="Logo">`;
 
         for (let i = 0; i < totalLabels; i++) {
             const label = document.createElement('div');
             label.className = 'price-label';
-            if (dom.preprintedModeCheckbox.checked) {
-                label.classList.add('is-preprinted');
-            }
+            if (isPreprinted) { label.classList.add('is-preprinted'); }
             label.innerHTML = `
                 <div class="label-logo-area">${logoHtml}</div>
                 <div class="label-info-area">${name}</div>
@@ -426,21 +449,15 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         const printButtonIcon = dom.printButton.querySelector('.btn-icon');
-        if (printButtonIcon) {
-            printButtonIcon.innerHTML = icons.print;
-        }
+        if (printButtonIcon) { printButtonIcon.innerHTML = icons.print; }
         dom.printButton.style.display = totalLabels > 0 ? 'inline-flex' : 'none';
     };
 
     const generateLabelData = () => {
         try {
-            if (state.selectedItemIds.size === 0) {
-                return showStatus('خطأ: يرجى تحديد صنف واحد على الأقل.', 'error');
-            }
+            if (state.selectedItemIds.size === 0) { return showStatus('خطأ: يرجى تحديد صنف واحد على الأقل.', 'error'); }
             const price = parseFloat(dom.priceInput.value);
-            if (isNaN(price) || price <= 0) {
-                return showStatus('خطأ: يرجى إدخال سعر صحيح وموجب.', 'error');
-            }
+            if (isNaN(price) || price <= 0) { return showStatus('خطأ: يرجى إدخال سعر صحيح وموجب.', 'error'); }
             
             const selectedItems = state.allItems.filter(item => state.selectedItemIds.has(item.id));
             let newName;
@@ -465,7 +482,6 @@ document.addEventListener('DOMContentLoaded', function() {
             
             state.currentPreviewData = { name: newName, price };
             updatePreview();
-
         } catch (error) {
             console.error(error);
             showStatus('حدث خطأ غير متوقع أثناء إنشاء البطاقة.', 'error');
@@ -497,30 +513,22 @@ document.addEventListener('DOMContentLoaded', function() {
     };
     
     // --- EVENT LISTENERS ---
-    const debouncedUpdatePreview = debounce(updatePreview, 250);
+    const debouncedUpdatePreview = debounce(updatePreview, 150);
     dom.generateBtn.addEventListener('click', generateLabelData);
     dom.printButton.addEventListener('click', () => window.print());
     dom.searchInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
-            e.preventDefault();
-            const value = dom.searchInput.value.trim();
-            if (!value) return;
-            const field = dom.searchField.value;
-            const field_label = dom.searchField.options[dom.searchField.selectedIndex].text;
-            state.searchTags.push({ value, field, field_label });
-            renderSearchTags(); 
-            handleAdvancedSearch();
-            dom.searchInput.value = '';
+            e.preventDefault(); const value = dom.searchInput.value.trim(); if (!value) return;
+            const field = dom.searchField.value; const field_label = dom.searchField.options[dom.searchField.selectedIndex].text;
+            state.searchTags.push({ value, field, field_label }); renderSearchTags(); handleAdvancedSearch(); dom.searchInput.value = '';
         }
     });
     
     dom.preprintedModeCheckbox.addEventListener('change', (e) => {
         const isPreprinted = e.target.checked;
-        dom.borderFieldset.disabled = isPreprinted;
-        dom.colorsFieldset.disabled = isPreprinted;
-        if (state.currentPreviewData) {
-            updatePreview();
-        }
+        dom.designFieldset.disabled = isPreprinted;
+        dom.preprintedControls.style.display = isPreprinted ? 'block' : 'none';
+        if (state.currentPreviewData) { updatePreview(); }
     });
 
     Object.values(dom.controls).forEach(control => {
@@ -529,7 +537,9 @@ document.addEventListener('DOMContentLoaded', function() {
         control.addEventListener(event, debouncedUpdatePreview);
     });
     
-    const sliderValueIds = ['label-padding', 'label-border-radius', 'item-font-size', 'price-font-size'];
+    // Connect sliders to their value display spans
+    const sliderValueIds = ['label-padding', 'label-border-radius', 'item-font-size', 'price-font-size',
+                            'pre-item-top', 'pre-item-right', 'pre-price-top', 'pre-price-right'];
     sliderValueIds.forEach(id => {
         const input = document.getElementById(id);
         const valueSpan = document.getElementById(`${id}-value`);
