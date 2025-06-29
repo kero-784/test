@@ -57,6 +57,7 @@
         }
         input:focus, select:focus { border-color: var(--primary-color); background-color: white; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); outline: none; }
         input[type="color"] { padding: 4px; height: 42px; }
+        input[type="checkbox"] { width: auto; }
         
         .section-card { background: var(--card-bg); padding: 25px; border-radius: var(--radius-lg); box-shadow: var(--shadow); margin-bottom: 30px; }
         .loader { border: 4px solid #e2e8f0; border-top: 4px solid var(--primary-color); border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; display: none; margin: 0 auto; }
@@ -108,7 +109,8 @@
         .label-price { font-size: var(--label-price-font-size); font-weight: 700; color: var(--label-price-color); white-space: nowrap; }
 
         .slider-value { font-weight: 600; color: var(--primary-color); }
-        fieldset { border: none; border-radius: var(--radius-lg); padding: 20px; margin-bottom: 20px; background-color: #f8fafc; border: 1px solid var(--border-color); }
+        fieldset { border: none; border-radius: var(--radius-lg); padding: 20px; margin-bottom: 20px; background-color: #f8fafc; border: 1px solid var(--border-color); transition: var(--transition); }
+        fieldset:disabled { opacity: 0.5; pointer-events: none; }
         legend { font-weight: 700; color: var(--text-color); padding: 0 5px; font-size: 1.1rem; }
         .control-group { margin-bottom: 20px; } .control-group:last-child { margin-bottom: 0; }
         .control-group label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--muted-text); }
@@ -118,17 +120,53 @@
         .grid-3 { grid-template-columns: repeat(3, 1fr); }
         
         #layout-calculation-status { background-color: #eef2ff; padding: 10px; border-radius: var(--radius-md); text-align: center; font-weight: 600; color: #4338ca; margin-top: 15px; display:none; }
+        .helper-text { font-size: 13px; color: var(--muted-text); margin-top: 5px; line-height: 1.5; }
 
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: var(--bg-color); }
         ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+        
+        /* Styles for Pre-printed Mode Preview */
+        #a4-sheet.preprinted-mode .price-label {
+            background-color: transparent;
+            border: 1px dashed #9ca3af; /* A faint guide for alignment */
+        }
+        #a4-sheet.preprinted-mode .label-logo-area {
+            opacity: 0.15; /* Show faint logo for positioning reference in preview */
+        }
+        #a4-sheet.preprinted-mode .label-price-container {
+            border: none;
+            background-color: transparent;
+        }
 
         @media print {
             .control-panel, #print-button, .app-status { display: none !important; }
             body, .app-container, .preview-panel { display: block !important; width: 100% !important; height: auto !important; overflow: visible !important; background: #fff !important; padding: 0 !important; margin: 0 !important; }
             #a4-sheet { transform: none !important; box-shadow: none !important; border: none !important; padding: 0 !important; margin: 0 !important; width: 100% !important; height: 100% !important; display: grid !important; }
             .price-label { page-break-inside: avoid !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; border-color: #000 !important; }
+
+            /* --- NEW: Styles for printing on pre-printed forms --- */
+            .price-label.is-preprinted {
+                background: transparent !important;
+                border: none !important;
+                box-shadow: none !important;
+            }
+            .price-label.is-preprinted .label-logo-area {
+                display: none !important; /* Completely hide logo area on print */
+            }
+            .price-label.is-preprinted .label-price-container {
+                border: none !important;
+                background: transparent !important;
+            }
+            .price-label.is-preprinted .label-info-area,
+            .price-label.is-preprinted .label-price {
+                color: #000 !important; /* Ensure text is black */
+            }
+            .price-label.is-preprinted .label-info-area {
+                text-align: right; /* Adjust alignment as needed for forms */
+                padding-right: 20px;
+            }
         }
     </style>
 </head>
@@ -166,12 +204,25 @@
             </section>
 
             <h3>تخصيص التصميم</h3>
+            
+            <div class="section-card">
+                <div class="control-group">
+                    <label for="preprinted-mode" style="display: flex; align-items: center; cursor: pointer; font-weight: 700; color: var(--text-color);">
+                        <input type="checkbox" id="preprinted-mode" style="margin-left: 10px;">
+                        استخدام نموذج مطبوع مسبقًا
+                    </label>
+                    <p class="helper-text">
+                        عند تفعيل هذا الخيار، سيتم إخفاء تصميم البطاقة (الشعار، الإطارات، الألوان) للطباعة على ورق مصمم مسبقًا.
+                    </p>
+                </div>
+            </div>
+            
             <fieldset>
                 <legend>تخطيط الصفحة</legend>
                  <div id="layout-calculation-status"></div>
             </fieldset>
 
-            <fieldset>
+            <fieldset id="border-fieldset">
                 <legend>الإطار والحدود</legend>
                 <div class="control-group"><label>الحشو (px): <span id="label-padding-value" class="slider-value">5</span></label><input type="range" id="label-padding" min="0" max="20" value="5"></div>
                 <div class="control-group grid-3">
@@ -194,7 +245,7 @@
                  </div>
             </fieldset>
 
-            <fieldset>
+            <fieldset id="colors-fieldset">
                 <legend>الألوان</legend>
                 <div class="control-group grid-3">
                     <div><label>خلفية السعر</label><input type="color" id="price-box-bg" value="#ffffff"></div>
@@ -219,7 +270,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const state = {
         allItems: [], 
         selectedItemIds: new Set(),
-        currentLogoSrc: 'logo.png', 
+        currentLogoSrc: 'https://i.ibb.co/L8y2zfb/logo.png', // Using a hosted logo for reliability
         currentPreviewData: null, 
         searchTags: []
     };
@@ -233,6 +284,9 @@ document.addEventListener('DOMContentLoaded', function() {
         priceInput: document.getElementById('price-input'), generateBtn: document.getElementById('generate-btn'),
         a4Sheet: document.getElementById('a4-sheet'), printButton: document.getElementById('print-button'),
         layoutStatus: document.getElementById('layout-calculation-status'),
+        preprintedModeCheckbox: document.getElementById('preprinted-mode'),
+        borderFieldset: document.getElementById('border-fieldset'),
+        colorsFieldset: document.getElementById('colors-fieldset'),
         controls: {}
     };
 
@@ -351,12 +405,16 @@ document.addEventListener('DOMContentLoaded', function() {
         dom.a4Sheet.style.gridTemplateColumns = `1fr`;
         dom.a4Sheet.style.gridAutoRows = `${labelHeight}mm`;
         dom.a4Sheet.style.gap = `${gap}mm`;
+        dom.a4Sheet.classList.toggle('preprinted-mode', dom.preprintedModeCheckbox.checked);
 
         const logoHtml = `<img src="${state.currentLogoSrc}" alt="Logo">`;
 
         for (let i = 0; i < totalLabels; i++) {
             const label = document.createElement('div');
             label.className = 'price-label';
+            if (dom.preprintedModeCheckbox.checked) {
+                label.classList.add('is-preprinted');
+            }
             label.innerHTML = `
                 <div class="label-logo-area">${logoHtml}</div>
                 <div class="label-info-area">${name}</div>
@@ -387,31 +445,19 @@ document.addEventListener('DOMContentLoaded', function() {
             if (selectedItems.length === 1) {
                 newName = selectedItems[0].name;
             } else {
-                // --- CORRECTED NAME GENERATION LOGIC ---
                 const allNames = selectedItems.map(item => item.name);
-                
-                // 1. Find the common unit among all items
                 let commonUnit = '';
                 const allUnits = allNames.map(name => extractUnit(name)).filter(Boolean);
                 if (allUnits.length > 0) {
-                    const unitCounts = allUnits.reduce((acc, unit) => {
-                        acc[unit] = (acc[unit] || 0) + 1;
-                        return acc;
-                    }, {});
+                    const unitCounts = allUnits.reduce((acc, unit) => { acc[unit] = (acc[unit] || 0) + 1; return acc; }, {});
                     if(Object.keys(unitCounts).length > 0) {
                         commonUnit = Object.keys(unitCounts).reduce((a, b) => unitCounts[a] > unitCounts[b] ? a : b);
                     }
                 }
-
-                // 2. Remove the unit from each name to find the common text
                 const namesWithoutUnits = allNames.map(name => name.replace(extractUnit(name) || '', '').trim());
-                
-                // 3. Find the common starting text
                 const commonStart = findCommon(namesWithoutUnits);
-
-                // 4. Build the new name
-                const nameParts = [commonStart, "أنواع", commonUnit].filter(Boolean); // filter(Boolean) removes empty strings
-                newName = nameParts.join(' ').replace(/\s+/g, ' '); // Join and clean up extra spaces
+                const nameParts = [commonStart, "أنواع", commonUnit].filter(Boolean);
+                newName = nameParts.join(' ').replace(/\s+/g, ' ');
             }
             
             state.currentPreviewData = { name: newName, price };
@@ -447,6 +493,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
     
+    // --- EVENT LISTENERS ---
     const debouncedUpdatePreview = debounce(updatePreview, 250);
     dom.generateBtn.addEventListener('click', generateLabelData);
     dom.printButton.addEventListener('click', () => window.print());
@@ -464,6 +511,15 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
+    dom.preprintedModeCheckbox.addEventListener('change', (e) => {
+        const isPreprinted = e.target.checked;
+        dom.borderFieldset.disabled = isPreprinted;
+        dom.colorsFieldset.disabled = isPreprinted;
+        if (state.currentPreviewData) {
+            updatePreview();
+        }
+    });
+
     Object.values(dom.controls).forEach(control => {
         if (!control) return;
         const event = ['range', 'color', 'number', 'text'].includes(control.type) ? 'input' : 'change';
