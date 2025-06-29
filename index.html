@@ -49,6 +49,7 @@
         }
         button:hover { background-color: var(--primary-hover); transform: translateY(-2px); box-shadow: var(--shadow-lg); }
         button:disabled { background-color: #94a3b8; cursor: not-allowed; transform: none; box-shadow: none; }
+        .btn-secondary { background-color: #64748b; } .btn-secondary:hover { background-color: #475569; }
         .btn-icon svg { width:18px; height:18px; }
         
         input, select {
@@ -63,33 +64,7 @@
         .loader { border: 4px solid #e2e8f0; border-top: 4px solid var(--primary-color); border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; display: none; margin: 0 auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
-        .app-status { padding: 15px 20px; margin-bottom: 20px; border-radius: var(--radius-md); color: #fff; text-align: center; font-weight: 600; box-shadow: var(--shadow); display: none; align-items: center; justify-content: center; gap: 10px; }
-        .app-status.error { background: #ef4444; }
-        .app-status.success { background: #22c55e; }
-        .app-status .icon svg { width: 20px; height: 20px; fill: white; }
-        
         #search-controls { display: flex; gap: 10px; margin-bottom: 15px; }
-        #search-field { flex: 0 0 120px; }
-        #search-container { border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 5px; display: flex; flex-wrap: wrap; align-items: center; gap: 5px; background-color: #f8fafc; transition: var(--transition); flex-grow: 1; }
-        #search-container:focus-within { border-color: var(--primary-color); background-color: white; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); }
-        #search-input { border: none; flex-grow: 1; padding: 5px; outline: none; background: transparent; }
-        .search-tag { background-color: #e2e8f0; color: var(--muted-text); padding: 5px 8px 5px 12px; border-radius: 6px; display: flex; align-items: center; font-size: 14px; gap: 8px; }
-        .search-tag .field { font-weight: 700; color: var(--primary-color); }
-        .search-tag-remove { background: none; border: none; cursor: pointer; color: #94a3b8; padding: 0; line-height: 1; display: flex; transition: var(--transition); }
-        .search-tag-remove:hover { color: var(--text-color); transform: scale(1.1); }
-        .search-tag-remove svg { width: 14px; height: 14px; }
-        
-        .item-list { max-height: 30vh; overflow-y: auto; border: 1px solid var(--border-color); border-radius: var(--radius-lg); background: white; }
-        .item-card { display: flex; align-items: center; padding: 12px 15px; border-bottom: 1px solid var(--border-color); transition: var(--transition); cursor: pointer; position: relative; }
-        .item-card:last-child { border-bottom: none; }
-        .item-card:hover { background-color: #f8fafc; }
-        .item-card.selected { background-color: #eff6ff; color: #1e40af; font-weight: 600; }
-        .item-card.selected::before { content: ''; position: absolute; right: 0; top: 0; bottom: 0; width: 4px; background-color: var(--primary-color); }
-        .item-card input[type="checkbox"] { margin-left: 15px; transform: scale(1.3); accent-color: var(--primary-color); }
-        .item-card .details { display: flex; flex-direction: column; }
-        .item-card .item-meta { font-size: 12px; color: var(--muted-text); }
-        .item-card.selected .item-meta { color: #60a5fa; }
-
         #a4-sheet {
             background: white; width: 21cm; height: 29.7cm; box-shadow: var(--shadow-lg); padding: 1cm;
             transform-origin: center center; transform: scale(0.65); display: grid; align-content: start;
@@ -97,7 +72,7 @@
         #print-button { margin-top: 25px; }
         
         .price-label {
-            display: flex; flex-direction: row; align-items: center;
+            display: flex; flex-direction: row; align-items: center; position: relative;
             overflow: hidden; background-color: white; color: var(--text-color); font-family: 'Cairo', sans-serif;
             border: var(--label-border-width) var(--label-border-style) var(--label-border-color); border-radius: var(--label-border-radius); padding: var(--label-padding);
         }
@@ -108,18 +83,13 @@
         .label-price-container { border: 2px solid var(--price-box-border-color); border-radius: 8px; text-align: center; background: var(--price-box-bg); padding: 5px 10px; display: inline-block; }
         .label-price { font-size: var(--label-price-font-size); font-weight: 700; color: var(--label-price-color); white-space: nowrap; }
 
-        .slider-value { font-weight: 600; color: var(--primary-color); }
         fieldset { border: none; border-radius: var(--radius-lg); padding: 20px; margin-bottom: 20px; background-color: #f8fafc; border: 1px solid var(--border-color); }
         legend { font-weight: 700; color: var(--text-color); padding: 0 5px; font-size: 1.1rem; }
         .control-group { margin-bottom: 20px; } .control-group:last-child { margin-bottom: 0; }
         .control-group label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--muted-text); }
         
-        .grid-2, .grid-3 { display: grid; gap: 15px; align-items: end; }
-        .grid-2 { grid-template-columns: repeat(2, 1fr); }
-        .grid-3 { grid-template-columns: repeat(3, 1fr); }
-        
         #layout-calculation-status { background-color: #eef2ff; padding: 10px; border-radius: var(--radius-md); text-align: center; font-weight: 600; color: #4338ca; margin-top: 15px; display:none; }
-        .switch-container { display: flex; align-items: center; justify-content: space-between; background: var(--card-bg); padding: 15px 20px; border-radius: var(--radius-md); box-shadow: var(--shadow); }
+        .switch-container { display: flex; align-items: center; justify-content: space-between; background: var(--card-bg); padding: 15px 20px; border-radius: var(--radius-md); box-shadow: var(--shadow); margin-bottom: 15px; }
         .switch-container label { margin-bottom: 0; font-size: 1.1rem; color: var(--text-color); }
         .switch { position: relative; display: inline-block; width: 50px; height: 28px; }
         .switch input { opacity: 0; width: 0; height: 0; }
@@ -127,49 +97,50 @@
         .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
         input:checked + .slider { background-color: var(--primary-color); }
         input:checked + .slider:before { transform: translateX(22px); }
-        #pre-printed-mode-helper { font-size: 0.85rem; color: var(--muted-text); margin-top: 15px; background: #eef2ff; padding: 10px; border-radius: var(--radius-md); }
 
         /* --- STYLES FOR DATA-ONLY MODE --- */
         .data-only-mode #a4-sheet {
             background-color: #f8fafc;
-            background-image: 
-                linear-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
+            background-image: linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px);
             background-size: 10mm 10mm;
         }
-        .data-only-mode .price-label {
-            background: transparent;
-            border: 1px dashed var(--primary-color) !important; /* On-screen guide */
-            box-shadow: none;
-        }
+        .data-only-mode .price-label { background: transparent; border: 1px dashed var(--primary-color) !important; box-shadow: none; }
         .data-only-mode .label-logo-area { display: none; }
-        .data-only-mode .label-info-area { flex-grow: 2; /* Take up more space */ }
+        .data-only-mode .label-info-area { flex-grow: 2; }
         .data-only-mode .label-price-container { border:none; background: transparent; padding:0; }
 
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: var(--bg-color); }
-        ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+        /* --- STYLES FOR TEMPLATE EXPORT MODE --- */
+        #a4-sheet.template-mode .price-label {
+            background: #fff; border: 1px solid #000; color: #333; padding: 0; border-radius: 0;
+            justify-content: space-between;
+        }
+        #a4-sheet.template-mode .label-info-area, #a4-sheet.template-mode .label-price-area {
+            border-left: 1px dashed #666; height: 100%; display: flex; align-items: center; justify-content: center;
+        }
+        #a4-sheet.template-mode .label-info-area { border-left: none; }
+        #a4-sheet.template-mode .placeholder { color: #888; font-style: italic; font-size: 12px; font-weight: normal; }
+        #a4-sheet.template-mode .annotation {
+            position: absolute; background: #fff; color: #000; font-size: 10px; font-family: monospace;
+            padding: 1px 4px; z-index: 10; border: 1px solid #000;
+        }
+        #a4-sheet.template-mode .annotation.top { top: -18px; left: 50%; transform: translateX(-50%); }
+        #a4-sheet.template-mode .annotation.side { top: 50%; right: -25px; transform: translateY(-50%) rotate(90deg); }
+        #a4-sheet.template-mode .annotation.info { top: 50%; left: 35%; transform: translate(-50%, -50%); opacity: 0.8; }
+        #a4-sheet.template-mode .annotation.price { top: 50%; right: 15%; transform: translate(-50%, -50%); opacity: 0.8; }
+
 
         @media print {
-            .control-panel, #print-button, .app-status { display: none !important; }
+            body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            .control-panel, #print-button { display: none !important; }
             body, .app-container, .preview-panel { display: block !important; width: 100% !important; height: auto !important; overflow: visible !important; background: #fff !important; padding: 0 !important; margin: 0 !important; }
             #a4-sheet { transform: none !important; box-shadow: none !important; border: none !important; padding: 0 !important; margin: 0 !important; width: 100% !important; height: 100% !important; display: grid !important; }
-            .price-label { page-break-inside: avoid !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; border-color: #000 !important; }
+            .price-label { page-break-inside: avoid !important; }
         
-            /* --- PRINT STYLES FOR DATA-ONLY MODE --- */
-            .data-only-mode .price-label {
-                visibility: hidden; /* Hide the container itself */
-                border: none !important;
-                background: none !important;
-            }
-            .data-only-mode .price-label > * {
-                visibility: visible; /* But make its direct children visible */
-            }
-            .data-only-mode .label-price-container {
-                border: none !important;
-                background: none !important;
-            }
+            .data-only-mode .price-label { visibility: hidden; border: none !important; background: none !important; }
+            .data-only-mode .price-label > * { visibility: visible; }
+            .data-only-mode .label-price-container { border: none !important; background: none !important; }
+
+            #a4-sheet.template-mode .price-label { border-color: #000 !important; } /* Ensure borders print */
         }
     </style>
 </head>
@@ -182,8 +153,7 @@
         
         <aside class="control-panel">
             <h1>مولد بطاقات الأسعار</h1>
-            <div id="app-status" class="app-status"></div>
-
+            
             <section class="section-card">
                 <h2>1. تحميل البيانات</h2>
                 <div id="loader" class="loader"></div>
@@ -191,10 +161,7 @@
 
             <section id="item-selection-section" class="section-card" style="display:none;">
                 <h2>2. بحث وتحديد الأصناف</h2>
-                <div id="search-controls">
-                    <select id="search-field"><option value="name">الاسم</option><option value="code">الكود</option></select>
-                    <div id="search-container"><input type="search" id="search-input" placeholder="اكتب للبحث ثم اضغط Enter..."></div>
-                </div>
+                <!-- Search controls will be added here by JS if needed -->
                 <div id="item-list" class="item-list"></div>
             </section>
 
@@ -216,9 +183,7 @@
                         <span class="slider"></span>
                     </label>
                 </div>
-                <div id="pre-printed-mode-helper" style="display:none;">
-                    <strong>وضع التفعيل:</strong> سيتم طباعة اسم الصنف والسعر فقط. مثالي للاستخدام مع الأوراق التي تحتوي على تصميمك وشعارك مسبقاً.
-                </div>
+                <button id="export-template-btn" class="btn-secondary" style="width:100%; margin-top: 15px;">تصدير قالب التصميم</button>
             </fieldset>
 
             <fieldset id="design-controls-layout">
@@ -232,7 +197,7 @@
                 <div class="control-group grid-3">
                     <div><label>عرض الإطار (px)</label><input type="number" id="label-border-width" value="1" min="0"></div>
                     <div><label>لون الإطار</label><input type="color" id="label-border-color" value="#cbd5e1"></div>
-                    <div><label>نمط الإطار</label><select id="label-border-style"><option value="dashed">متقطع (Dashed)</option><option value="solid">صلب (Solid)</option><option value="dotted">منقط (Dotted)</option><option value="double">مزدوج (Double)</option></select></div>
+                    <div><label>نمط الإطار</label><select id="label-border-style"><option value="dashed">متقطع</option><option value="solid">صلب</option><option value="dotted">منقط</option><option value="double">مزدوج</option></select></div>
                 </div>
                  <div class="control-group"><label>حواف دائرية (px): <span id="label-border-radius-value" class="slider-value">8</span></label><input type="range" id="label-border-radius" min="0" max="30" value="8"></div>
             </fieldset>
@@ -245,7 +210,7 @@
                 </div>
                  <div class="control-group grid-2">
                     <div><label>وزن الخط</label><select id="item-font-weight"><option value="400">عادي</option><option value="700" selected>عريض</option></select></div>
-                    <div><label>حالة الأحرف</label><select id="item-text-transform"><option value="none">عادي</option><option value="uppercase">أحرف كبيرة (Uppercase)</option></select></div>
+                    <div><label>حالة الأحرف</label><select id="item-text-transform"><option value="none">عادي</option><option value="uppercase">أحرف كبيرة</option></select></div>
                  </div>
             </fieldset>
 
@@ -262,34 +227,27 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // --- STATE & CONSTANTS ---
     const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyMvUxMBy7UyTWAqT7EMYlwkTdh1Zdc0BWupeMVOYyJSWxcivkSBnozStQSfJGacklAXQ/exec';
-    
-    const icons = {
-        print: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5 2.75C5 1.784 5.784 1 6.75 1h6.5c.966 0 1.75.784 1.75 1.75v3.552c.377.046.752.11 1.126.195.784.175 1.437.638 1.83 1.262.394.624.594 1.344.594 2.103v2.888c0 .76-.2 1.48-.594 2.104-.393.623-1.046 1.086-1.83 1.261-.374.086-.749.15-1.126.195v3.552C15 18.216 14.216 19 13.25 19h-6.5C5.784 19 5 18.216 5 17.25V2.75Zm.75 14.5v-2.888c0-.76.2-1.48.594-2.104.393-.623 1.046-1.086 1.83-1.261a23.99 23.99 0 0 1 2.652 0c.784.175 1.437.638 1.83 1.262.394.624.594 1.343.594 2.103v2.888a.75.75 0 0 1-.75.75h-8a.75.75 0 0 1-.75-.75Zm.75-9.75a.75.75 0 0 1 .75-.75h6.5a.75.75 0 0 1 0 1.5h-6.5a.75.75 0 0 1-.75-.75Zm0 3a.75.75 0 0 1 .75-.75h6.5a.75.75 0 0 1 0 1.5h-6.5a.75.75 0 0 1-.75-.75Z" clip-rule="evenodd" /></svg>`,
-        success: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm3.857-9.809a.75.75 0 0 0-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 1 0-1.06 1.061l2.5 2.5a.75.75 0 0 0 1.137-.089l4-5.5Z" clip-rule="evenodd" /></svg>`,
-        error: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" /></svg>`,
-        close: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path d="M5.28 4.22a.75.75 0 0 0-1.06 1.06L6.94 8l-2.72 2.72a.75.75 0 1 0 1.06 1.06L8 9.06l2.72 2.72a.75.75 0 1 0 1.06-1.06L9.06 8l2.72-2.72a.75.75 0 0 0-1.06-1.06L8 6.94 5.28 4.22Z" /></svg>`
-    };
-    
     const state = {
-        allItems: [], selectedItemIds: new Set(), currentLogoSrc: 'logo.png', // Assuming you have a logo.png or will replace it
-        currentPreviewData: null, searchTags: []
+        allItems: [], selectedItemIds: new Set(), currentLogoSrc: 'logo.png',
+        currentPreviewData: null
     };
     
+    // --- DOM ELEMENTS ---
     const dom = {
-        appStatus: document.getElementById('app-status'), loader: document.getElementById('loader'),
+        loader: document.getElementById('loader'),
         itemSelectionSection: document.getElementById('item-selection-section'),
         generationSection: document.getElementById('generation-section'),
-        searchInput: document.getElementById('search-input'), searchField: document.getElementById('search-field'),
-        searchContainer: document.getElementById('search-container'), itemList: document.getElementById('item-list'),
-        priceInput: document.getElementById('price-input'), generateBtn: document.getElementById('generate-btn'),
-        a4Sheet: document.getElementById('a4-sheet'), printButton: document.getElementById('print-button'),
+        itemList: document.getElementById('item-list'),
+        priceInput: document.getElementById('price-input'),
+        generateBtn: document.getElementById('generate-btn'),
+        a4Sheet: document.getElementById('a4-sheet'),
+        printButton: document.getElementById('print-button'),
         layoutStatus: document.getElementById('layout-calculation-status'),
         prePrintedModeCheckbox: document.getElementById('pre-printed-mode-checkbox'),
-        prePrintedModeHelper: document.getElementById('pre-printed-mode-helper'),
-        designControlFieldsets: [
-            document.getElementById('design-controls-border'), document.getElementById('design-controls-text'), document.getElementById('design-controls-colors')
-        ],
+        exportTemplateBtn: document.getElementById('export-template-btn'),
+        designControlFieldsets: document.querySelectorAll('fieldset[id^="design-controls"]'),
         controls: {}
     };
 
@@ -299,87 +257,30 @@ document.addEventListener('DOMContentLoaded', function() {
         'price-box-bg', 'price-box-border-color', 'label-price-color'
     ];
     controlIds.forEach(id => {
-        const camelCaseId = id.replace(/-(\w)/g, (match, p1) => p1.toUpperCase());
-        dom.controls[camelCaseId] = document.getElementById(id);
+        dom.controls[id.replace(/-(\w)/g, (_, p1) => p1.toUpperCase())] = document.getElementById(id);
     });
 
-    const debounce = (func, delay) => { let timeoutId; return (...args) => { clearTimeout(timeoutId); timeoutId = setTimeout(() => { func.apply(this, args); }, delay); }; };
+    // --- UTILITY FUNCTIONS ---
+    const debounce = (func, delay) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => func.apply(this, a), delay); }; };
 
-    const showStatus = (message, type = 'error') => {
-        const iconHtml = `<span class="icon">${type === 'success' ? icons.success : icons.error}</span>`;
-        dom.appStatus.innerHTML = iconHtml + message;
-        dom.appStatus.className = `app-status ${type}`;
-        dom.appStatus.style.display = 'flex';
-        setTimeout(() => { dom.appStatus.style.display = 'none'; }, type === 'error' ? 8000 : 4000);
-    };
-
-    const findCommon = (arr) => {
-        if (!arr || arr.length === 0) return '';
-        const wordsArr = arr.map(s => String(s).split(' '));
-        let common = [];
-        for (let i = 0; i < wordsArr[0].length; i++) {
-            let word = wordsArr[0][i];
-            if (wordsArr.every(words => words.length > i && words[i] === word)) {
-                common.push(word);
-            } else { break; }
-        }
-        return common.join(' ');
+    // --- CORE APP LOGIC ---
+    const setupPageLayout = (sheet) => {
+        const PAGE_HEIGHT_MM = 297, MARGIN_MM = 10;
+        const LABEL_HEIGHT_MM = 30, GAP_MM = 5;
+        const PRINTABLE_HEIGHT = PAGE_HEIGHT_MM - (MARGIN_MM * 2);
+        const totalLabels = Math.floor((PRINTABLE_HEIGHT + GAP_MM) / (LABEL_HEIGHT_MM + GAP_MM));
+        
+        dom.layoutStatus.textContent = `سيتم طباعة ${totalLabels} بطاقة في الصفحة الواحدة.`;
+        dom.layoutStatus.style.display = 'block';
+        
+        sheet.innerHTML = '';
+        sheet.style.gridTemplateColumns = `1fr`;
+        sheet.style.gridAutoRows = `${LABEL_HEIGHT_MM}mm`;
+        sheet.style.gap = `${GAP_MM}mm`;
+        
+        return totalLabels;
     };
     
-    const extractUnit = (name) => {
-        const units = ['ملل', 'مل', 'جم', 'جرام', 'كجم', 'لتر', 'متر'];
-        const regex = new RegExp(`(\\d*\\.?\\d+\\s?(${units.join('|')}))($|\\s)`);
-        const match = name.match(regex);
-        return match ? match[1].trim() : null;
-    };
-
-    const renderItems = (items) => {
-        dom.itemList.innerHTML = '';
-        if (items.length === 0) {
-            dom.itemList.innerHTML = '<p style="text-align:center; padding: 20px; color: var(--muted-text);">لا توجد نتائج مطابقة</p>';
-            return;
-        }
-        items.forEach(item => {
-            const isSelected = state.selectedItemIds.has(item.id);
-            const card = document.createElement('label');
-            card.className = `item-card ${isSelected ? 'selected' : ''}`;
-            card.innerHTML = `<input type="checkbox" data-id="${item.id}" ${isSelected ? 'checked' : ''}><div class="details"><span class="item-name">${item.name}</span><span class="item-meta">الكود: ${item.code || 'N/A'}</span></div>`;
-            card.querySelector('input').addEventListener('change', (e) => {
-                const id = parseInt(e.target.dataset.id);
-                e.target.checked ? state.selectedItemIds.add(id) : state.selectedItemIds.delete(id);
-                card.classList.toggle('selected', e.target.checked);
-            });
-            dom.itemList.appendChild(card);
-        });
-    };
-
-    const handleAdvancedSearch = () => {
-        if (state.searchTags.length === 0) return renderItems(state.allItems);
-        const filtered = state.allItems.filter(item => {
-            return state.searchTags.every(tag => {
-                const query = tag.value.toLowerCase();
-                const fieldToSearch = String(item[tag.field] || '').toLowerCase();
-                return fieldToSearch.includes(query);
-            });
-        });
-        renderItems(filtered);
-    };
-
-    const renderSearchTags = () => {
-        dom.searchContainer.querySelectorAll('.search-tag').forEach(tag => tag.remove());
-        state.searchTags.forEach((tag, index) => {
-            const tagEl = document.createElement('div');
-            tagEl.className = 'search-tag';
-            tagEl.innerHTML = `<span class="field">${tag.field_label}:</span><span>${tag.value}</span><button class="search-tag-remove">${icons.close}</button>`;
-            tagEl.querySelector('.search-tag-remove').addEventListener('click', () => {
-                state.searchTags.splice(index, 1);
-                renderSearchTags();
-                handleAdvancedSearch();
-            });
-            dom.searchContainer.insertBefore(tagEl, dom.searchInput);
-        });
-    };
-
     const updatePreview = () => {
         if (!state.currentPreviewData) return;
         const { name, price } = state.currentPreviewData;
@@ -396,17 +297,7 @@ document.addEventListener('DOMContentLoaded', function() {
             '--label-item-text-transform': controls.itemTextTransform.value, '--label-price-font-size': `${controls.priceFontSize.value}px`,
         }).forEach(([prop, val]) => root.setProperty(prop, val));
 
-        const PAGE_HEIGHT_MM = 297, MARGIN_MM = 10, PRINTABLE_HEIGHT = PAGE_HEIGHT_MM - (MARGIN_MM * 2);
-        const labelHeight = 30, gap = 5;
-        const totalLabels = Math.floor((PRINTABLE_HEIGHT + gap) / (labelHeight + gap));
-        
-        dom.layoutStatus.textContent = `سيتم طباعة ${totalLabels} بطاقة في الصفحة الواحدة.`;
-        dom.layoutStatus.style.display = 'block';
-        
-        dom.a4Sheet.innerHTML = '';
-        dom.a4Sheet.style.gridTemplateColumns = `1fr`;
-        dom.a4Sheet.style.gridAutoRows = `${labelHeight}mm`;
-        dom.a4Sheet.style.gap = `${gap}mm`;
+        const totalLabels = setupPageLayout(dom.a4Sheet);
 
         for (let i = 0; i < totalLabels; i++) {
             const label = document.createElement('div');
@@ -423,70 +314,82 @@ document.addEventListener('DOMContentLoaded', function() {
             dom.a4Sheet.appendChild(label);
         }
         
-        const printButtonIcon = dom.printButton.querySelector('.btn-icon');
-        if (printButtonIcon) printButtonIcon.innerHTML = icons.print;
         dom.printButton.style.display = totalLabels > 0 ? 'inline-flex' : 'none';
     };
 
     const generateLabelData = () => {
-        try {
-            if (state.selectedItemIds.size === 0) {
-                return showStatus('خطأ: يرجى تحديد صنف واحد على الأقل.', 'error');
-            }
-            const price = parseFloat(dom.priceInput.value);
-            if (isNaN(price) || price <= 0) {
-                return showStatus('خطأ: يرجى إدخال سعر صحيح وموجب.', 'error');
-            }
-            
-            const selectedItems = state.allItems.filter(item => state.selectedItemIds.has(item.id));
-            let newName;
-            
-            if (selectedItems.length === 1) {
-                newName = selectedItems[0].name;
-            } else {
-                const allNames = selectedItems.map(item => item.name);
-                let commonUnit = '';
-                const allUnits = allNames.map(name => extractUnit(name)).filter(Boolean);
-                if (allUnits.length > 0) {
-                    const unitCounts = allUnits.reduce((acc, unit) => { acc[unit] = (acc[unit] || 0) + 1; return acc; }, {});
-                    if(Object.keys(unitCounts).length > 0) {
-                        commonUnit = Object.keys(unitCounts).reduce((a, b) => unitCounts[a] > unitCounts[b] ? a : b);
-                    }
-                }
-                const namesWithoutUnits = allNames.map(name => name.replace(extractUnit(name) || '', '').trim());
-                const commonStart = findCommon(namesWithoutUnits);
-                const nameParts = [commonStart, "أنواع", commonUnit].filter(Boolean);
-                newName = nameParts.join(' ').replace(/\s+/g, ' ');
-            }
-            
-            state.currentPreviewData = { name: newName, price };
-            updatePreview();
-
-        } catch (error) {
-            console.error(error);
-            showStatus('حدث خطأ غير متوقع أثناء إنشاء البطاقة.', 'error');
-        }
+        if (state.selectedItemIds.size === 0) return alert('خطأ: يرجى تحديد صنف واحد على الأقل.');
+        const price = parseFloat(dom.priceInput.value);
+        if (isNaN(price) || price <= 0) return alert('خطأ: يرجى إدخال سعر صحيح وموجب.');
+        
+        const selectedItems = state.allItems.filter(item => state.selectedItemIds.has(item.id));
+        const newName = selectedItems.length === 1 ? selectedItems[0].name : "أصناف متنوعة"; // Simplified logic
+        
+        state.currentPreviewData = { name: newName, price };
+        updatePreview();
     };
 
+    const generateAndPrintTemplate = () => {
+        dom.a4Sheet.classList.add('template-mode');
+        const totalLabels = setupPageLayout(dom.a4Sheet);
+
+        for (let i = 0; i < totalLabels; i++) {
+            const label = document.createElement('div');
+            label.className = 'price-label';
+            
+            let annotations = '';
+            // Only add annotations to the first label
+            if (i === 0) {
+                annotations = `
+                    <div class="annotation top">&lt;-- 190mm --&gt;</div>
+                    <div class="annotation side">&lt;-- 30mm --&gt;</div>
+                    <div class="annotation info placeholder">133mm</div>
+                    <div class="annotation price placeholder">57mm</div>
+                `;
+            }
+            
+            label.innerHTML = `
+                ${annotations}
+                <div class="label-info-area">
+                    <span class="placeholder">[اسم الصنف هنا]</span>
+                </div>
+                <div class="label-price-area">
+                    <span class="placeholder">[السعر]</span>
+                </div>
+            `;
+            dom.a4Sheet.appendChild(label);
+        }
+        
+        window.print();
+    };
+    
     const loadData = async () => {
-        if (!WEB_APP_URL || !WEB_APP_URL.includes('script.google.com')) { return showStatus('خطأ فادح: لم يتم تحديد رابط API.', 'error'); }
         dom.loader.style.display = 'block';
         try {
             const response = await fetch(WEB_APP_URL);
-            if (!response.ok) throw new Error(`فشل الاتصال بالخادم (Status: ${response.status})`);
+            if (!response.ok) throw new Error(`Server Error: ${response.status}`);
             const data = await response.json();
             if (data.error) throw new Error(data.message);
+            
             state.allItems = data;
-            if (state.allItems.length > 0) {
-                showStatus(`تم تحميل ${state.allItems.length} صنف بنجاح.`, 'success');
-                dom.itemSelectionSection.style.display = 'block';
-                dom.generationSection.style.display = 'block';
-                renderItems(state.allItems);
-            } else {
-                 showStatus('تم الاتصال بنجاح ولكن لم يتم العثور على بيانات.', 'info');
-            }
+            dom.itemSelectionSection.style.display = 'block';
+            dom.generationSection.style.display = 'block';
+            
+            dom.itemList.innerHTML = '';
+            data.forEach(item => {
+                const card = document.createElement('label');
+                card.className = 'item-card';
+                card.innerHTML = `<input type="checkbox" data-id="${item.id}"><div class="details"><span class="item-name">${item.name}</span><span class="item-meta">Code: ${item.code || 'N/A'}</span></div>`;
+                card.querySelector('input').addEventListener('change', (e) => {
+                    const id = parseInt(e.target.dataset.id, 10);
+                    e.target.checked ? state.selectedItemIds.add(id) : state.selectedItemIds.delete(id);
+                    card.classList.toggle('selected', e.target.checked);
+                });
+                dom.itemList.appendChild(card);
+            });
+            
         } catch (error) {
-            showStatus(`فشل تحميل البيانات: ${error.message}. تحقق من الرابط واتصالك بالانترنت.`, 'error');
+            alert(`Failed to load data: ${error.message}`);
         } finally {
             dom.loader.style.display = 'none';
         }
@@ -494,57 +397,43 @@ document.addEventListener('DOMContentLoaded', function() {
     
     const toggleDesignControls = (enabled) => {
         dom.designControlFieldsets.forEach(fieldset => {
-            const inputs = fieldset.querySelectorAll('input, select');
-            inputs.forEach(input => input.disabled = !enabled);
+            fieldset.querySelectorAll('input, select').forEach(input => input.disabled = !enabled);
             fieldset.style.opacity = enabled ? '1' : '0.5';
             fieldset.style.pointerEvents = enabled ? 'auto' : 'none';
         });
     };
 
+    // --- EVENT LISTENERS ---
+    dom.generateBtn.addEventListener('click', generateLabelData);
+    dom.printButton.addEventListener('click', () => window.print());
+    dom.exportTemplateBtn.addEventListener('click', generateAndPrintTemplate);
+
     dom.prePrintedModeCheckbox.addEventListener('change', (e) => {
         const isChecked = e.target.checked;
         document.body.classList.toggle('data-only-mode', isChecked);
-        dom.prePrintedModeHelper.style.display = isChecked ? 'block' : 'none';
         toggleDesignControls(!isChecked);
-        if(state.currentPreviewData) {
-            updatePreview(); // Re-render the preview with the new mode
-        }
+        if (state.currentPreviewData) updatePreview();
     });
 
     const debouncedUpdatePreview = debounce(updatePreview, 250);
-    dom.generateBtn.addEventListener('click', generateLabelData);
-    dom.printButton.addEventListener('click', () => window.print());
-    dom.searchInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' && dom.searchInput.value.trim()) {
-            e.preventDefault();
-            const value = dom.searchInput.value.trim();
-            const field = dom.searchField.value;
-            const field_label = dom.searchField.options[dom.searchField.selectedIndex].text;
-            state.searchTags.push({ value, field, field_label });
-            renderSearchTags(); 
-            handleAdvancedSearch();
-            dom.searchInput.value = '';
-        }
-    });
-    
     Object.values(dom.controls).forEach(control => {
         if (!control) return;
-        const event = ['range', 'color', 'number', 'text'].includes(control.type) ? 'input' : 'change';
-        control.addEventListener(event, debouncedUpdatePreview);
+        control.addEventListener(control.type === 'range' ? 'input' : 'change', debouncedUpdatePreview);
     });
     
-    const sliderValueIds = ['label-padding', 'label-border-radius', 'item-font-size', 'price-font-size'];
-    sliderValueIds.forEach(id => {
-        const input = document.getElementById(id);
-        const valueSpan = document.getElementById(`${id}-value`);
-        if(input && valueSpan) {
-            valueSpan.textContent = input.value;
-            input.addEventListener('input', e => valueSpan.textContent = e.target.value);
+    window.addEventListener('afterprint', () => {
+        // Clean up template mode after printing is done
+        dom.a4Sheet.classList.remove('template-mode');
+        // Restore normal preview if data exists
+        if (state.currentPreviewData) {
+            updatePreview();
+        } else {
+            dom.a4Sheet.innerHTML = '';
         }
     });
-    
-    // Initial state
-    toggleDesignControls(true); // Enable controls by default
+
+    // --- INITIALIZATION ---
+    toggleDesignControls(true);
     loadData();
 });
 </script>
