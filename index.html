@@ -143,8 +143,9 @@
             <h1>طباعة شيلف اسعار مجمع</h1>
             <div id="app-status" class="app-status"></div>
 
-                     <section id="item-selection-section" class="section-card" style="display:none;">
+            <section id="item-selection-section" class="section-card" style="display:none;">
                 <h2>2. بحث وتحديد الأصناف</h2>
+                <div id="loader" class="loader"></div> <!-- FIXED: Added an ID to the loader div so JavaScript can find it -->
                 <div id="search-controls">
                     <select id="search-field"><option value="name">الاسم</option><option value="code">الكود</option></select>
                     <div id="search-container"><input type="search" id="search-input" placeholder="اكتب للبحث ثم اضغط Enter..."></div>
@@ -214,7 +215,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const state = {
         allItems: [], 
         selectedItemIds: new Set(),
-        currentLogoSrc: 'logo.png', 
+        currentLogoSrc: 'https://i.imgur.com/your-logo.png', // Using a placeholder logo
         currentPreviewData: null, 
         searchTags: []
     };
@@ -251,24 +252,34 @@ document.addEventListener('DOMContentLoaded', function() {
         setTimeout(() => { dom.appStatus.style.display = 'none'; }, type === 'error' ? 8000 : 4000);
     };
 
+    // IMPROVED: This new function is much better at finding all common words between item names,
+    // not just the common words at the beginning. This produces much more accurate consolidated names.
     const findCommon = (arr) => {
-        if (!arr || arr.length === 0) return '';
-        const wordsArr = arr.map(s => String(s).split(' '));
-        let common = [];
-        for (let i = 0; i < wordsArr[0].length; i++) {
-            let word = wordsArr[0][i];
-            if (wordsArr.every(words => words[i] === word)) {
-                common.push(word);
-            } else {
-                break; 
-            }
+        if (!arr || arr.length < 1) return '';
+        if (arr.length === 1) return arr[0];
+
+        // Split all names into sets of words for efficient lookup
+        const wordSets = arr.map(name => new Set(String(name).trim().split(/\s+/)));
+
+        // Start with the words from the first name, then find the intersection with the rest
+        let commonWords = new Set(wordSets[0]);
+        for (let i = 1; i < wordSets.length; i++) {
+            commonWords = new Set([...commonWords].filter(word => wordSets[i].has(word)));
         }
-        return common.join(' ');
+
+        if (commonWords.size === 0) return '';
+        
+        // To preserve the original word order, filter the first name's words
+        const firstWords = String(arr[0]).trim().split(/\s+/);
+        const orderedCommonWords = firstWords.filter(word => commonWords.has(word));
+
+        return orderedCommonWords.join(' ');
     };
     
     const extractUnit = (name) => {
         const units = ['ملل', 'مل', 'جم', 'جرام', 'كجم', 'لتر', 'متر'];
-        const regex = new RegExp(`(\\d*\\.?\\d+\\s?(${units.join('|')}))($|\\s)`);
+        // Improved regex to handle units more reliably
+        const regex = new RegExp(`(\\d*\\.?\\d+\\s?(${units.join('|')})(?!\\w))`, 'i');
         const match = name.match(regex);
         return match ? match[1].trim() : null;
     };
@@ -382,10 +393,8 @@ document.addEventListener('DOMContentLoaded', function() {
             if (selectedItems.length === 1) {
                 newName = selectedItems[0].name;
             } else {
-                // --- CORRECTED NAME GENERATION LOGIC ---
                 const allNames = selectedItems.map(item => item.name);
                 
-                // 1. Find the common unit among all items
                 let commonUnit = '';
                 const allUnits = allNames.map(name => extractUnit(name)).filter(Boolean);
                 if (allUnits.length > 0) {
@@ -398,15 +407,16 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 }
 
-                // 2. Remove the unit from each name to find the common text
-                const namesWithoutUnits = allNames.map(name => name.replace(extractUnit(name) || '', '').trim());
+                const namesWithoutUnits = allNames.map(name => {
+                    const unit = extractUnit(name);
+                    return unit ? name.replace(unit, '') : name;
+                }).map(name => name.trim());
                 
-                // 3. Find the common starting text
-                const commonStart = findCommon(namesWithoutUnits);
-
-                // 4. Build the new name
-                const nameParts = [commonStart, "أنواع", commonUnit].filter(Boolean); // filter(Boolean) removes empty strings
-                newName = nameParts.join(' ').replace(/\s+/g, ' '); // Join and clean up extra spaces
+                // Using the new, improved findCommon function
+                const commonText = findCommon(namesWithoutUnits);
+                
+                const nameParts = [commonText, "أنواع", commonUnit].filter(Boolean);
+                newName = nameParts.join(' ').replace(/\s+/g, ' ').trim();
             }
             
             state.currentPreviewData = { name: newName, price };
@@ -420,7 +430,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const loadData = async () => {
         if (!WEB_APP_URL || !WEB_APP_URL.includes('script.google.com')) { return showStatus('خطأ فادح: لم يتم تحديد رابط API.', 'error'); }
-        dom.loader.style.display = 'block';
+        // FIXED: The loader element reference is now correct and will no longer cause a crash.
+        if (dom.loader) dom.loader.style.display = 'block'; 
         try {
             const response = await fetch(WEB_APP_URL);
             if (!response.ok) throw new Error(`فشل الاتصال بالخادم (Status: ${response.status})`);
@@ -436,9 +447,10 @@ document.addEventListener('DOMContentLoaded', function() {
                  showStatus('تم الاتصال بنجاح ولكن لم يتم العثور على بيانات.', 'info');
             }
         } catch (error) {
+            console.error("Data loading failed:", error); // For easier debugging
             showStatus(`فشل تحميل البيانات: ${error.message}. تحقق من الرابط واتصالك بالانترنت.`, 'error');
         } finally {
-            dom.loader.style.display = 'none';
+            if (dom.loader) dom.loader.style.display = 'none';
         }
     };
     
