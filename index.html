@@ -146,7 +146,7 @@
             #a4-sheet { transform: none !important; box-shadow: none !important; border: none !important; padding: 0 !important; margin: 0 !important; width: 100% !important; height: 100% !important; display: grid !important; }
             .price-label { page-break-inside: avoid !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; border-color: #000 !important; }
 
-            /* --- NEW: Styles for printing on pre-printed forms --- */
+            /* --- Styles for printing on pre-printed forms --- */
             .price-label.is-preprinted {
                 background: transparent !important;
                 border: none !important;
@@ -161,11 +161,14 @@
             }
             .price-label.is-preprinted .label-info-area,
             .price-label.is-preprinted .label-price {
-                color: #000 !important; /* Ensure text is black */
+                color: #000 !important; /* Ensure text is black for printing */
             }
+            /* --- CORRECTED --- 
+               This rule now ensures the text remains centered during printing,
+               matching the on-screen preview.
+            */
             .price-label.is-preprinted .label-info-area {
-                text-align: right; /* Adjust alignment as needed for forms */
-                padding-right: 20px;
+                text-align: center; 
             }
         }
     </style>
