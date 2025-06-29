@@ -57,6 +57,7 @@
         }
         input:focus, select:focus { border-color: var(--primary-color); background-color: white; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); outline: none; }
         input[type="color"] { padding: 4px; height: 42px; }
+        input:disabled, select:disabled { background-color: #e2e8f0; cursor: not-allowed; opacity: 0.7; }
         
         .section-card { background: var(--card-bg); padding: 25px; border-radius: var(--radius-lg); box-shadow: var(--shadow); margin-bottom: 30px; }
         .loader { border: 4px solid #e2e8f0; border-top: 4px solid var(--primary-color); border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; display: none; margin: 0 auto; }
@@ -118,6 +119,32 @@
         .grid-3 { grid-template-columns: repeat(3, 1fr); }
         
         #layout-calculation-status { background-color: #eef2ff; padding: 10px; border-radius: var(--radius-md); text-align: center; font-weight: 600; color: #4338ca; margin-top: 15px; display:none; }
+        .switch-container { display: flex; align-items: center; justify-content: space-between; background: var(--card-bg); padding: 15px 20px; border-radius: var(--radius-md); box-shadow: var(--shadow); }
+        .switch-container label { margin-bottom: 0; font-size: 1.1rem; color: var(--text-color); }
+        .switch { position: relative; display: inline-block; width: 50px; height: 28px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--primary-color); }
+        input:checked + .slider:before { transform: translateX(22px); }
+        #pre-printed-mode-helper { font-size: 0.85rem; color: var(--muted-text); margin-top: 15px; background: #eef2ff; padding: 10px; border-radius: var(--radius-md); }
+
+        /* --- STYLES FOR DATA-ONLY MODE --- */
+        .data-only-mode #a4-sheet {
+            background-color: #f8fafc;
+            background-image: 
+                linear-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
+            background-size: 10mm 10mm;
+        }
+        .data-only-mode .price-label {
+            background: transparent;
+            border: 1px dashed var(--primary-color) !important; /* On-screen guide */
+            box-shadow: none;
+        }
+        .data-only-mode .label-logo-area { display: none; }
+        .data-only-mode .label-info-area { flex-grow: 2; /* Take up more space */ }
+        .data-only-mode .label-price-container { border:none; background: transparent; padding:0; }
 
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: var(--bg-color); }
@@ -129,6 +156,20 @@
             body, .app-container, .preview-panel { display: block !important; width: 100% !important; height: auto !important; overflow: visible !important; background: #fff !important; padding: 0 !important; margin: 0 !important; }
             #a4-sheet { transform: none !important; box-shadow: none !important; border: none !important; padding: 0 !important; margin: 0 !important; width: 100% !important; height: 100% !important; display: grid !important; }
             .price-label { page-break-inside: avoid !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; border-color: #000 !important; }
+        
+            /* --- PRINT STYLES FOR DATA-ONLY MODE --- */
+            .data-only-mode .price-label {
+                visibility: hidden; /* Hide the container itself */
+                border: none !important;
+                background: none !important;
+            }
+            .data-only-mode .price-label > * {
+                visibility: visible; /* But make its direct children visible */
+            }
+            .data-only-mode .label-price-container {
+                border: none !important;
+                background: none !important;
+            }
         }
     </style>
 </head>
@@ -167,11 +208,25 @@
 
             <h3>تخصيص التصميم</h3>
             <fieldset>
+                <legend>خيارات الطباعة</legend>
+                <div class="switch-container">
+                    <label for="pre-printed-mode-checkbox">وضع الورق المطبوع مسبقاً</label>
+                    <label class="switch">
+                        <input type="checkbox" id="pre-printed-mode-checkbox">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div id="pre-printed-mode-helper" style="display:none;">
+                    <strong>وضع التفعيل:</strong> سيتم طباعة اسم الصنف والسعر فقط. مثالي للاستخدام مع الأوراق التي تحتوي على تصميمك وشعارك مسبقاً.
+                </div>
+            </fieldset>
+
+            <fieldset id="design-controls-layout">
                 <legend>تخطيط الصفحة</legend>
                  <div id="layout-calculation-status"></div>
             </fieldset>
 
-            <fieldset>
+            <fieldset id="design-controls-border">
                 <legend>الإطار والحدود</legend>
                 <div class="control-group"><label>الحشو (px): <span id="label-padding-value" class="slider-value">5</span></label><input type="range" id="label-padding" min="0" max="20" value="5"></div>
                 <div class="control-group grid-3">
@@ -182,7 +237,7 @@
                  <div class="control-group"><label>حواف دائرية (px): <span id="label-border-radius-value" class="slider-value">8</span></label><input type="range" id="label-border-radius" min="0" max="30" value="8"></div>
             </fieldset>
 
-            <fieldset>
+            <fieldset id="design-controls-text">
                 <legend>النصوص والخطوط</legend>
                 <div class="control-group grid-2">
                      <div><label>خط الصنف (px): <span id="item-font-size-value" class="slider-value">16</span></label><input type="range" id="item-font-size" min="8" max="28" value="16"></div>
@@ -194,7 +249,7 @@
                  </div>
             </fieldset>
 
-            <fieldset>
+            <fieldset id="design-controls-colors">
                 <legend>الألوان</legend>
                 <div class="control-group grid-3">
                     <div><label>خلفية السعر</label><input type="color" id="price-box-bg" value="#ffffff"></div>
@@ -217,11 +272,8 @@ document.addEventListener('DOMContentLoaded', function() {
     };
     
     const state = {
-        allItems: [], 
-        selectedItemIds: new Set(),
-        currentLogoSrc: 'logo.png', 
-        currentPreviewData: null, 
-        searchTags: []
+        allItems: [], selectedItemIds: new Set(), currentLogoSrc: 'logo.png', // Assuming you have a logo.png or will replace it
+        currentPreviewData: null, searchTags: []
     };
     
     const dom = {
@@ -233,6 +285,11 @@ document.addEventListener('DOMContentLoaded', function() {
         priceInput: document.getElementById('price-input'), generateBtn: document.getElementById('generate-btn'),
         a4Sheet: document.getElementById('a4-sheet'), printButton: document.getElementById('print-button'),
         layoutStatus: document.getElementById('layout-calculation-status'),
+        prePrintedModeCheckbox: document.getElementById('pre-printed-mode-checkbox'),
+        prePrintedModeHelper: document.getElementById('pre-printed-mode-helper'),
+        designControlFieldsets: [
+            document.getElementById('design-controls-border'), document.getElementById('design-controls-text'), document.getElementById('design-controls-colors')
+        ],
         controls: {}
     };
 
@@ -262,11 +319,9 @@ document.addEventListener('DOMContentLoaded', function() {
         let common = [];
         for (let i = 0; i < wordsArr[0].length; i++) {
             let word = wordsArr[0][i];
-            if (wordsArr.every(words => words[i] === word)) {
+            if (wordsArr.every(words => words.length > i && words[i] === word)) {
                 common.push(word);
-            } else {
-                break; 
-            }
+            } else { break; }
         }
         return common.join(' ');
     };
@@ -329,6 +384,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!state.currentPreviewData) return;
         const { name, price } = state.currentPreviewData;
         const { controls } = dom;
+        const isDataOnlyMode = dom.prePrintedModeCheckbox.checked;
 
         const root = document.documentElement.style;
         Object.entries({
@@ -352,22 +408,23 @@ document.addEventListener('DOMContentLoaded', function() {
         dom.a4Sheet.style.gridAutoRows = `${labelHeight}mm`;
         dom.a4Sheet.style.gap = `${gap}mm`;
 
-        const logoHtml = `<img src="${state.currentLogoSrc}" alt="Logo">`;
-
         for (let i = 0; i < totalLabels; i++) {
             const label = document.createElement('div');
             label.className = 'price-label';
-            label.innerHTML = `
-                <div class="label-logo-area">${logoHtml}</div>
-                <div class="label-info-area">${name}</div>
-                <div class="label-price-area"><div class="label-price-container"><div class="label-price">${price.toFixed(2)} ج.م</div></div></div>`;
+            const priceHtml = `<div class="label-price-area"><div class="label-price-container"><div class="label-price">${price.toFixed(2)} ج.م</div></div></div>`;
+            const infoHtml = `<div class="label-info-area">${name}</div>`;
+            
+            if (isDataOnlyMode) {
+                label.innerHTML = infoHtml + priceHtml;
+            } else {
+                const logoHtml = `<div class="label-logo-area"><img src="${state.currentLogoSrc}" alt="Logo"></div>`;
+                label.innerHTML = logoHtml + infoHtml + priceHtml;
+            }
             dom.a4Sheet.appendChild(label);
         }
         
         const printButtonIcon = dom.printButton.querySelector('.btn-icon');
-        if (printButtonIcon) {
-            printButtonIcon.innerHTML = icons.print;
-        }
+        if (printButtonIcon) printButtonIcon.innerHTML = icons.print;
         dom.printButton.style.display = totalLabels > 0 ? 'inline-flex' : 'none';
     };
 
@@ -387,31 +444,19 @@ document.addEventListener('DOMContentLoaded', function() {
             if (selectedItems.length === 1) {
                 newName = selectedItems[0].name;
             } else {
-                // --- CORRECTED NAME GENERATION LOGIC ---
                 const allNames = selectedItems.map(item => item.name);
-                
-                // 1. Find the common unit among all items
                 let commonUnit = '';
                 const allUnits = allNames.map(name => extractUnit(name)).filter(Boolean);
                 if (allUnits.length > 0) {
-                    const unitCounts = allUnits.reduce((acc, unit) => {
-                        acc[unit] = (acc[unit] || 0) + 1;
-                        return acc;
-                    }, {});
+                    const unitCounts = allUnits.reduce((acc, unit) => { acc[unit] = (acc[unit] || 0) + 1; return acc; }, {});
                     if(Object.keys(unitCounts).length > 0) {
                         commonUnit = Object.keys(unitCounts).reduce((a, b) => unitCounts[a] > unitCounts[b] ? a : b);
                     }
                 }
-
-                // 2. Remove the unit from each name to find the common text
                 const namesWithoutUnits = allNames.map(name => name.replace(extractUnit(name) || '', '').trim());
-                
-                // 3. Find the common starting text
                 const commonStart = findCommon(namesWithoutUnits);
-
-                // 4. Build the new name
-                const nameParts = [commonStart, "أنواع", commonUnit].filter(Boolean); // filter(Boolean) removes empty strings
-                newName = nameParts.join(' ').replace(/\s+/g, ' '); // Join and clean up extra spaces
+                const nameParts = [commonStart, "أنواع", commonUnit].filter(Boolean);
+                newName = nameParts.join(' ').replace(/\s+/g, ' ');
             }
             
             state.currentPreviewData = { name: newName, price };
@@ -447,14 +492,32 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
     
+    const toggleDesignControls = (enabled) => {
+        dom.designControlFieldsets.forEach(fieldset => {
+            const inputs = fieldset.querySelectorAll('input, select');
+            inputs.forEach(input => input.disabled = !enabled);
+            fieldset.style.opacity = enabled ? '1' : '0.5';
+            fieldset.style.pointerEvents = enabled ? 'auto' : 'none';
+        });
+    };
+
+    dom.prePrintedModeCheckbox.addEventListener('change', (e) => {
+        const isChecked = e.target.checked;
+        document.body.classList.toggle('data-only-mode', isChecked);
+        dom.prePrintedModeHelper.style.display = isChecked ? 'block' : 'none';
+        toggleDesignControls(!isChecked);
+        if(state.currentPreviewData) {
+            updatePreview(); // Re-render the preview with the new mode
+        }
+    });
+
     const debouncedUpdatePreview = debounce(updatePreview, 250);
     dom.generateBtn.addEventListener('click', generateLabelData);
     dom.printButton.addEventListener('click', () => window.print());
     dom.searchInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
+        if (e.key === 'Enter' && dom.searchInput.value.trim()) {
             e.preventDefault();
             const value = dom.searchInput.value.trim();
-            if (!value) return;
             const field = dom.searchField.value;
             const field_label = dom.searchField.options[dom.searchField.selectedIndex].text;
             state.searchTags.push({ value, field, field_label });
@@ -480,6 +543,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
+    // Initial state
+    toggleDesignControls(true); // Enable controls by default
     loadData();
 });
 </script>
