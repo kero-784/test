@@ -219,9 +219,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const state = {
         allItems: [], 
         selectedItemIds: new Set(),
-        // <<< IMPORTANT: This is the path to your logo. 
-        // Ensure 'logo.png' is in the same folder as your index.html file on GitHub.
-        // You can change 'logo.png' to 'brand.jpg' or any other name, just make sure the file exists.
         currentLogoSrc: 'logo.png', 
         currentPreviewData: null, 
         searchTags: []
@@ -256,11 +253,23 @@ document.addEventListener('DOMContentLoaded', function() {
         dom.appStatus.innerHTML = iconHtml + message;
         dom.appStatus.className = `app-status ${type}`;
         dom.appStatus.style.display = 'flex';
-        console.log("App Status:", message);
         setTimeout(() => { dom.appStatus.style.display = 'none'; }, type === 'error' ? 8000 : 4000);
     };
 
-    const findCommon = (arr, fromStart = true) => { if (!arr || arr.length === 0) return ''; const wordsArr = arr.map(s => String(s).split(' ')); if (!fromStart) wordsArr.forEach(w => w.reverse()); let common = []; for (let i = 0; i < wordsArr[0].length; i++) { let word = wordsArr[0][i]; if (wordsArr.every(words => words[i] === word)) common.push(word); else break; } return fromStart ? common.join(' ') : common.reverse().join(' '); };
+    const findCommon = (arr) => {
+        if (!arr || arr.length === 0) return '';
+        const wordsArr = arr.map(s => String(s).split(' '));
+        let common = [];
+        for (let i = 0; i < wordsArr[0].length; i++) {
+            let word = wordsArr[0][i];
+            if (wordsArr.every(words => words[i] === word)) {
+                common.push(word);
+            } else {
+                break; 
+            }
+        }
+        return common.join(' ');
+    };
     
     const extractUnit = (name) => {
         const units = ['ملل', 'مل', 'جم', 'جرام', 'كجم', 'لتر', 'متر'];
@@ -355,15 +364,22 @@ document.addEventListener('DOMContentLoaded', function() {
             dom.a4Sheet.appendChild(label);
         }
         
-        dom.printButton.querySelector('.btn-icon').innerHTML = icons.print;
+        const printButtonIcon = dom.printButton.querySelector('.btn-icon');
+        if (printButtonIcon) {
+            printButtonIcon.innerHTML = icons.print;
+        }
         dom.printButton.style.display = totalLabels > 0 ? 'inline-flex' : 'none';
     };
 
     const generateLabelData = () => {
         try {
-            if (state.selectedItemIds.size < 1) { return showStatus('خطأ: يرجى تحديد صنف واحد على الأقل.', 'error'); }
+            if (state.selectedItemIds.size === 0) {
+                return showStatus('خطأ: يرجى تحديد صنف واحد على الأقل.', 'error');
+            }
             const price = parseFloat(dom.priceInput.value);
-            if (isNaN(price) || price <= 0) { return showStatus('خطأ: يرجى إدخال سعر صحيح وموجب.', 'error'); }
+            if (isNaN(price) || price <= 0) {
+                return showStatus('خطأ: يرجى إدخال سعر صحيح وموجب.', 'error');
+            }
             
             const selectedItems = state.allItems.filter(item => state.selectedItemIds.has(item.id));
             let newName;
@@ -371,21 +387,38 @@ document.addEventListener('DOMContentLoaded', function() {
             if (selectedItems.length === 1) {
                 newName = selectedItems[0].name;
             } else {
+                // --- CORRECTED NAME GENERATION LOGIC ---
+                const allNames = selectedItems.map(item => item.name);
+                
+                // 1. Find the common unit among all items
                 let commonUnit = '';
-                const allUnits = selectedItems.map(item => extractUnit(item.name)).filter(Boolean);
+                const allUnits = allNames.map(name => extractUnit(name)).filter(Boolean);
                 if (allUnits.length > 0) {
-                    const unitCounts = allUnits.reduce((acc, unit) => { acc[unit] = (acc[unit] || 0) + 1; return acc; }, {});
-                    commonUnit = Object.keys(unitCounts).reduce((a, b) => unitCounts[a] > unitCounts[b] ? a : b);
+                    const unitCounts = allUnits.reduce((acc, unit) => {
+                        acc[unit] = (acc[unit] || 0) + 1;
+                        return acc;
+                    }, {});
+                    if(Object.keys(unitCounts).length > 0) {
+                        commonUnit = Object.keys(unitCounts).reduce((a, b) => unitCounts[a] > unitCounts[b] ? a : b);
+                    }
                 }
-                const namesWithoutUnits = selectedItems.map(item => item.name.replace(extractUnit(item.name) || '', '').trim());
-                const commonStart = findCommon(namesWithoutUnits, true);
-                const commonEnd = findCommon(namesWithoutUnits, false);
-                newName = `${commonStart} ${commonEnd} أنواع ${commonUnit}`.trim().replace(/\s+/g, ' ');
+
+                // 2. Remove the unit from each name to find the common text
+                const namesWithoutUnits = allNames.map(name => name.replace(extractUnit(name) || '', '').trim());
+                
+                // 3. Find the common starting text
+                const commonStart = findCommon(namesWithoutUnits);
+
+                // 4. Build the new name
+                const nameParts = [commonStart, "أنواع", commonUnit].filter(Boolean); // filter(Boolean) removes empty strings
+                newName = nameParts.join(' ').replace(/\s+/g, ' '); // Join and clean up extra spaces
             }
             
             state.currentPreviewData = { name: newName, price };
             updatePreview();
+
         } catch (error) {
+            console.error(error);
             showStatus('حدث خطأ غير متوقع أثناء إنشاء البطاقة.', 'error');
         }
     };
@@ -433,7 +466,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     Object.values(dom.controls).forEach(control => {
         if (!control) return;
-        const event = ['range', 'color', 'number', 'text', 'file'].includes(control.type) ? 'input' : 'change';
+        const event = ['range', 'color', 'number', 'text'].includes(control.type) ? 'input' : 'change';
         control.addEventListener(event, debouncedUpdatePreview);
     });
     
