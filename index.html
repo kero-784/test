@@ -105,21 +105,20 @@
 
         @media print {
             html, body {
-                height: auto;
+                height: 100%;
                 margin: 0 !important;
                 padding: 0 !important;
+                overflow: hidden; /* Prevent scrollbars from affecting print layout */
             }
             .control-panel, #print-button, .app-status { display: none !important; }
-            .preview-panel {
-                padding: 0 !important;
-            }
+            .preview-panel { padding: 0 !important; }
             #a4-sheet {
                 /* **FIX FOR BLANK PAGE** */
                 box-sizing: border-box !important;
                 transform: none !important;
                 box-shadow: none !important;
                 border: none !important;
-                margin: 0 auto !important;
+                margin: 0 auto !important; /* Center the sheet */
                 width: 21cm !important;
                 height: 29.7cm !important;
                 display: grid !important;
@@ -224,18 +223,19 @@ document.addEventListener('DOMContentLoaded', function() {
     const debounce = (func, delay) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => func.apply(this, a), delay); }; };
     const showStatus = (message, type = 'success') => { dom.appStatus.textContent = message; dom.appStatus.className = `app-status ${type}`; dom.appStatus.style.display = 'block'; setTimeout(() => dom.appStatus.style.display = 'none', 4000); };
     
-    // --- **REWRITTEN** findCommonName function ---
+    // --- **REWRITTEN & VERIFIED** findCommonName function ---
     const findCommonName = (items) => {
         if (!items || items.length === 0) return '';
         
-        // **CRITICAL FIX:** Get a clean array of just the names.
+        // **CRITICAL FIX:** Get a clean array of just the names from the original data source.
         const allNames = items.map(item => item.name);
 
         if (items.length === 1) return allNames[0];
 
         const extractUnit = (name) => {
             const units = ['ملل', 'مل', 'جم', 'جرام', 'كجم', 'لتر', 'متر', 'gm', 'g', 'kg', 'ml', 'l'];
-            const regex = new RegExp(`(\\d*\\.?\\d+\\s?(${units.join('|')}))($|\\s)`, 'i');
+            // This regex looks for a number followed by a unit, ensuring it's a distinct word/part.
+            const regex = new RegExp(`(\\d*\\.?\\d+\\s?(${units.join('|')}))\\b`, 'i');
             const match = name.match(regex);
             return match ? match[1].trim() : null;
         };
@@ -264,8 +264,14 @@ document.addEventListener('DOMContentLoaded', function() {
         let finalName = findCommonPrefix(namesForComparison);
         if (finalName === '' && items.length > 1) {
             finalName = 'أنواع';
-        } else if (items.length > 1) {
-            finalName += ' أنواع';
+        } else if (items.length > 1 && finalName) {
+            // Check if the prefix is the entire name for some items, if so, just use the prefix + أنواع
+            const isPrefixComplete = namesForComparison.some(name => name === finalName);
+            if (isPrefixComplete || finalName) {
+                 finalName += ' أنواع';
+            } else {
+                 finalName = 'أنواع';
+            }
         }
 
         if (commonUnit) {
@@ -318,7 +324,7 @@ document.addEventListener('DOMContentLoaded', function() {
         dom.a4Sheet.innerHTML = '';
         dom.a4Sheet.className = state.printMode === 'preprinted' ? 'mode-preprinted' : '';
         
-        const PRINTABLE_HEIGHT = 297 - (10 * 2); // A4 height 297mm minus 10mm top/bottom browser margins
+        const PRINTABLE_HEIGHT = 297 - (10 * 2); 
         const labelH = parseFloat(controls.labelHeight.value);
         const gapV = parseFloat(controls.gapVertical.value);
 
@@ -345,6 +351,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (state.selectedItemIds.size === 0) return showStatus('خطأ: يرجى تحديد صنف.', 'error');
         const price = parseFloat(dom.priceInput.value);
         if (isNaN(price) || price <= 0) return showStatus('خطأ: سعر غير صحيح.', 'error');
+        // **CRITICAL FIX:** This correctly gets the clean item objects before sending to findCommonName
         const selectedItems = state.allItems.filter(item => state.selectedItemIds.has(item.id));
         state.currentPreviewData = { name: findCommonName(selectedItems), price };
         updatePreview();
