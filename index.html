@@ -65,7 +65,6 @@
         .app-status { padding: 15px 20px; margin-bottom: 20px; border-radius: var(--radius-md); color: #fff; text-align: center; font-weight: 600; box-shadow: var(--shadow); display: none; align-items: center; justify-content: center; gap: 10px; }
         .app-status.error { background: #ef4444; } .app-status.success { background: #22c55e; } .app-status .icon svg { width: 20px; height: 20px; fill: white; }
         
-        #search-controls { display: flex; gap: 10px; margin-bottom: 15px; }
         #item-list { max-height: 30vh; overflow-y: auto; border: 1px solid var(--border-color); border-radius: var(--radius-lg); background: white; }
         .item-card { display: flex; align-items: center; padding: 12px 15px; border-bottom: 1px solid var(--border-color); transition: var(--transition); cursor: pointer; position: relative; }
         .item-card:last-child { border-bottom: none; }
@@ -101,15 +100,13 @@
             border: 1px dashed #a0aec0; /* Visual guide for user */
             background-color: transparent;
         }
-        .mode-preprinted .label-logo-area, .mode-preprinted .label-price-container {
-            display: none; /* Hide logo and price box */
-        }
+        .mode-preprinted .label-logo-area, .mode-preprinted .label-price-container { display: none; }
         .mode-preprinted .label-info-area, .mode-preprinted .label-price-area {
             position: absolute; text-align: right;
             padding: 0; width: auto; height: auto;
             color: var(--text-color);
         }
-        .mode-preprinted .label-price-area {
+        .mode-preprinted .label-price {
             font-size: var(--label-price-font-size); font-weight: 700; color: var(--label-price-color);
         }
 
@@ -119,12 +116,11 @@
         .control-group { margin-bottom: 20px; } .control-group:last-child { margin-bottom: 0; }
         .control-group label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--muted-text); }
         .radio-group { display: flex; gap: 20px; align-items: center; }
-        .radio-group label { margin-bottom: 0; display: flex; align-items: center; gap: 8px; }
+        .radio-group label { margin-bottom: 0; display: flex; align-items: center; gap: 8px; cursor: pointer; }
         
-        .grid-2, .grid-3, .grid-4 { display: grid; gap: 15px; align-items: end; }
+        .grid-2, .grid-3 { display: grid; gap: 15px; align-items: end; }
         .grid-2 { grid-template-columns: repeat(2, 1fr); }
         .grid-3 { grid-template-columns: repeat(3, 1fr); }
-        .grid-4 { grid-template-columns: repeat(4, 1fr); }
         
         #layout-calculation-status { background-color: #eef2ff; padding: 10px; border-radius: var(--radius-md); text-align: center; font-weight: 600; color: #4338ca; margin-top: 15px; display:none; }
 
@@ -143,14 +139,9 @@
             #a4-sheet:not(.mode-preprinted) .price-label { border-color: #000 !important; }
 
             /* Print styles SPECIFICALLY for Pre-printed Form Mode */
-            #a4-sheet.mode-preprinted .price-label {
-                border: none !important;
-                background: transparent !important;
-            }
+            #a4-sheet.mode-preprinted .price-label { border: none !important; background: transparent !important; }
             #a4-sheet.mode-preprinted .label-info-area,
-            #a4-sheet.mode-preprinted .label-price-area {
-                color: #000 !important; /* Ensure text prints black */
-            }
+            #a4-sheet.mode-preprinted .label-price { color: #000 !important; } /* Ensure text prints black */
         }
     </style>
 </head>
@@ -183,10 +174,10 @@
                  </div>
             </section>
 
-            <h3>4. وضع الطباعة وإعدادات التخطيط</h3>
+            <h3>4. تخصيص التصميم</h3>
 
             <fieldset>
-                <legend>اختر وضع الطباعة</legend>
+                <legend>وضع الطباعة</legend>
                  <div class="control-group radio-group">
                     <label><input type="radio" name="print-mode" value="full" checked> تصميم كامل</label>
                     <label><input type="radio" name="print-mode" value="preprinted"> نموذج مطبوع مسبقًا</label>
@@ -212,35 +203,6 @@
                         <div><label>خلفية السعر</label><input type="color" id="price-box-bg" value="#ffffff"></div>
                         <div><label>إطار السعر</label><input type="color" id="price-box-border-color" value="#ef4444"></div>
                         <div><label>لون السعر</label><input type="color" id="label-price-color" value="#ef4444"></div>
-                    </div>
-                </fieldset>
-            </div>
-
-            <div id="preprinted-form-controls" style="display:none;">
-                 <fieldset>
-                    <legend>إعدادات النموذج المطبوع (mm)</legend>
-                    <div class="control-group grid-2">
-                        <div><label>هامش علوي (mm)</label><input type="number" id="page-margin-top" value="10" min="0"></div>
-                        <div><label>هامش أيمن (mm)</label><input type="number" id="page-margin-right" value="10" min="0"></div>
-                    </div>
-                     <div class="control-group grid-2">
-                        <div><label>عرض البطاقة (mm)</label><input type="number" id="label-width" value="60" min="10"></div>
-                        <div><label>ارتفاع البطاقة (mm)</label><input type="number"id="label-height" value="30" min="10"></div>
-                    </div>
-                     <div class="control-group grid-2">
-                        <div><label>مسافة أفقية (mm)</label><input type="number" id="gap-horizontal" value="5" min="0"></div>
-                        <div><label>مسافة رأسية (mm)</label><input type="number" id="gap-vertical" value="5" min="0"></div>
-                    </div>
-                </fieldset>
-                <fieldset>
-                    <legend>موضع النصوص داخل البطاقة (mm)</legend>
-                    <div class="control-group grid-2">
-                         <div><label>إزاحة اسم الصنف (يمين)</label><input type="number" id="name-offset-x" value="5" ></div>
-                         <div><label>إزاحة اسم الصنف (أعلى)</label><input type="number" id="name-offset-y" value="5" ></div>
-                    </div>
-                     <div class="control-group grid-2">
-                         <div><label>إزاحة السعر (يمين)</label><input type="number" id="price-offset-x" value="40" ></div>
-                         <div><label>إزاحة السعر (أعلى)</label><input type="number" id="price-offset-y" value="5" ></div>
                     </div>
                 </fieldset>
             </div>
@@ -284,19 +246,13 @@ document.addEventListener('DOMContentLoaded', function() {
         printButton: document.getElementById('print-button'), layoutStatus: document.getElementById('layout-calculation-status'),
         printModeRadios: document.querySelectorAll('input[name="print-mode"]'),
         fullDesignControls: document.getElementById('full-design-controls'),
-        preprintedFormControls: document.getElementById('preprinted-form-controls'),
         controls: {}
     };
 
     const controlIds = [
-        // Full design controls
         'label-padding', 'label-border-width', 'label-border-color', 'label-border-style', 'label-border-radius', 
         'price-box-bg', 'price-box-border-color', 'label-price-color',
-        // Shared controls
-        'item-font-size', 'price-font-size', 'item-font-weight', 'item-text-transform',
-        // Pre-printed controls
-        'page-margin-top', 'page-margin-right', 'label-width', 'label-height',
-        'gap-horizontal', 'gap-vertical', 'name-offset-x', 'name-offset-y', 'price-offset-x', 'price-offset-y'
+        'item-font-size', 'price-font-size', 'item-font-weight', 'item-text-transform'
     ];
     controlIds.forEach(id => {
         const camelCaseId = id.replace(/-(\w)/g, (match, p1) => p1.toUpperCase());
@@ -375,15 +331,15 @@ document.addEventListener('DOMContentLoaded', function() {
         let totalLabels = 0;
         
         if (state.printMode === 'preprinted') {
-            // --- PRE-PRINTED FORM LOGIC ---
+            // --- PRE-PRINTED FORM LOGIC (FIXED LAYOUT) ---
+            // These values are hardcoded to match a standard pre-printed label sheet.
+            // All values are in millimeters (mm).
             const PAGE_WIDTH_MM = 210, PAGE_HEIGHT_MM = 297;
-            const marginTop = parseFloat(controls.pageMarginTop.value), marginRight = parseFloat(controls.pageMarginRight.value);
-            const labelW = parseFloat(controls.labelWidth.value), labelH = parseFloat(controls.labelHeight.value);
-            const gapH = parseFloat(controls.gapHorizontal.value), gapV = parseFloat(controls.gapVertical.value);
-            const nameOffsetX = controls.nameOffsetX.value, nameOffsetY = controls.nameOffsetY.value;
-            const priceOffsetX = controls.priceOffsetX.value, priceOffsetY = controls.priceOffsetY.value;
-
-            if(labelW <= 0 || labelH <= 0) return;
+            const marginTop = 12.7, marginRight = 4.6;
+            const labelW = 66, labelH = 25.4;
+            const gapH = 0, gapV = 0;
+            const nameOffsetX = 5, nameOffsetY = 7;
+            const priceOffsetX = 50, priceOffsetY = 7;
 
             const cols = Math.floor((PAGE_WIDTH_MM - marginRight * 2 + gapH) / (labelW + gapH));
             const rows = Math.floor((PAGE_HEIGHT_MM - marginTop * 2 + gapV) / (labelH + gapV));
@@ -401,10 +357,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 label.className = 'price-label';
                 label.innerHTML = `
                     <div class="label-info-area" style="top:${nameOffsetY}mm; right:${nameOffsetX}mm;">${name}</div>
-                    <div class="label-price-area" style="top:${priceOffsetY}mm; right:${priceOffsetX}mm;">${price.toFixed(2)} ج.م</div>`;
+                    <div class="label-price-area"><div class="label-price" style="position:absolute; top:${priceOffsetY}mm; right:${priceOffsetX}mm;">${price.toFixed(2)} ج.م</div></div>`;
                 dom.a4Sheet.appendChild(label);
             }
-            dom.layoutStatus.textContent = `التخطيط: ${totalLabels} بطاقة (${cols} أعمدة × ${rows} صفوف).`;
+            dom.layoutStatus.textContent = `التخطيط الثابت: ${totalLabels} بطاقة (${cols} أعمدة × ${rows} صفوف).`;
 
         } else {
             // --- FULL DESIGN LOGIC ---
@@ -459,7 +415,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await response.json();
             if (data.error) throw new Error(data.message);
             state.allItems = data;
-            showStatus(`تم تحميل ${state.allItems.length} صنف.`, 'success');
+            showStatus(`تم تحميل ${state.allItems.length} صنف بنجاح.`, 'success');
             dom.itemSelectionSection.style.display = 'block';
             dom.generationSection.style.display = 'block';
             renderItems(state.allItems);
@@ -479,7 +435,6 @@ document.addEventListener('DOMContentLoaded', function() {
         radio.addEventListener('change', (e) => {
             state.printMode = e.target.value;
             dom.fullDesignControls.style.display = state.printMode === 'full' ? 'block' : 'none';
-            dom.preprintedFormControls.style.display = state.printMode === 'preprinted' ? 'block' : 'none';
             if (state.currentPreviewData) { updatePreview(); }
         });
     });
