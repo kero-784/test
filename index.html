@@ -12,19 +12,17 @@
             --primary-color: #3b82f6; --primary-hover: #2563eb; --card-bg: #ffffff;
             --border-color: #e2e8f0; --muted-text: #64748b;
             --shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -2px rgba(0,0,0,0.05);
-            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.07), 0 4px 6px -4px rgba(0,0,0,0.07);
             --radius-md: 8px; --radius-lg: 12px; --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
             
-            --label-price-color: #ef4444; --label-border-width: 1px; --label-border-style: solid; --label-border-color: #cbd5e1;
-            --label-padding: 5px; --label-border-radius: 8px; --price-box-bg: rgba(255, 255, 255, 0.85);
-            --price-box-border-color: var(--label-price-color); --label-item-font-size: 16px;
-            --label-item-font-weight: 700; --label-item-text-transform: none; --label-price-font-size: 24px;
+            --label-price-color: #ef4444; --price-box-border-color: var(--label-price-color);
+            --label-item-font-size: 18px; --label-item-font-weight: 700;
+            --label-price-font-size: 26px;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             font-family: 'Cairo', sans-serif; background-color: var(--bg-color); color: var(--text-color);
-            display: flex; height: 100vh; overflow: hidden; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+            display: flex; height: 100vh; overflow: hidden;
         }
         .app-container { display: flex; width: 100%; height: 100%; flex-direction: row-reverse; }
 
@@ -41,97 +39,74 @@
         h2 { font-size: 1.25rem; font-weight: 600; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); }
         h3 { font-size: 1.5rem; font-weight: 700; color: var(--primary-color); margin: 40px 0 25px 0; border-bottom: 2px solid; padding-bottom: 15px;}
         
-        button {
-            background-color: var(--primary-color); color: white; border: none; padding: 12px 25px; border-radius: var(--radius-md); font-family: 'Cairo', sans-serif;
-            font-size: 1rem; font-weight: 600; cursor: pointer; transition: var(--transition); box-shadow: var(--shadow);
-            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-        }
+        button { background-color: var(--primary-color); color: white; border: none; padding: 12px 25px; border-radius: var(--radius-md); font-family: 'Cairo', sans-serif; font-size: 1rem; font-weight: 600; cursor: pointer; transition: var(--transition); box-shadow: var(--shadow); display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
         button:hover { background-color: var(--primary-hover); transform: translateY(-2px); box-shadow: var(--shadow-lg); }
         .btn-icon svg { width:18px; height:18px; }
         
-        input, select {
-            width: 100%; padding: 10px 12px; border-radius: var(--radius-md); border: 1px solid var(--border-color);
-            font-family: 'Cairo', sans-serif; background-color: #f8fafc; transition: var(--transition);
-        }
+        input, select { width: 100%; padding: 10px 12px; border-radius: var(--radius-md); border: 1px solid var(--border-color); font-family: 'Cairo', sans-serif; background-color: #f8fafc; transition: var(--transition); }
         input:focus, select:focus { border-color: var(--primary-color); background-color: white; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); outline: none; }
-        input[type="color"] { padding: 4px; height: 42px; }
         input[type="radio"] { width: auto; }
         
         .section-card { background: var(--card-bg); padding: 25px; border-radius: var(--radius-lg); box-shadow: var(--shadow); margin-bottom: 30px; }
         .loader { border: 4px solid #e2e8f0; border-top: 4px solid var(--primary-color); border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; display: none; margin: 0 auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
-        .app-status { padding: 15px 20px; margin-bottom: 20px; border-radius: var(--radius-md); color: #fff; text-align: center; font-weight: 600; box-shadow: var(--shadow); display: none; align-items: center; justify-content: center; gap: 10px; }
-        .app-status.error { background: #ef4444; } .app-status.success { background: #22c55e; } .app-status .icon svg { width: 20px; height: 20px; fill: white; }
+        .app-status { padding: 15px 20px; margin-bottom: 20px; border-radius: var(--radius-md); color: #fff; text-align: center; font-weight: 600; display: none; }
+        .app-status.error { background: #ef4444; } .app-status.success { background: #22c55e; }
         
         #item-list { max-height: 30vh; overflow-y: auto; border: 1px solid var(--border-color); border-radius: var(--radius-lg); background: white; }
-        .item-card { display: flex; align-items: center; padding: 12px 15px; border-bottom: 1px solid var(--border-color); transition: var(--transition); cursor: pointer; position: relative; }
+        .item-card { display: flex; align-items: center; padding: 12px 15px; border-bottom: 1px solid var(--border-color); cursor: pointer; position: relative; }
         .item-card:last-child { border-bottom: none; }
         .item-card:hover { background-color: #f8fafc; }
         .item-card.selected { background-color: #eff6ff; color: #1e40af; font-weight: 600; }
         .item-card.selected::before { content: ''; position: absolute; right: 0; top: 0; bottom: 0; width: 4px; background-color: var(--primary-color); }
         
-        #a4-sheet {
-            background: white; width: 21cm; height: 29.7cm; box-shadow: var(--shadow-lg);
-            transform-origin: top center; transform: scale(0.65); display: grid; align-content: start;
-        }
+        #a4-sheet { background: white; width: 21cm; height: 29.7cm; box-shadow: var(--shadow-lg); transform-origin: top center; transform: scale(0.65); display: grid; align-content: start; padding: 10mm; }
         #print-button { margin-top: 25px; }
         
-        .price-label { position: relative; width: 100%; height: 100%; }
-        .label-content { position: absolute; top: 0; right: 0; bottom: 0; left: 0; }
-        .label-content.full-design {
-            display: flex; flex-direction: row; align-items: stretch; overflow: hidden;
-            background-color: white; color: var(--text-color); font-family: 'Cairo', sans-serif;
-            border: var(--label-border-width) var(--label-border-style) var(--label-border-color);
-            border-radius: var(--label-border-radius); padding: var(--label-padding);
-        }
-        .label-logo-area { flex: 0 0 25%; text-align: center; display:flex; align-items:center; justify-content:center; }
-        .label-logo-area img { max-width: 100%; max-height: 100%; object-fit: contain; }
-        .label-info-area { flex: 1; display: flex; align-items: center; justify-content: center; text-align: center; padding: 0 5px; font-size: var(--label-item-font-size); font-weight: var(--label-item-font-weight); text-transform: var(--label-item-text-transform); }
-        .label-price-area { flex: 0 0 35%; display: flex; align-items: center; justify-content: center; }
-        .label-price-container { border: 2px solid var(--price-box-border-color); border-radius: 8px; text-align: center; background: var(--price-box-bg); padding: 5px; display: inline-block; }
-        .label-price { font-size: var(--label-price-font-size); font-weight: 700; color: var(--label-price-color); white-space: nowrap; }
+        /* Unified Label Structure */
+        .price-label { display: flex; flex-direction: row; align-items: center; overflow: hidden; background-color: white; border: 2px solid #334155; border-radius: 12px; }
+        .label-logo-area { flex: 0 0 25%; text-align: center; padding: 5px; border-left: 2px solid #e2e8f0;}
+        .label-logo-area img { max-width: 100%; max-height: 60px; object-fit: contain; }
+        .label-info-area { flex: 1; text-align: center; padding: 5px 10px; font-size: var(--label-item-font-size); font-weight: var(--label-item-font-weight); }
+        .label-price-area { flex: 0 0 35%; text-align: center; padding: 5px; background: #334155; color: white; border-right: 8px solid var(--label-price-color); }
+        .label-price { font-size: var(--label-price-font-size); font-weight: 700; white-space: nowrap; }
 
-        .text-only .label-info-text, .text-only .label-price-text {
-            position: absolute; text-align: right;
-            padding: 0; width: auto; height: auto;
-            color: var(--text-color);
+        /* Pre-Printed Mode Overrides */
+        #a4-sheet.mode-preprinted .price-label {
+            border-color: #a0aec0; /* Dashed guide for screen */
+            border-style: dashed;
+            background: transparent;
         }
-        .text-only .label-info-text { font-size: var(--label-item-font-size); font-weight: var(--label-item-font-weight); text-transform: var(--label-item-text-transform); }
-        .text-only .label-price-text { font-size: var(--label-price-font-size); font-weight: 700; color: var(--label-price-color); }
+        #a4-sheet.mode-preprinted .label-logo-area,
+        #a4-sheet.mode-preprinted .label-price-area {
+            visibility: hidden; /* Hides element but keeps its space */
+        }
         
-        #a4-sheet.mode-preprinted .full-design { display: none; }
-        #a4-sheet:not(.mode-preprinted) .text-only { display: none; }
-
-        .slider-value { font-weight: 600; color: var(--primary-color); }
         fieldset { border: none; border-radius: var(--radius-lg); padding: 20px; margin-bottom: 20px; background-color: #f8fafc; border: 1px solid var(--border-color); }
-        legend { font-weight: 700; color: var(--text-color); padding: 0 5px; font-size: 1.1rem; }
+        legend { font-weight: 700; padding: 0 5px; font-size: 1.1rem; }
         .control-group { margin-bottom: 20px; } .control-group:last-child { margin-bottom: 0; }
         .control-group label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--muted-text); }
-        .radio-group { display: flex; gap: 20px; align-items: center; }
+        .radio-group { display: flex; flex-direction: column; gap: 15px; }
         .radio-group label { margin-bottom: 0; display: flex; align-items: center; gap: 8px; cursor: pointer; }
         
-        .grid-2, .grid-3 { display: grid; gap: 15px; align-items: end; }
-        .grid-2 { grid-template-columns: repeat(2, 1fr); } .grid-3 { grid-template-columns: repeat(3, 1fr); }
+        .grid-2 { display: grid; gap: 15px; grid-template-columns: repeat(2, 1fr); align-items: end;}
         
         #layout-calculation-status { background-color: #eef2ff; padding: 10px; border-radius: var(--radius-md); text-align: center; font-weight: 600; color: #4338ca; margin-top: 15px; display:none; }
-        ::-webkit-scrollbar { width: 8px; } ::-webkit-scrollbar-track { background: var(--bg-color); } ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; } ::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+        ::-webkit-scrollbar { width: 8px; } ::-webkit-scrollbar-track { background: var(--bg-color); } ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
 
         @media print {
             .control-panel, #print-button, .app-status { display: none !important; }
             body, .app-container, .preview-panel { display: block !important; width: 100% !important; height: auto !important; overflow: visible !important; background: #fff !important; padding: 0 !important; margin: 0 !important; }
-            #a4-sheet {
-                transform: none !important; box-shadow: none !important; border: none !important; margin: 0 !important;
-                width: 21cm !important; height: 29.7cm !important; display: grid !important; background: transparent !important;
-            }
-            .price-label { page-break-inside: avoid !important; }
-            .label-content, .label-content * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-            
-            #a4-sheet.mode-preprinted .label-content.full-design { display: none !important; }
-            #a4-sheet:not(.mode-preprinted) .label-content.text-only { display: none !important; }
-            
-            .label-content.full-design { border-color: #000 !important; }
-            .text-only .label-info-text, .text-only .label-price-text { color: #000 !important; }
+            #a4-sheet { transform: none !important; box-shadow: none !important; border: none !important; margin: 0 !important; width: 21cm !important; height: 29.7cm !important; display: grid !important; }
+            .price-label { page-break-inside: avoid !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            .price-label, .label-info-area, .label-price { color: #000 !important; }
+            .label-price-area { background: #000 !important; color: #fff !important; }
+
+            /* Final Print Overrides for Pre-Printed Mode */
+            #a4-sheet.mode-preprinted .price-label { border: none !important; background: transparent !important; }
+            #a4-sheet.mode-preprinted .label-logo-area,
+            #a4-sheet.mode-preprinted .label-price-area { visibility: hidden !important; }
         }
     </style>
 </head>
@@ -154,58 +129,26 @@
             <fieldset>
                 <legend>وضع الطباعة</legend>
                  <div class="control-group radio-group">
-                    <label><input type="radio" name="print-mode" value="full" checked> تصميم كامل (للمعاينة والطباعة على ورق عادي)</label>
-                    <label><input type="radio" name="print-mode" value="preprinted"> نص فقط (للطباعة على نموذج مُعَد مسبقًا)</label>
+                    <label><input type="radio" name="print-mode" value="full" checked> <strong>تصميم كامل:</strong> لطباعة بطاقة كاملة على ورق عادي.</label>
+                    <label><input type="radio" name="print-mode" value="preprinted"> <strong>نص فقط:</strong> لطباعة النصوص فقط على نموذج مُعَد مسبقًا.</label>
                  </div>
+            </fieldset>
+
+            <fieldset>
+                <legend>تخطيط الصفحة (مشترك بين الوضعين)</legend>
+                <div class="control-group grid-2">
+                    <div><label>ارتفاع البطاقة (mm)</label><input type="number" id="label-height" value="30" step="0.1"></div>
+                    <div><label>مسافة رأسية (mm)</label><input type="number" id="gap-vertical" value="4" step="0.1"></div>
+                </div>
                  <div id="layout-calculation-status"></div>
             </fieldset>
 
             <fieldset>
-                <legend>تخطيط الصفحة (مشترك)</legend>
+                <legend>النصوص والخطوط</legend>
                 <div class="control-group grid-2">
-                    <div><label>هامش علوي (mm)</label><input type="number" id="page-margin-top" value="12.7" step="0.1"></div>
-                    <div><label>هامش أيمن (mm)</label><input type="number" id="page-margin-right" value="4.6" step="0.1"></div>
+                     <div><label>خط الصنف (px)</label><input type="number" id="item-font-size" value="18"></div>
+                     <div><label>خط السعر (px)</label><input type="number" id="price-font-size" value="26"></div>
                 </div>
-                 <div class="control-group grid-2">
-                    <div><label>عرض البطاقة (mm)</label><input type="number" id="label-width" value="66" step="0.1"></div>
-                    <div><label>ارتفاع البطاقة (mm)</label><input type="number"id="label-height" value="25.4" step="0.1"></div>
-                </div>
-                 <div class="control-group grid-2">
-                    <div><label>مسافة أفقية (mm)</label><input type="number" id="gap-horizontal" value="0" step="0.1"></div>
-                    <div><label>مسافة رأسية (mm)</label><input type="number" id="gap-vertical" value="0" step="0.1"></div>
-                </div>
-            </fieldset>
-
-            <fieldset>
-                <legend>موضع النصوص داخل البطاقة (مشترك)</legend>
-                <div class="control-group grid-2">
-                     <div><label>إزاحة اسم الصنف (يمين)</label><input type="number" id="name-offset-x" value="5" step="0.5"></div>
-                     <div><label>إزاحة اسم الصنف (أعلى)</label><input type="number" id="name-offset-y" value="7" step="0.5"></div>
-                </div>
-                 <div class="control-group grid-2">
-                     <div><label>إزاحة السعر (يمين)</label><input type="number" id="price-offset-x" value="50" step="0.5"></div>
-                     <div><label>إزاحة السعر (أعلى)</label><input type="number" id="price-offset-y" value="7" step="0.5"></div>
-                </div>
-            </fieldset>
-
-            <div id="full-design-controls">
-                <fieldset>
-                    <legend>تنسيق التصميم الكامل</legend>
-                    <div class="control-group"><label>حواف دائرية (px): <span id="label-border-radius-value" class="slider-value">8</span></label><input type="range" id="label-border-radius" min="0" max="30" value="8"></div>
-                    <div class="control-group grid-3"><div><label>لون الإطار</label><input type="color" id="label-border-color" value="#cbd5e1"></div><div><label>خلفية السعر</label><input type="color" id="price-box-bg" value="#ffffff"></div><div><label>لون السعر</label><input type="color" id="label-price-color" value="#ef4444"></div></div>
-                </fieldset>
-            </div>
-            
-            <fieldset>
-                <legend>النصوص والخطوط (مشترك)</legend>
-                <div class="control-group grid-2">
-                     <div><label>خط الصنف (px): <span id="item-font-size-value" class="slider-value">16</span></label><input type="range" id="item-font-size" min="8" max="28" value="16"></div>
-                     <div><label>خط السعر (px): <span id="price-font-size-value" class="slider-value">24</span></label><input type="range" id="price-font-size" min="12" max="48" value="24"></div>
-                </div>
-                 <div class="control-group grid-2">
-                    <div><label>وزن الخط</label><select id="item-font-weight"><option value="400">عادي</option><option value="700" selected>عريض</option></select></div>
-                    <div><label>حالة الأحرف</label><select id="item-text-transform"><option value="none">عادي</option><option value="uppercase">أحرف كبيرة</option></select></div>
-                 </div>
             </fieldset>
 
         </aside>
@@ -217,16 +160,19 @@ document.addEventListener('DOMContentLoaded', function() {
     
     const icons = { print: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5 2.75C5 1.784 5.784 1 6.75 1h6.5c.966 0 1.75.784 1.75 1.75v3.552c.377.046.752.11 1.126.195.784.175 1.437.638 1.83 1.262.394.624.594 1.344.594 2.103v2.888c0 .76-.2 1.48-.594 2.104-.393.623-1.046 1.086-1.83 1.261-.374.086-.749.15-1.126.195v3.552C15 18.216 14.216 19 13.25 19h-6.5C5.784 19 5 18.216 5 17.25V2.75Zm.75 14.5v-2.888c0-.76.2-1.48.594-2.104.393-.623 1.046-1.086 1.83-1.261a23.99 23.99 0 0 1 2.652 0c.784.175 1.437.638 1.83 1.262.394.624.594 1.343.594 2.103v2.888a.75.75 0 0 1-.75.75h-8a.75.75 0 0 1-.75-.75Zm.75-9.75a.75.75 0 0 1 .75-.75h6.5a.75.75 0 0 1 0 1.5h-6.5a.75.75 0 0 1-.75-.75Zm0 3a.75.75 0 0 1 .75-.75h6.5a.75.75 0 0 1 0 1.5h-6.5a.75.75 0 0 1-.75-.75Z" clip-rule="evenodd" /></svg>` };
     const state = { allItems: [], selectedItemIds: new Set(), currentLogoSrc: 'logo.png', currentPreviewData: null, printMode: 'full' };
-    const dom = { appStatus: document.getElementById('app-status'), loader: document.getElementById('loader'), itemSelectionSection: document.getElementById('item-selection-section'), generationSection: document.getElementById('generation-section'), itemList: document.getElementById('item-list'), priceInput: document.getElementById('price-input'), generateBtn: document.getElementById('generate-btn'), a4Sheet: document.getElementById('a4-sheet'), printButton: document.getElementById('print-button'), layoutStatus: document.getElementById('layout-calculation-status'), printModeRadios: document.querySelectorAll('input[name="print-mode"]'), fullDesignControls: document.getElementById('full-design-controls'), controls: {} };
-    const controlIds = [ 'label-border-radius', 'label-border-color', 'price-box-bg', 'label-price-color', 'item-font-size', 'price-font-size', 'item-font-weight', 'item-text-transform', 'page-margin-top', 'page-margin-right', 'label-width', 'label-height', 'gap-horizontal', 'gap-vertical', 'name-offset-x', 'name-offset-y', 'price-offset-x', 'price-offset-y' ];
+    const dom = { appStatus: document.getElementById('app-status'), loader: document.getElementById('loader'), itemSelectionSection: document.getElementById('item-selection-section'), generationSection: document.getElementById('generation-section'), itemList: document.getElementById('item-list'), priceInput: document.getElementById('price-input'), generateBtn: document.getElementById('generate-btn'), a4Sheet: document.getElementById('a4-sheet'), printButton: document.getElementById('print-button'), layoutStatus: document.getElementById('layout-calculation-status'), printModeRadios: document.querySelectorAll('input[name="print-mode"]'), controls: {} };
+    const controlIds = [ 'label-height', 'gap-vertical', 'item-font-size', 'price-font-size' ];
     controlIds.forEach(id => { dom.controls[id.replace(/-(\w)/g, (_, p1) => p1.toUpperCase())] = document.getElementById(id); });
+    
     const debounce = (func, delay) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => func.apply(this, a), delay); }; };
-    const showStatus = (message, type = 'success') => { dom.appStatus.innerHTML = `<span>${message}</span>`; dom.appStatus.className = `app-status ${type}`; dom.appStatus.style.display = 'flex'; setTimeout(() => dom.appStatus.style.display = 'none', 4000); };
+    const showStatus = (message, type = 'success') => { dom.appStatus.textContent = message; dom.appStatus.className = `app-status ${type}`; dom.appStatus.style.display = 'block'; setTimeout(() => dom.appStatus.style.display = 'none', 4000); };
+    
     const findCommonName = (items) => {
         if (!items || items.length === 0) return ''; if (items.length === 1) return items[0].name;
         const wordsArr = items.map(i => String(i.name).split(' ')); let common = [];
         for (let i = 0; i < wordsArr[0].length; i++) { if (wordsArr.every(w => w[i] === wordsArr[0][i])) common.push(wordsArr[0][i]); else break; } return common.join(' ') + ' أنواع';
     };
+
     const renderItems = (items) => {
         dom.itemList.innerHTML = items.length === 0 ? '<p style="padding:20px;text-align:center;">لا توجد نتائج</p>' : '';
         items.forEach(item => {
@@ -244,29 +190,24 @@ document.addEventListener('DOMContentLoaded', function() {
         const { controls } = dom; const root = document.documentElement.style;
 
         Object.entries({
-            '--label-border-radius': `${controls.labelBorderRadius.value}px`, '--label-border-color': controls.labelBorderColor.value,
-            '--price-box-bg': controls.priceBoxBg.value, '--price-box-border-color': controls.labelPriceColor.value,
-            '--label-price-color': controls.labelPriceColor.value,
-            '--label-item-font-size': `${controls.itemFontSize.value}px`, '--label-item-font-weight': controls.itemFontWeight.value,
-            '--label-item-text-transform': controls.itemTextTransform.value, '--label-price-font-size': `${controls.priceFontSize.value}px`,
+            '--label-item-font-size': `${controls.itemFontSize.value}px`,
+            '--label-price-font-size': `${controls.priceFontSize.value}px`,
         }).forEach(([prop, val]) => root.setProperty(prop, val));
         
         dom.a4Sheet.innerHTML = '';
         dom.a4Sheet.className = state.printMode === 'preprinted' ? 'mode-preprinted' : '';
 
-        const PAGE_WIDTH_MM = 210, PAGE_HEIGHT_MM = 297;
-        const marginTop = parseFloat(controls.pageMarginTop.value), marginRight = parseFloat(controls.pageMarginRight.value);
-        const labelW = parseFloat(controls.labelWidth.value), labelH = parseFloat(controls.labelHeight.value);
-        const gapH = parseFloat(controls.gapHorizontal.value), gapV = parseFloat(controls.gapVertical.value);
-        const nameOffsetX = controls.nameOffsetX.value, nameOffsetY = controls.nameOffsetY.value;
-        const priceOffsetX = controls.priceOffsetX.value, priceOffsetY = controls.priceOffsetY.value;
+        const PAGE_HEIGHT_MM = 297;
+        const PAGE_MARGIN_MM = 10;
+        const PRINTABLE_HEIGHT = PAGE_HEIGHT_MM - (PAGE_MARGIN_MM * 2);
+        
+        const labelH = parseFloat(controls.labelHeight.value);
+        const gapV = parseFloat(controls.gapVertical.value);
 
-        if(labelW <= 0 || labelH <= 0) return;
-        const cols = Math.floor((PAGE_WIDTH_MM - marginRight * 2 + gapH) / (labelW + gapH));
-        const rows = Math.floor((PAGE_HEIGHT_MM - marginTop * 2 + gapV) / (labelH + gapV));
-        const totalLabels = cols * rows;
+        if(labelH <= 0) return;
+        const totalLabels = Math.floor((PRINTABLE_HEIGHT + gapV) / (labelH + gapV));
 
-        dom.a4Sheet.style.cssText = `padding: ${marginTop}mm ${marginRight}mm; grid-template-columns: repeat(${cols}, ${labelW}mm); grid-template-rows: repeat(${rows}, ${labelH}mm); gap: ${gapV}mm ${gapH}mm;`;
+        dom.a4Sheet.style.cssText = `padding: ${PAGE_MARGIN_MM}mm; grid-template-columns: 1fr; grid-template-rows: repeat(${totalLabels}, ${labelH}mm); gap: ${gapV}mm;`;
 
         const logoHtml = `<img src="${state.currentLogoSrc}" alt="Logo">`;
 
@@ -274,19 +215,13 @@ document.addEventListener('DOMContentLoaded', function() {
             const label = document.createElement('div');
             label.className = 'price-label';
             label.innerHTML = `
-                <div class="label-content full-design">
-                    <div class="label-logo-area">${logoHtml}</div>
-                    <div class="label-info-area">${name}</div>
-                    <div class="label-price-area"><div class="label-price-container"><div class="label-price">${price.toFixed(2)} ج.م</div></div></div>
-                </div>
-                <div class="label-content text-only">
-                    <div class="label-info-text" style="top:${nameOffsetY}mm; right:${nameOffsetX}mm;">${name}</div>
-                    <div class="label-price-text" style="top:${priceOffsetY}mm; right:${priceOffsetX}mm;">${price.toFixed(2)} ج.م</div>
-                </div>`;
+                <div class="label-logo-area">${logoHtml}</div>
+                <div class="label-info-area">${name}</div>
+                <div class="label-price-area"><div class="label-price">${price.toFixed(2)} ج.م</div></div>`;
             dom.a4Sheet.appendChild(label);
         }
 
-        dom.layoutStatus.textContent = `التخطيط: ${totalLabels} بطاقة (${cols} أعمدة × ${rows} صفوف).`;
+        dom.layoutStatus.textContent = `التخطيط الحالي: ${totalLabels} بطاقة في الصفحة.`;
         dom.layoutStatus.style.display = 'block';
         dom.printButton.querySelector('.btn-icon').innerHTML = icons.print;
         dom.printButton.style.display = totalLabels > 0 ? 'inline-flex' : 'none';
@@ -319,14 +254,9 @@ document.addEventListener('DOMContentLoaded', function() {
     dom.printButton.addEventListener('click', () => window.print());
     dom.printModeRadios.forEach(radio => radio.addEventListener('change', (e) => {
         state.printMode = e.target.value;
-        dom.fullDesignControls.style.display = state.printMode === 'full' ? 'block' : 'none';
         if (state.currentPreviewData) updatePreview();
     }));
-    Object.values(dom.controls).forEach(control => { if (control) control.addEventListener(control.type === 'range' ? 'input' : 'change', debouncedUpdatePreview); });
-    ['label-border-radius', 'item-font-size', 'price-font-size'].forEach(id => {
-        const input = document.getElementById(id), span = document.getElementById(`${id}-value`);
-        if(input && span) { span.textContent = input.value; input.addEventListener('input', e => span.textContent = e.target.value); }
-    });
+    Object.values(dom.controls).forEach(control => { if (control) control.addEventListener('input', debouncedUpdatePreview); });
     
     loadData();
 });
