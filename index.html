@@ -105,7 +105,7 @@
 
         @media print {
             html, body {
-                height: auto;
+                height: 100%;
                 margin: 0 !important;
                 padding: 0 !important;
             }
@@ -117,11 +117,11 @@
                 transform: none !important;
                 box-shadow: none !important;
                 border: none !important;
-                margin: 0 !important;
+                margin: 0 auto !important; /* Center the sheet */
                 width: 21cm !important;
                 height: 29.7cm !important;
                 display: grid !important;
-                padding: 10mm !important; /* Standard browser print margin */
+                padding: 10mm !important; /* **FIX:** This defines the unprintable border */
             }
             .price-label {
                 page-break-inside: avoid !important;
@@ -173,7 +173,7 @@
                 <legend>تخطيط الصفحة (لـ 8 بطاقات)</legend>
                 <div class="control-group grid-2">
                     <div><label>ارتفاع البطاقة (mm)</label><input type="number" id="label-height" value="30" step="0.1"></div>
-                    <div><label>مسافة رأسية (mm)</label><input type="number" id="gap-vertical" value="4" step="0.1"></div>
+                    <div><label>مسافة رأسية (mm)</label><input type="number" id="gap-vertical" value="4.2" step="0.1"></div>
                 </div>
                  <div id="layout-calculation-status"></div>
             </fieldset>
@@ -222,12 +222,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const debounce = (func, delay) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => func.apply(this, a), delay); }; };
     const showStatus = (message, type = 'success') => { dom.appStatus.textContent = message; dom.appStatus.className = `app-status ${type}`; dom.appStatus.style.display = 'block'; setTimeout(() => dom.appStatus.style.display = 'none', 4000); };
     
+    // --- **FIXED** findCommonName function ---
     const findCommonName = (items) => {
         if (!items || items.length === 0) return '';
-        if (items.length === 1) return items[0].name.split('الكود:')[0].trim();
+        // **CRITICAL FIX:** Sanitize names first to get the pure name string from the object.
+        const allNames = items.map(item => item.name);
 
-        // **FIX:** Sanitize names first to remove any "الكود:" labels
-        let allNames = items.map(item => item.name.split('الكود:')[0].trim());
+        if (items.length === 1) return allNames[0];
 
         const extractUnit = (name) => {
             const units = ['ملل', 'مل', 'جم', 'جرام', 'كجم', 'لتر', 'متر', 'gm', 'g', 'kg', 'ml', 'l'];
@@ -244,8 +245,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const namesForComparison = allNames.map(name => commonUnit ? name.replace(commonUnit, '').trim() : name);
 
         const findCommonPrefix = (arr) => {
+            if (arr.length === 0) return '';
             const wordsArr = arr.map(s => String(s).split(' '));
-            if (wordsArr.length === 0 || wordsArr[0].length === 0) return '';
+            if (wordsArr[0].length === 0) return '';
             let common = [];
             for (let i = 0; i < wordsArr[0].length; i++) {
                 if (wordsArr.every(words => words.length > i && words[i] === wordsArr[0][i])) {
@@ -276,7 +278,7 @@ document.addEventListener('DOMContentLoaded', function() {
         items.forEach(item => {
             const isSelected = state.selectedItemIds.has(item.id); const card = document.createElement('label');
             card.className = `item-card ${isSelected ? 'selected' : ''}`;
-            card.innerHTML = `<input type="checkbox" data-id="${item.id}" ${isSelected ? 'checked' : ''}><div class="details"><span class="item-name">${item.name}</span><span class="item-meta">الكود: ${item.code || 'N/A'}</span></div>`;
+            card.innerHTML = `<input type="checkbox" data-id="${item.id}" data-name="${item.name}" ${isSelected ? 'checked' : ''}><div class="details"><span class="item-name">${item.name}</span><span class="item-meta">الكود: ${item.code || 'N/A'}</span></div>`;
             card.querySelector('input').addEventListener('change', (e) => { const id = parseInt(e.target.dataset.id); e.target.checked ? state.selectedItemIds.add(id) : state.selectedItemIds.delete(id); card.classList.toggle('selected', e.target.checked); });
             dom.itemList.appendChild(card);
         });
