@@ -104,11 +104,34 @@
         ::-webkit-scrollbar { width: 8px; } ::-webkit-scrollbar-track { background: var(--bg-color); } ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
 
         @media print {
+            html, body {
+                height: auto;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
             .control-panel, #print-button, .app-status { display: none !important; }
-            body, .app-container, .preview-panel { display: block !important; width: 100% !important; height: auto !important; overflow: visible !important; background: #fff !important; padding: 0 !important; margin: 0 !important; }
-            #a4-sheet { transform: none !important; box-shadow: none !important; border: none !important; margin: 0 !important; width: 21cm !important; height: 29.7cm !important; display: grid !important; padding: 0 !important; }
-            .price-label { page-break-inside: avoid !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; border-color: #000 !important; }
-            #a4-sheet.mode-preprinted .price-label { border-color: transparent !important; }
+            .preview-panel {
+                padding: 0 !important;
+            }
+            #a4-sheet {
+                transform: none !important;
+                box-shadow: none !important;
+                border: none !important;
+                margin: 0 !important;
+                width: 21cm !important;
+                height: 29.7cm !important;
+                display: grid !important;
+                padding: 10mm !important; /* Standard browser print margin */
+            }
+            .price-label {
+                page-break-inside: avoid !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                border-color: #000 !important;
+            }
+            #a4-sheet.mode-preprinted .price-label {
+                border-color: transparent !important;
+            }
         }
     </style>
 </head>
@@ -199,15 +222,15 @@ document.addEventListener('DOMContentLoaded', function() {
     const debounce = (func, delay) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => func.apply(this, a), delay); }; };
     const showStatus = (message, type = 'success') => { dom.appStatus.textContent = message; dom.appStatus.className = `app-status ${type}`; dom.appStatus.style.display = 'block'; setTimeout(() => dom.appStatus.style.display = 'none', 4000); };
     
-    // --- Improved findCommonName function ---
     const findCommonName = (items) => {
         if (!items || items.length === 0) return '';
-        if (items.length === 1) return items[0].name;
+        if (items.length === 1) return items[0].name.split('الكود:')[0].trim();
 
-        const allNames = items.map(item => item.name);
+        // **FIX:** Sanitize names first to remove any "الكود:" labels
+        let allNames = items.map(item => item.name.split('الكود:')[0].trim());
 
         const extractUnit = (name) => {
-            const units = ['ملل', 'مل', 'جم', 'جرام', 'كجم', 'لتر', 'متر', 'جرام', 'gm', 'g', 'kg', 'ml', 'l'];
+            const units = ['ملل', 'مل', 'جم', 'جرام', 'كجم', 'لتر', 'متر', 'gm', 'g', 'kg', 'ml', 'l'];
             const regex = new RegExp(`(\\d*\\.?\\d+\\s?(${units.join('|')}))($|\\s)`, 'i');
             const match = name.match(regex);
             return match ? match[1].trim() : null;
@@ -222,10 +245,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const findCommonPrefix = (arr) => {
             const wordsArr = arr.map(s => String(s).split(' '));
+            if (wordsArr.length === 0 || wordsArr[0].length === 0) return '';
             let common = [];
             for (let i = 0; i < wordsArr[0].length; i++) {
-                if (wordsArr.every(words => words[i] === wordsArr[0][i])) common.push(wordsArr[0][i]);
-                else break;
+                if (wordsArr.every(words => words.length > i && words[i] === wordsArr[0][i])) {
+                    common.push(wordsArr[0][i]);
+                } else {
+                    break;
+                }
             }
             return common.join(' ');
         };
@@ -244,13 +271,12 @@ document.addEventListener('DOMContentLoaded', function() {
         return finalName.replace(/\s+/g, ' ').trim();
     };
 
-
     const renderItems = (items) => {
         dom.itemList.innerHTML = items.length === 0 ? '<p style="padding:20px;text-align:center;">لا توجد نتائج</p>' : '';
         items.forEach(item => {
             const isSelected = state.selectedItemIds.has(item.id); const card = document.createElement('label');
             card.className = `item-card ${isSelected ? 'selected' : ''}`;
-            card.innerHTML = `<input type="checkbox" data-id="${item.id}" ${isSelected ? 'checked' : ''}><div class="details"><span>${item.name}</span><span class="item-meta">الكود: ${item.code || 'N/A'}</span></div>`;
+            card.innerHTML = `<input type="checkbox" data-id="${item.id}" ${isSelected ? 'checked' : ''}><div class="details"><span class="item-name">${item.name}</span><span class="item-meta">الكود: ${item.code || 'N/A'}</span></div>`;
             card.querySelector('input').addEventListener('change', (e) => { const id = parseInt(e.target.dataset.id); e.target.checked ? state.selectedItemIds.add(id) : state.selectedItemIds.delete(id); card.classList.toggle('selected', e.target.checked); });
             dom.itemList.appendChild(card);
         });
@@ -288,16 +314,14 @@ document.addEventListener('DOMContentLoaded', function() {
         dom.a4Sheet.innerHTML = '';
         dom.a4Sheet.className = state.printMode === 'preprinted' ? 'mode-preprinted' : '';
         
-        // Correct A4 Layout Calculation
-        const PRINTABLE_HEIGHT = 297 - (10 * 2); // A4 height 297mm minus 10mm top/bottom browser margins
+        // **FIX:** Correct A4 Layout Calculation
+        const PRINTABLE_HEIGHT = 297 - (10 * 2); // 297mm A4 height minus 10mm top/bottom browser margins
         const labelH = parseFloat(controls.labelHeight.value);
         const gapV = parseFloat(controls.gapVertical.value);
 
         if(labelH <= 0) return;
         const totalLabels = Math.floor((PRINTABLE_HEIGHT + gapV) / (labelH + gapV));
         
-        // Set grid based on calculated labels within the printable area
-        dom.a4Sheet.style.padding = '10mm'; // On-screen padding
         dom.a4Sheet.style.gridTemplateRows = `repeat(${totalLabels}, ${labelH}mm)`;
         dom.a4Sheet.style.gap = `${gapV}mm`;
 
