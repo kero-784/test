@@ -56,7 +56,6 @@
         .app-status { padding: 15px 20px; margin-bottom: 20px; border-radius: var(--radius-md); color: #fff; text-align: center; font-weight: 600; display: none; }
         .app-status.error { background: #ef4444; } .app-status.success { background: #22c55e; }
         
-        /* Search controls restored */
         #search-controls { display: flex; gap: 10px; margin-bottom: 15px; }
         #search-field { flex: 0 0 120px; }
         #search-container { border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 5px; display: flex; flex-wrap: wrap; align-items: center; gap: 5px; background-color: #f8fafc; flex-grow: 1; }
@@ -75,10 +74,9 @@
         .item-card.selected { background-color: #eff6ff; color: #1e40af; font-weight: 600; }
         .item-card.selected::before { content: ''; position: absolute; right: 0; top: 0; bottom: 0; width: 4px; background-color: var(--primary-color); }
         
-        #a4-sheet { background: white; width: 21cm; height: 29.7cm; box-shadow: var(--shadow-lg); transform-origin: top center; transform: scale(0.65); display: grid; align-content: start; padding: 10mm; }
+        #a4-sheet { background: white; width: 21cm; height: 29.7cm; box-shadow: var(--shadow-lg); transform-origin: top center; transform: scale(0.65); display: grid; align-content: start; padding: 10mm; grid-template-columns: 1fr; }
         #print-button { margin-top: 25px; }
         
-        /* Original Label Design Restored */
         .price-label { display: flex; flex-direction: row; align-items: center; overflow: hidden; background-color: white; border: var(--label-border-width) var(--label-border-style) var(--label-border-color); border-radius: var(--label-border-radius); padding: var(--label-padding); }
         .label-logo-area { flex: 0 0 25%; text-align: center; padding: 5px; }
         .label-logo-area img { max-width: 100%; max-height: 100%; object-fit: contain; }
@@ -87,10 +85,9 @@
         .label-price-container { border: 2px solid var(--price-box-border-color); border-radius: 8px; text-align: center; background: var(--price-box-bg); padding: 5px 10px; display: inline-block; }
         .label-price { font-size: var(--label-price-font-size); font-weight: 700; color: var(--label-price-color); white-space: nowrap; }
 
-        /* Correct Pre-Printed Mode Overrides */
         #a4-sheet.mode-preprinted .price-label { background: transparent; border-color: #a0aec0; }
         #a4-sheet.mode-preprinted .label-logo-area,
-        #a4-sheet.mode-preprinted .label-price-container { visibility: hidden; } /* Hides element but keeps its space for alignment */
+        #a4-sheet.mode-preprinted .label-price-container { visibility: hidden; }
         
         .slider-value { font-weight: 600; color: var(--primary-color); }
         fieldset { border: none; border-radius: var(--radius-lg); padding: 20px; margin-bottom: 20px; background-color: #f8fafc; border: 1px solid var(--border-color); }
@@ -109,10 +106,8 @@
         @media print {
             .control-panel, #print-button, .app-status { display: none !important; }
             body, .app-container, .preview-panel { display: block !important; width: 100% !important; height: auto !important; overflow: visible !important; background: #fff !important; padding: 0 !important; margin: 0 !important; }
-            #a4-sheet { transform: none !important; box-shadow: none !important; border: none !important; margin: 0 !important; width: 21cm !important; height: 29.7cm !important; display: grid !important; }
+            #a4-sheet { transform: none !important; box-shadow: none !important; border: none !important; margin: 0 !important; width: 21cm !important; height: 29.7cm !important; display: grid !important; padding: 0 !important; }
             .price-label { page-break-inside: avoid !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; border-color: #000 !important; }
-
-            /* Final Print Overrides for Pre-Printed Mode */
             #a4-sheet.mode-preprinted .price-label { border-color: transparent !important; }
         }
     </style>
@@ -195,10 +190,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyMvUxMBy7UyTWAqT7EMYlwkTdh1Zdc0BWupeMVOYyJSWxcivkSBnozStQSfJGacklAXQ/exec';
     
-    const icons = {
-        print: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5 2.75C5 1.784 5.784 1 6.75 1h6.5c.966 0 1.75.784 1.75 1.75v3.552c.377.046.752.11 1.126.195.784.175 1.437.638 1.83 1.262.394.624.594 1.344.594 2.103v2.888c0 .76-.2 1.48-.594 2.104-.393.623-1.046 1.086-1.83 1.261-.374.086-.749.15-1.126.195v3.552C15 18.216 14.216 19 13.25 19h-6.5C5.784 19 5 18.216 5 17.25V2.75Z" clip-rule="evenodd" /></svg>`,
-        close: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path d="M5.28 4.22a.75.75 0 0 0-1.06 1.06L6.94 8l-2.72 2.72a.75.75 0 1 0 1.06 1.06L8 9.06l2.72 2.72a.75.75 0 1 0 1.06-1.06L9.06 8l2.72-2.72a.75.75 0 0 0-1.06-1.06L8 6.94 5.28 4.22Z" /></svg>`
-    };
+    const icons = { print: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5 2.75C5 1.784 5.784 1 6.75 1h6.5c.966 0 1.75.784 1.75 1.75v3.552c.377.046.752.11 1.126.195.784.175 1.437.638 1.83 1.262.394.624.594 1.344.594 2.103v2.888c0 .76-.2 1.48-.594 2.104-.393.623-1.046 1.086-1.83 1.261-.374.086-.749.15-1.126.195v3.552C15 18.216 14.216 19 13.25 19h-6.5C5.784 19 5 18.216 5 17.25V2.75Z" clip-rule="evenodd" /></svg>`, close: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path d="M5.28 4.22a.75.75 0 0 0-1.06 1.06L6.94 8l-2.72 2.72a.75.75 0 1 0 1.06 1.06L8 9.06l2.72 2.72a.75.75 0 1 0 1.06-1.06L9.06 8l2.72-2.72a.75.75 0 0 0-1.06-1.06L8 6.94 5.28 4.22Z" /></svg>` };
     const state = { allItems: [], selectedItemIds: new Set(), currentLogoSrc: 'logo.png', currentPreviewData: null, printMode: 'full', searchTags: [] };
     const dom = { appStatus: document.getElementById('app-status'), loader: document.getElementById('loader'), itemSelectionSection: document.getElementById('item-selection-section'), generationSection: document.getElementById('generation-section'), searchInput: document.getElementById('search-input'), searchField: document.getElementById('search-field'), searchContainer: document.getElementById('search-container'), itemList: document.getElementById('item-list'), priceInput: document.getElementById('price-input'), generateBtn: document.getElementById('generate-btn'), a4Sheet: document.getElementById('a4-sheet'), printButton: document.getElementById('print-button'), layoutStatus: document.getElementById('layout-calculation-status'), printModeRadios: document.querySelectorAll('input[name="print-mode"]'), fullDesignControls: document.getElementById('full-design-controls'), controls: {} };
     const controlIds = [ 'label-height', 'gap-vertical', 'label-border-radius', 'label-border-width', 'label-border-color', 'label-border-style', 'price-box-bg', 'price-box-border-color', 'label-price-color', 'item-font-size', 'price-font-size'];
@@ -207,11 +199,51 @@ document.addEventListener('DOMContentLoaded', function() {
     const debounce = (func, delay) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => func.apply(this, a), delay); }; };
     const showStatus = (message, type = 'success') => { dom.appStatus.textContent = message; dom.appStatus.className = `app-status ${type}`; dom.appStatus.style.display = 'block'; setTimeout(() => dom.appStatus.style.display = 'none', 4000); };
     
+    // --- Improved findCommonName function ---
     const findCommonName = (items) => {
-        if (!items || items.length === 0) return ''; if (items.length === 1) return items[0].name;
-        const wordsArr = items.map(i => String(i.name).split(' ')); let common = [];
-        for (let i = 0; i < wordsArr[0].length; i++) { if (wordsArr.every(w => w[i] === wordsArr[0][i])) common.push(wordsArr[0][i]); else break; } return common.join(' ') + ' أنواع';
+        if (!items || items.length === 0) return '';
+        if (items.length === 1) return items[0].name;
+
+        const allNames = items.map(item => item.name);
+
+        const extractUnit = (name) => {
+            const units = ['ملل', 'مل', 'جم', 'جرام', 'كجم', 'لتر', 'متر', 'جرام', 'gm', 'g', 'kg', 'ml', 'l'];
+            const regex = new RegExp(`(\\d*\\.?\\d+\\s?(${units.join('|')}))($|\\s)`, 'i');
+            const match = name.match(regex);
+            return match ? match[1].trim() : null;
+        };
+        
+        const allUnits = allNames.map(extractUnit);
+        const firstUnit = allUnits[0];
+        const isCommonUnit = firstUnit && allUnits.every(unit => unit === firstUnit);
+        const commonUnit = isCommonUnit ? firstUnit : null;
+
+        const namesForComparison = allNames.map(name => commonUnit ? name.replace(commonUnit, '').trim() : name);
+
+        const findCommonPrefix = (arr) => {
+            const wordsArr = arr.map(s => String(s).split(' '));
+            let common = [];
+            for (let i = 0; i < wordsArr[0].length; i++) {
+                if (wordsArr.every(words => words[i] === wordsArr[0][i])) common.push(wordsArr[0][i]);
+                else break;
+            }
+            return common.join(' ');
+        };
+
+        let finalName = findCommonPrefix(namesForComparison);
+        if (finalName === '') {
+            finalName = 'أنواع';
+        } else if (items.length > 1) {
+            finalName += ' أنواع';
+        }
+
+        if (commonUnit) {
+            finalName += ` ${commonUnit}`;
+        }
+        
+        return finalName.replace(/\s+/g, ' ').trim();
     };
+
 
     const renderItems = (items) => {
         dom.itemList.innerHTML = items.length === 0 ? '<p style="padding:20px;text-align:center;">لا توجد نتائج</p>' : '';
@@ -255,14 +287,17 @@ document.addEventListener('DOMContentLoaded', function() {
         
         dom.a4Sheet.innerHTML = '';
         dom.a4Sheet.className = state.printMode === 'preprinted' ? 'mode-preprinted' : '';
-
-        const PRINTABLE_HEIGHT = 297 - (10 * 2); // A4 height minus 1cm margin top/bottom
+        
+        // Correct A4 Layout Calculation
+        const PRINTABLE_HEIGHT = 297 - (10 * 2); // A4 height 297mm minus 10mm top/bottom browser margins
         const labelH = parseFloat(controls.labelHeight.value);
         const gapV = parseFloat(controls.gapVertical.value);
 
         if(labelH <= 0) return;
         const totalLabels = Math.floor((PRINTABLE_HEIGHT + gapV) / (labelH + gapV));
-
+        
+        // Set grid based on calculated labels within the printable area
+        dom.a4Sheet.style.padding = '10mm'; // On-screen padding
         dom.a4Sheet.style.gridTemplateRows = `repeat(${totalLabels}, ${labelH}mm)`;
         dom.a4Sheet.style.gap = `${gapV}mm`;
 
