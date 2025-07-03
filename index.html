@@ -3,508 +3,646 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مولد بطاقات الأسعار</title>
+    <title>Cheeeeeeeeeeeeeeese</title>
+    <!-- Google Fonts: Poppins -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap');
-        
+        /* CSS Variables for Theming */
         :root {
-            --bg-color: #f4f7fa; --preview-bg: #e2e8f0; --text-color: #334155;
-            --primary-color: #3b82f6; --primary-hover: #2563eb; --card-bg: #ffffff;
-            --border-color: #e2e8f0; --muted-text: #64748b;
-            --shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -2px rgba(0,0,0,0.05);
-            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.07), 0 4px 6px -4px rgba(0,0,0,0.07);
-            --radius-md: 8px; --radius-lg: 12px; --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            --font-family: 'Poppins', sans-serif;
+            --primary-color: #4f46e5;
+            --primary-hover: #4338ca;
+            --danger-color: #dc2626;
             
-            --label-price-color: #ef4444; --label-border-width: 1px; --label-border-style: dashed; --label-border-color: #cbd5e1;
-            --label-padding: 5px; --label-border-radius: 8px; --price-box-bg: rgba(255, 255, 255, 0.85);
-            --price-box-border-color: var(--label-price-color); --label-item-font-size: 16px;
-            --label-item-font-weight: 700; --label-item-text-transform: none; --label-price-font-size: 24px;
+            /* Light Theme */
+            --bg-gradient-start: #f0f9ff;
+            --bg-gradient-end: #e0f2fe;
+            --card-bg: rgba(255, 255, 255, 0.9);
+            --text-primary: #1e293b;
+            --text-secondary: #475569;
+            --border-color: #e2e8f0;
+            --input-bg: #f8fafc;
+            --shadow-color: rgba(71, 85, 105, 0.1);
+            --sticky-shadow: rgba(0, 0, 0, 0.1);
+            --backdrop-color: rgba(248, 250, 252, 0.5);
+
+            --border-radius-lg: 16px;
+            --border-radius-md: 10px;
+            --transition-speed: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
+        [data-theme="dark"] {
+            --primary-color: #818cf8;
+            --primary-hover: #6366f1;
+            --bg-gradient-start: #1e293b;
+            --bg-gradient-end: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.9);
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --border-color: #334155;
+            --input-bg: #334155;
+            --shadow-color: rgba(0, 0, 0, 0.2);
+            --sticky-shadow: rgba(0, 0, 0, 0.5);
+            --backdrop-color: rgba(15, 23, 42, 0.5);
+        }
+        
+        /* General & Layout */
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            font-family: 'Cairo', sans-serif; background-color: var(--bg-color); color: var(--text-color);
-            display: flex; height: 100vh; overflow: hidden; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
-        }
-        .app-container { display: flex; width: 100%; height: 100%; flex-direction: row-reverse; }
+        html { scroll-behavior: smooth; }
+        body { font-family: var(--font-family); background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end)); color: var(--text-primary); min-height: 100vh; padding-bottom: 200px; }
+        .app-header { padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; }
+        .app-header h1 { font-size: 1.5rem; font-weight: 600; }
+        .header-actions { display: flex; align-items: center; gap: 1rem; }
+        
+        /* Homepage */
+        .homepage-container { display: flex; justify-content: center; align-items: center; gap: 1.5rem; padding: 2rem 1rem; flex-wrap: wrap; }
+        .homepage-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: var(--border-radius-lg); padding: 2rem; text-align: center; cursor: pointer; box-shadow: 0 4px 15px var(--shadow-color); backdrop-filter: blur(10px); transition: transform var(--transition-speed), box-shadow var(--transition-speed); flex-basis: 300px; }
+        .homepage-card:hover { transform: translateY(-8px); box-shadow: 0 10px 25px var(--shadow-color); }
+        .homepage-card i { font-size: 2.5rem; color: var(--primary-color); margin-bottom: 1rem; }
+        .homepage-card span { font-size: 1.1rem; font-weight: 500; display: block; }
 
-        .control-panel {
-            width: 450px; min-width: 420px; background-color: var(--bg-color);
-            padding: 30px; height: 100vh; overflow-y: auto; border-left: 1px solid var(--border-color);
-        }
-        .preview-panel {
-            flex-grow: 1; display: flex; flex-direction: column; align-items: center;
-            justify-content: center; padding: 30px; height: 100vh; background-color: var(--preview-bg);
-        }
+        /* Main Workspace */
+        .workspace-container { max-width: 1200px; margin: 0 auto; padding: 0 1rem; }
+        .list-container { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: var(--border-radius-lg); padding: 1.5rem; box-shadow: 0 4px 15px var(--shadow-color); backdrop-filter: blur(10px); }
+        .list-header-controls { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; gap: 1rem; }
+        #searchInput { width: 100%; max-width: 400px; }
+        
+        /* Item Search List */
+        .item-list-wrapper { max-height: 60vh; overflow-y: auto; border: 1px solid var(--border-color); border-radius: var(--border-radius-md); }
+        .item-list { list-style-type: none; }
+        .item-list li { display: grid; grid-template-columns: 1fr 1fr 3fr 1fr; gap: 1rem; padding: 0.85rem 1rem; border-bottom: 1px solid var(--border-color); transition: background-color var(--transition-speed); cursor: pointer; }
+        .item-list li:last-child { border-bottom: none; }
+        .item-list li.list-header-row { font-weight: 600; background-color: var(--input-bg); position: sticky; top: 0; z-index: 10; cursor: default; }
+        .item-list li:not(.list-header-row):hover { background-color: rgba(79, 70, 229, 0.05); }
+        [data-theme="dark"] .item-list li:not(.list-header-row):hover { background-color: rgba(129, 140, 248, 0.1); }
+        
+        /* Modal Dialog (for data entry) */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--backdrop-color); backdrop-filter: blur(5px); display: flex; justify-content: center; z-index: 1000; opacity: 0; visibility: hidden; transition: opacity var(--transition-speed), visibility var(--transition-speed); padding: 1rem; align-items: flex-start; overflow-y: auto; }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .modal-content { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: var(--border-radius-lg); box-shadow: 0 10px 30px var(--shadow-color); width: 100%; max-width: 600px; transform: scale(0.95); transition: transform var(--transition-speed); display: flex; flex-direction: column; max-height: 90vh; margin-top: 5vh; }
+        .modal-overlay.active .modal-content { transform: scale(1); }
+        .modal-header { flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.5rem; border-bottom: 1px solid var(--border-color); }
+        .modal-header h2 { font-size: 1.25rem; font-weight: 600; }
+        .modal-close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-secondary); transition: color var(--transition-speed); }
+        .modal-close-btn:hover { color: var(--text-primary); }
+        .modal-body { flex-grow: 1; overflow-y: auto; padding: 1.5rem; }
+        .modal-footer { flex-shrink: 0; display: flex; justify-content: flex-end; gap: 1rem; padding: 1rem 1.5rem; border-top: 1px solid var(--border-color); }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+        .form-group.full-width { grid-column: span 2; }
 
-        h1 { font-size: 2rem; font-weight: 700; color: var(--text-color); margin-bottom: 25px; }
-        h2 { font-size: 1.25rem; font-weight: 600; color: var(--text-color); margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); }
-        h3 { font-size: 1.5rem; font-weight: 700; color: var(--primary-color); margin: 40px 0 25px 0; border-bottom: 2px solid; padding-bottom: 15px;}
+        /* Pending Changes Panel */
+        .pending-changes-panel { position: fixed; bottom: 0; left: 0; width: 100%; z-index: 500; background: var(--card-bg); border-top: 1px solid var(--border-color); box-shadow: 0 -5px 20px var(--shadow-color); border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0; backdrop-filter: blur(10px); transition: transform var(--transition-speed); transform: translateY(calc(100% - 60px)); }
+        .pending-changes-panel.open { transform: translateY(0); }
+        .panel-header { padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+        .panel-content { padding: 0 1.5rem 1.5rem 1.5rem; max-height: 40vh; overflow-y: auto; }
+        .panel-actions { display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; margin-bottom: 1rem; }
+        .export-option { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; }
 
-        button {
-            background-color: var(--primary-color);
-            color: white; border: none; padding: 12px 25px; border-radius: var(--radius-md); font-family: 'Cairo', sans-serif;
-            font-size: 1rem; font-weight: 600; cursor: pointer; transition: var(--transition); box-shadow: var(--shadow);
-            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+        /* UNIFIED RESPONSIVE TABLE WITH STICKY COLUMNS */
+        .table-wrapper {
+            overflow-x: auto;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-md);
         }
-        button:hover { background-color: var(--primary-hover); transform: translateY(-2px); box-shadow: var(--shadow-lg); }
-        button:disabled { background-color: #94a3b8; cursor: not-allowed; transform: none; box-shadow: none; }
-        .btn-icon svg { width:18px; height:18px; }
-        
-        input, select {
-            width: 100%; padding: 10px 12px; border-radius: var(--radius-md); border: 1px solid var(--border-color);
-            font-family: 'Cairo', sans-serif; background-color: #f8fafc; transition: var(--transition);
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            min-width: 1000px;
+            font-size: 0.9em;
         }
-        input:focus, select:focus { border-color: var(--primary-color); background-color: white; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); outline: none; }
-        input[type="color"] { padding: 4px; height: 42px; }
-        input[type="checkbox"] { width: auto; }
-        
-        .section-card { background: var(--card-bg); padding: 25px; border-radius: var(--radius-lg); box-shadow: var(--shadow); margin-bottom: 30px; }
-        .loader { border: 4px solid #e2e8f0; border-top: 4px solid var(--primary-color); border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; display: none; margin: 0 auto; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
-        .app-status { padding: 15px 20px; margin-bottom: 20px; border-radius: var(--radius-md); color: #fff; text-align: center; font-weight: 600; box-shadow: var(--shadow); display: none; align-items: center; justify-content: center; gap: 10px; }
-        .app-status.error { background: #ef4444; }
-        .app-status.success { background: #22c55e; }
-        .app-status .icon svg { width: 20px; height: 20px; fill: white; }
-        
-        #search-controls { display: flex; gap: 10px; margin-bottom: 15px; }
-        #search-field { flex: 0 0 120px; }
-        #search-container { border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 5px; display: flex; flex-wrap: wrap; align-items: center; gap: 5px; background-color: #f8fafc; transition: var(--transition); flex-grow: 1; }
-        #search-container:focus-within { border-color: var(--primary-color); background-color: white; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); }
-        #search-input { border: none; flex-grow: 1; padding: 5px; outline: none; background: transparent; }
-        .search-tag { background-color: #e2e8f0; color: var(--muted-text); padding: 5px 8px 5px 12px; border-radius: 6px; display: flex; align-items: center; font-size: 14px; gap: 8px; }
-        .search-tag .field { font-weight: 700; color: var(--primary-color); }
-        .search-tag-remove { background: none; border: none; cursor: pointer; color: #94a3b8; padding: 0; line-height: 1; display: flex; transition: var(--transition); }
-        .search-tag-remove:hover { color: var(--text-color); transform: scale(1.1); }
-        .search-tag-remove svg { width: 14px; height: 14px; }
-        
-        .item-list { max-height: 30vh; overflow-y: auto; border: 1px solid var(--border-color); border-radius: var(--radius-lg); background: white; }
-        .item-card { display: flex; align-items: center; padding: 12px 15px; border-bottom: 1px solid var(--border-color); transition: var(--transition); cursor: pointer; position: relative; }
-        .item-card:last-child { border-bottom: none; }
-        .item-card:hover { background-color: #f8fafc; }
-        .item-card.selected { background-color: #eff6ff; color: #1e40af; font-weight: 600; }
-        .item-card.selected::before { content: ''; position: absolute; right: 0; top: 0; bottom: 0; width: 4px; background-color: var(--primary-color); }
-        .item-card input[type="checkbox"] { margin-left: 15px; transform: scale(1.3); accent-color: var(--primary-color); }
-        .item-card .details { display: flex; flex-direction: column; }
-        .item-card .item-meta { font-size: 12px; color: var(--muted-text); }
-        .item-card.selected .item-meta { color: #60a5fa; }
-
-        #a4-sheet {
-            background: white; width: 21cm; height: 29.7cm; box-shadow: var(--shadow-lg); padding: 1cm;
-            transform-origin: center center; transform: scale(0.65); display: grid; align-content: start;
+        th, td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+            text-align: right;
+            white-space: nowrap;
+            background-color: var(--card-bg);
         }
-        #print-button { margin-top: 25px; }
-        
-        .price-label {
-            display: flex; flex-direction: row; align-items: center;
-            overflow: hidden; background-color: white; color: var(--text-color); font-family: 'Cairo', sans-serif;
-            border: var(--label-border-width) var(--label-border-style) var(--label-border-color); border-radius: var(--label-border-radius); padding: var(--label-padding);
+        th {
+            background-color: var(--input-bg);
+            position: sticky;
+            top: 0;
+            z-index: 2;
         }
-        .label-logo-area { flex: 0 0 25%; text-align: center; padding: 5px; height: 100%; display:flex; align-items:center; justify-content:center; }
-        .label-logo-area img { max-width: 100%; max-height: 100%; object-fit: contain; }
-        .label-info-area { flex: 1 1 auto; text-align: center; padding: 0 10px; font-size: var(--label-item-font-size); font-weight: var(--label-item-font-weight); text-transform: var(--label-item-text-transform); }
-        .label-price-area { flex: 0 0 30%; text-align: center; padding: 0 5px; }
-        .label-price-container { border: 2px solid var(--price-box-border-color); border-radius: 8px; text-align: center; background: var(--price-box-bg); padding: 5px 10px; display: inline-block; }
-        .label-price { font-size: var(--label-price-font-size); font-weight: 700; color: var(--label-price-color); white-space: nowrap; }
-
-        .slider-value { font-weight: 600; color: var(--primary-color); }
-        fieldset { border: none; border-radius: var(--radius-lg); padding: 20px; margin-bottom: 20px; background-color: #f8fafc; border: 1px solid var(--border-color); }
-        legend { font-weight: 700; color: var(--text-color); padding: 0 5px; font-size: 1.1rem; }
-        .control-group { margin-bottom: 20px; } .control-group:last-child { margin-bottom: 0; }
-        .control-group label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--muted-text); }
+        tbody tr:last-child td { border-bottom: none; }
+        tbody tr:hover td { background-color: var(--input-bg); }
         
-        .grid-2, .grid-3 { display: grid; gap: 15px; align-items: end; }
-        .grid-2 { grid-template-columns: repeat(2, 1fr); }
-        .grid-3 { grid-template-columns: repeat(3, 1fr); }
-        
-        #layout-calculation-status { background-color: #eef2ff; padding: 10px; border-radius: var(--radius-md); text-align: center; font-weight: 600; color: #4338ca; margin-top: 15px; display:none; }
+        th.sticky-col-name, td.sticky-col-name {
+            position: sticky;
+            right: 0; 
+            z-index: 1;
+            box-shadow: -2px 0 5px -2px var(--sticky-shadow);
+        }
+        th.sticky-col-name { z-index: 3; }
 
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: var(--bg-color); }
-        ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
-
-        @media print {
-            .control-panel, #print-button, .app-status { display: none !important; }
-            body, .app-container, .preview-panel { display: block !important; width: 100% !important; height: auto !important; overflow: visible !important; background: #fff !important; padding: 0 !important; margin: 0 !important; }
-            #a4-sheet { transform: none !important; box-shadow: none !important; border: none !important; padding: 0 !important; margin: 0 !important; width: 100% !important; height: 100% !important; display: grid !important; }
-            .price-label { page-break-inside: avoid !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; border-color: #000 !important; }
+        th.sticky-col-action, td.sticky-col-action {
+            position: sticky;
+            left: 0;
+            z-index: 1;
+            box-shadow: 2px 0 5px -2px var(--sticky-shadow);
+            text-align: center;
+        }
+        th.sticky-col-action { z-index: 3; }
+        .delete-icon { color: var(--danger-color); cursor: pointer; font-size: 1.2rem; }
         
-            /* <!-- ADDED --> New rules for pre-printed mode */
-            body.pre-printed-mode .price-label {
-                border: none !important;
-                background: transparent !important;
-            }
-            body.pre-printed-mode .label-logo-area {
-                visibility: hidden !important;
-            }
-            body.pre-printed-mode .label-price-container {
-                border: none !important;
-                background: transparent !important;
-            }
+        /* Generic Form & Button Styles */
+        .form-group { display: flex; flex-direction: column; gap: 0.5rem; }
+        input, select { width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: var(--border-radius-md); background-color: var(--input-bg); color: var(--text-primary); font-size: 1rem; font-family: var(--font-family); }
+        .btn { padding: 0.75rem 1.5rem; border-radius: var(--border-radius-md); cursor: pointer; font-size: 1rem; font-weight: 500; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; border: 1px solid transparent; transition: all var(--transition-speed); }
+        .btn-primary { background-color: var(--primary-color); color: #fff; }
+        .btn-primary:hover { background-color: var(--primary-hover); }
+        .btn-secondary { background-color: transparent; color: var(--text-primary); border-color: var(--border-color); }
+        .btn-danger { background-color: var(--danger-color); color: #fff; }
+        
+        /* Theme Toggle */
+        .theme-switch-wrapper { display: flex; align-items: center; gap: 8px; }
+        .theme-switch { display: inline-block; height: 24px; position: relative; width: 44px; }
+        .theme-switch input { display: none; }
+        .slider { background-color: #ccc; bottom: 0; cursor: pointer; left: 0; position: absolute; right: 0; top: 0; transition: .4s; border-radius: 34px; }
+        .slider:before { background-color: #fff; bottom: 4px; content: ""; height: 16px; left: 4px; position: absolute; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--primary-color); }
+        input:checked + .slider:before { transform: translateX(20px); }
+
+        @media (max-width: 640px) {
+            .form-grid { grid-template-columns: 1fr; }
+            .form-group.full-width { grid-column: span 1; }
+            .item-list li { grid-template-columns: 2fr 1fr; grid-template-areas: "name status" "code plu"; }
+            .item-list li span:nth-child(1) { grid-area: code; }
+            .item-list li span:nth-child(2) { grid-area: plu; }
+            .item-list li span:nth-child(3) { grid-area: name; font-size: 1.1em; font-weight: 500; }
+            .item-list li span:nth-child(4) { grid-area: status; justify-self: end; }
+            .list-header-row { display: none; }
         }
     </style>
 </head>
 <body>
-    <div class="app-container">
-        <div class="preview-panel">
-            <div id="a4-sheet"></div>
-            <button id="print-button" style="display:none;"><span class="btn-icon"></span> طباعة</button>
+
+    <header class="app-header">
+        <h1><i class="fa-solid fa-store"></i> إدارة الأصناف</h1>
+        <div class="header-actions">
+            <button class="btn btn-secondary" onclick="showHomepage()"><i class="fa-solid fa-house"></i> الرئيسية</button>
+            <div class="theme-switch-wrapper">
+                <i class="fas fa-sun"></i>
+                <label class="theme-switch" for="checkbox">
+                    <input type="checkbox" id="checkbox" />
+                    <div class="slider round"></div>
+                </label>
+                <i class="fas fa-moon"></i>
+            </div>
         </div>
-        
-        <aside class="control-panel">
-            <h1>مولد بطاقات الأسعار</h1>
-            <div id="app-status" class="app-status"></div>
+    </header>
 
-            <section class="section-card">
-                <h2>1. تحميل البيانات</h2>
-                <div id="loader" class="loader"></div>
-            </section>
+    <main id="app-main">
+        <!-- Homepage View -->
+        <div id="homepage" class="homepage-container">
+            <div class="homepage-card" onclick="showWorkspace('edit')">
+                <i class="fas fa-tags"></i>
+                <span>تعديل أسعار الأصناف</span>
+            </div>
+            <div class="homepage-card" onclick="showWorkspace('add')">
+                <i class="fas fa-plus-circle"></i>
+                <span>إضافة صنف جديد</span>
+            </div>
+        </div>
 
-            <section id="item-selection-section" class="section-card" style="display:none;">
-                <h2>2. بحث وتحديد الأصناف</h2>
-                <div id="search-controls">
-                    <select id="search-field"><option value="name">الاسم</option><option value="code">الكود</option></select>
-                    <div id="search-container"><input type="search" id="search-input" placeholder="اكتب للبحث ثم اضغط Enter..."></div>
+        <!-- Workspace View -->
+        <div id="workspace" class="workspace-container" style="display: none;">
+            <div class="list-container">
+                <div class="list-header-controls">
+                    <input type="text" id="searchInput" class="btn" placeholder="بحث بالاسم أو الكود...">
+                    <button id="showAddItemModalBtn" class="btn btn-primary"><i class="fa-solid fa-plus"></i> إضافة صنف جديد</button>
                 </div>
-                <div id="item-list" class="item-list"></div>
-            </section>
-
-            <section id="generation-section" class="section-card" style="display:none;">
-                 <h2>3. إنشاء البطاقة</h2>
-                 <div class="grid-2">
-                    <input type="number" id="price-input" placeholder="أدخل السعر الموحد" step="0.01">
-                    <button id="generate-btn">إنشاء وتحديث المعاينة</button>
-                 </div>
-            </section>
-
-            <!-- ADDED: Print Settings Section -->
-            <fieldset>
-                <legend>إعدادات الطباعة</legend>
-                <div class="control-group">
-                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-weight: normal; color: var(--text-color);">
-                        <input type="checkbox" id="pre-printed-mode-checkbox" style="margin-left: 5px; transform: scale(1.1);">
-                        <span>الطباعة على نموذج مُعد مسبقاً<br><small style="color: var(--muted-text); font-weight: 400;">(إخفاء الشعار والإطارات عند الطباعة)</small></span>
-                    </label>
+                <div class="item-list-wrapper">
+                    <ul id="itemList" class="item-list">
+                        <li class="list-header-row">
+                            <span>الكود</span>
+                            <span>كود PLU</span>
+                            <span>الاسم</span>
+                            <span>الحالة</span>
+                        </li>
+                    </ul>
                 </div>
-            </fieldset>
+            </div>
+        </div>
+    </main>
 
-            <h3>تخصيص التصميم</h3>
-            <fieldset>
-                <legend>تخطيط الصفحة</legend>
-                 <div id="layout-calculation-status"></div>
-            </fieldset>
-
-            <fieldset>
-                <legend>الإطار والحدود</legend>
-                <div class="control-group"><label>الحشو (px): <span id="label-padding-value" class="slider-value">5</span></label><input type="range" id="label-padding" min="0" max="20" value="5"></div>
-                <div class="control-group grid-3">
-                    <div><label>عرض الإطار (px)</label><input type="number" id="label-border-width" value="1" min="0"></div>
-                    <div><label>لون الإطار</label><input type="color" id="label-border-color" value="#cbd5e1"></div>
-                    <div><label>نمط الإطار</label><select id="label-border-style"><option value="dashed">متقطع (Dashed)</option><option value="solid">صلب (Solid)</option><option value="dotted">منقط (Dotted)</option><option value="double">مزدوج (Double)</option></select></div>
+    <!-- Modal for Editing an Item -->
+    <div id="editItemModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header"><h2>تعديل بيانات الصنف</h2><button class="modal-close-btn">×</button></div>
+            <div class="modal-body">
+                <div class="form-grid">
+                    <div class="form-group full-width"><label>الاسم</label><div class="uneditable-display" id="nameDisplay"></div></div>
+                    <div class="form-group"><label>الكود</label><div class="uneditable-display" id="codeDisplay"></div></div>
+                    <div class="form-group"><label>الحالة الحالية</label><div class="uneditable-display" id="statusDisplay"></div></div>
                 </div>
-                 <div class="control-group"><label>حواف دائرية (px): <span id="label-border-radius-value" class="slider-value">8</span></label><input type="range" id="label-border-radius" min="0" max="30" value="8"></div>
-            </fieldset>
-
-            <fieldset>
-                <legend>النصوص والخطوط</legend>
-                <div class="control-group grid-2">
-                     <div><label>خط الصنف (px): <span id="item-font-size-value" class="slider-value">16</span></label><input type="range" id="item-font-size" min="8" max="28" value="16"></div>
-                     <div><label>خط السعر (px): <span id="price-font-size-value" class="slider-value">24</span></label><input type="range" id="price-font-size" min="12" max="48" value="24"></div>
+                <hr style="border:none; border-top: 1px solid var(--border-color); margin: 1.5rem 0;">
+                
+                <!-- *** MODIFICATION START: Restructured Cost input and added Calculation Button *** -->
+                <div class="form-group full-width" style="display: flex; align-items: flex-end; gap: 1rem; margin-bottom: 1.5rem;">
+                    <div style="flex-grow: 1;">
+                        <label for="costInput">التكلفة</label>
+                        <input type="number" id="costInput" step="0.001" placeholder="أدخل التكلفة أولاً">
+                    </div>
+                    <button id="calculatePricesBtn" type="button" class="btn btn-secondary">
+                        <i class="fa-solid fa-calculator"></i> حساب الأسعار
+                    </button>
                 </div>
-                 <div class="control-group grid-2">
-                    <div><label>وزن الخط</label><select id="item-font-weight"><option value="400">عادي</option><option value="700" selected>عريض</option></select></div>
-                    <div><label>حالة الأحرف</label><select id="item-text-transform"><option value="none">عادي</option><option value="uppercase">أحرف كبيرة (Uppercase)</option></select></div>
-                 </div>
-            </fieldset>
+                <!-- *** MODIFICATION END *** -->
 
-            <fieldset>
-                <legend>الألوان</legend>
-                <div class="control-group grid-3">
-                    <div><label>خلفية السعر</label><input type="color" id="price-box-bg" value="#ffffff"></div>
-                    <div><label>إطار السعر</label><input type="color" id="price-box-border-color" value="#ef4444"></div>
-                    <div><label>لون السعر</label><input type="color" id="label-price-color" value="#ef4444"></div>
+                <div class="form-grid">
+                    <div class="form-group"><label for="supplierInput">المورد</label><input type="text" id="supplierInput" placeholder="اسم المورد"></div>
+                    <div class="form-group"><label for="expiryInput">صلاحية (يوم)</label><input type="number" id="expiryInput" placeholder="e.g., 30"></div>
+                    <div class="form-group"><label for="cairoMarginInput">نسبة القاهرة (%)</label><input type="number" id="cairoMarginInput" step="0.001" placeholder="أدخل النسبة"></div>
+                    <div class="form-group"><label for="coastMarginInput">نسبة الساحل (%)</label><input type="number" id="coastMarginInput" step="0.001" placeholder="أدخل النسبة"></div>
+                    <div class="form-group"><label for="cairoCostInput">سعر القاهرة</label><input type="number" id="cairoCostInput" step="0.001" placeholder="يتم حسابه أو إدخاله يدوياً"></div>
+                    <div class="form-group"><label for="sahelCostInput">سعر الساحل</label><input type="number" id="sahelCostInput" step="0.001" placeholder="يتم حسابه أو إدخاله يدوياً"></div>
+                    <div class="form-group full-width"><label for="newStatusInput">الحالة الجديدة</label><select id="newStatusInput"><option value="" selected>بدون تغيير</option><option value="جاري">جاري</option><option value="موقوف">موقوف</option></select></div>
                 </div>
-            </fieldset>
-        </aside>
+            </div>
+            <div class="modal-footer"><button class="btn btn-secondary modal-close-btn">إلغاء</button><button id="addButton" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> حفظ التغييرات</button></div>
+        </div>
     </div>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyMvUxMBy7UyTWAqT7EMYlwkTdh1Zdc0BWupeMVOYyJSWxcivkSBnozStQSfJGacklAXQ/exec';
+    <!-- Modal for Adding a New Item -->
+    <div id="addNewItemModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header"><h2>إضافة صنف جديد</h2><button class="modal-close-btn">×</button></div>
+            <div class="modal-body">
+                <div class="form-group full-width" style="margin-bottom: 1.5rem;">
+                    <label for="newItemName">اسم الصنف</label>
+                    <input type="text" id="newItemName" placeholder="مثال: جبنة فيتا">
+                </div>
+
+                <!-- *** MODIFICATION START: Restructured Cost input and added Calculation Button *** -->
+                <div class="form-group full-width" style="display: flex; align-items: flex-end; gap: 1rem; margin-bottom: 1.5rem;">
+                    <div style="flex-grow: 1;">
+                        <label for="newItemCost">التكلفة</label>
+                        <input type="number" id="newItemCost" step="0.001" placeholder="أدخل التكلفة أولاً">
+                    </div>
+                    <button id="calculateNewPricesBtn" type="button" class="btn btn-secondary">
+                        <i class="fa-solid fa-calculator"></i> حساب الأسعار
+                    </button>
+                </div>
+                <!-- *** MODIFICATION END *** -->
+
+                <div class="form-grid">
+                    <div class="form-group"><label for="newItemSupplier">المورد</label><input type="text" id="newItemSupplier" placeholder="اسم المورد"></div>
+                    <div class="form-group"><label for="newItemExpiry">صلاحية (يوم)</label><input type="number" id="newItemExpiry" placeholder="e.g., 90"></div>
+                    <div class="form-group"><label for="newItemCairoMargin">نسبة القاهرة (%)</label><input type="number" id="newItemCairoMargin" step="0.001" placeholder="أدخل النسبة"></div>
+                    <div class="form-group"><label for="newItemCoastMargin">نسبة الساحل (%)</label><input type="number" id="newItemCoastMargin" step="0.001" placeholder="أدخل النسبة"></div>
+                    <div class="form-group"><label for="newItemCairoCost">سعر القاهرة</label><input type="number" id="newItemCairoCost" step="0.001" placeholder="يتم حسابه أو إدخاله يدوياً"></div>
+                    <div class="form-group"><label for="newItemSahelCost">سعر الساحل</label><input type="number" id="newItemSahelCost" step="0.001" placeholder="يتم حسابه أو إدخاله يدوياً"></div>
+                </div>
+            </div>
+            <div class="modal-footer"><button class="btn btn-secondary modal-close-btn">إلغاء</button><button id="addNewItemButton" class="btn btn-primary"><i class="fa-solid fa-plus"></i> إضافة الصنف</button></div>
+        </div>
+    </div>
+
+    <!-- Pending Changes Panel -->
+    <div id="pendingChangesPanel" class="pending-changes-panel">
+        <div class="panel-header" onclick="togglePanel()"><h3><i class="fa-solid fa-list-check"></i> التغييرات المعلقة (<span id="changesCount">0</span>)</h3><i id="panelToggleIcon" class="fa-solid fa-chevron-up panel-toggle-icon"></i></div>
+        <div class="panel-content">
+            <div class="panel-actions">
+                <button id="extractButton" class="btn btn-secondary"><i class="fas fa-file-excel"></i> Excel</button>
+                <button id="saveImageButton" class="btn btn-secondary"><i class="fas fa-file-image"></i> صورة</button>
+                <label class="export-option"><input type="checkbox" id="excludeCostCheckbox" /> إخفاء التكلفة</label>
+                <button id="clearTableButton" class="btn btn-danger" style="margin-right: auto;"><i class="fas fa-trash-alt"></i> مسح الكل</button>
+            </div>
+            <div id="editChanges" class="table-wrapper"><h4>تعديلات الأسعار</h4><table id="dataTable"><thead><tr><th>الكود</th><th>كود PLU</th><th class="sticky-col-name">الاسم</th><th>التكلفة</th><th>القاهرة</th><th>الساحل</th><th>المورد</th><th>الحالة الجديدة</th><th>الصلاحية</th><th class="sticky-col-action">حذف</th></tr></thead><tbody id="dataTableBody"></tbody></table></div>
+            <hr style="border:none; border-top: 1px solid var(--border-color); margin: 1.5rem 0;">
+            <div id="newChanges" class="table-wrapper"><h4>أصناف جديدة</h4><table id="dataTableNewItem"><thead><tr><th class="sticky-col-name">الاسم</th><th>التكلفة</th><th>القاهرة</th><th>الساحل</th><th>المورد</th><th>الصلاحية</th><th class="sticky-col-action">حذف</th></tr></thead><tbody id="dataTableBodyNewItem"></tbody></table></div>
+        </div>
+    </div>
     
-    const icons = {
-        print: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5 2.75C5 1.784 5.784 1 6.75 1h6.5c.966 0 1.75.784 1.75 1.75v3.552c.377.046.752.11 1.126.195.784.175 1.437.638 1.83 1.262.394.624.594 1.344.594 2.103v2.888c0 .76-.2 1.48-.594 2.104-.393.623-1.046 1.086-1.83 1.261-.374.086-.749.15-1.126.195v3.552C15 18.216 14.216 19 13.25 19h-6.5C5.784 19 5 18.216 5 17.25V2.75Zm.75 14.5v-2.888c0-.76.2-1.48.594-2.104.393-.623 1.046-1.086 1.83-1.261a23.99 23.99 0 0 1 2.652 0c.784.175 1.437.638 1.83 1.262.394.624.594 1.343.594 2.103v2.888a.75.75 0 0 1-.75.75h-8a.75.75 0 0 1-.75-.75Zm.75-9.75a.75.75 0 0 1 .75-.75h6.5a.75.75 0 0 1 0 1.5h-6.5a.75.75 0 0 1-.75-.75Zm0 3a.75.75 0 0 1 .75-.75h6.5a.75.75 0 0 1 0 1.5h-6.5a.75.75 0 0 1-.75-.75Z" clip-rule="evenodd" /></svg>`,
-        success: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm3.857-9.809a.75.75 0 0 0-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 1 0-1.06 1.061l2.5 2.5a.75.75 0 0 0 1.137-.089l4-5.5Z" clip-rule="evenodd" /></svg>`,
-        error: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" /></svg>`,
-        close: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path d="M5.28 4.22a.75.75 0 0 0-1.06 1.06L6.94 8l-2.72 2.72a.75.75 0 1 0 1.06 1.06L8 9.06l2.72 2.72a.75.75 0 1 0 1.06-1.06L9.06 8l2.72-2.72a.75.75 0 0 0-1.06-1.06L8 6.94 5.28 4.22Z" /></svg>`
-    };
-    
-    const state = {
-        allItems: [], 
-        selectedItemIds: new Set(),
-        currentLogoSrc: 'logo.png', 
-        currentPreviewData: null, 
-        searchTags: []
-    };
-    
-    const dom = {
-        appStatus: document.getElementById('app-status'), loader: document.getElementById('loader'),
-        itemSelectionSection: document.getElementById('item-selection-section'),
-        generationSection: document.getElementById('generation-section'),
-        searchInput: document.getElementById('search-input'), searchField: document.getElementById('search-field'),
-        searchContainer: document.getElementById('search-container'), itemList: document.getElementById('item-list'),
-        priceInput: document.getElementById('price-input'), generateBtn: document.getElementById('generate-btn'),
-        a4Sheet: document.getElementById('a4-sheet'), printButton: document.getElementById('print-button'),
-        layoutStatus: document.getElementById('layout-calculation-status'),
-        prePrintedModeCheckbox: document.getElementById('pre-printed-mode-checkbox'), // ADDED
-        controls: {}
-    };
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            initTheme();
+            initModalClosers();
+            fetchDataFromGoogleSheet();
 
-    const controlIds = [
-        'label-padding', 'label-border-width', 'label-border-color', 'label-border-style', 'label-border-radius', 
-        'item-font-size', 'price-font-size', 'item-font-weight', 'item-text-transform', 
-        'price-box-bg', 'price-box-border-color', 'label-price-color'
-    ];
-    controlIds.forEach(id => {
-        const camelCaseId = id.replace(/-(\w)/g, (match, p1) => p1.toUpperCase());
-        dom.controls[camelCaseId] = document.getElementById(id);
-    });
-
-    const debounce = (func, delay) => { let timeoutId; return (...args) => { clearTimeout(timeoutId); timeoutId = setTimeout(() => { func.apply(this, args); }, delay); }; };
-
-    const showStatus = (message, type = 'error') => {
-        const iconHtml = `<span class="icon">${type === 'success' ? icons.success : icons.error}</span>`;
-        dom.appStatus.innerHTML = iconHtml + message;
-        dom.appStatus.className = `app-status ${type}`;
-        dom.appStatus.style.display = 'flex';
-        setTimeout(() => { dom.appStatus.style.display = 'none'; }, type === 'error' ? 8000 : 4000);
-    };
-
-    const findCommon = (arr) => {
-        if (!arr || arr.length === 0) return '';
-        const wordsArr = arr.map(s => String(s).split(' '));
-        let common = [];
-        for (let i = 0; i < wordsArr[0].length; i++) {
-            let word = wordsArr[0][i];
-            if (wordsArr.every(words => words[i] === word)) {
-                common.push(word);
-            } else {
-                break; 
-            }
-        }
-        return common.join(' ');
-    };
-    
-    const extractUnit = (name) => {
-        const units = ['ملل', 'مل', 'جم', 'جرام', 'كجم', 'لتر', 'متر'];
-        const regex = new RegExp(`(\\d*\\.?\\d+\\s?(${units.join('|')}))($|\\s)`);
-        const match = name.match(regex);
-        return match ? match[1].trim() : null;
-    };
-
-    const renderItems = (items) => {
-        dom.itemList.innerHTML = '';
-        if (items.length === 0) {
-            dom.itemList.innerHTML = '<p style="text-align:center; padding: 20px; color: var(--muted-text);">لا توجد نتائج مطابقة</p>';
-            return;
-        }
-        items.forEach(item => {
-            const isSelected = state.selectedItemIds.has(item.id);
-            const card = document.createElement('label');
-            card.className = `item-card ${isSelected ? 'selected' : ''}`;
-            card.innerHTML = `<input type="checkbox" data-id="${item.id}" ${isSelected ? 'checked' : ''}><div class="details"><span class="item-name">${item.name}</span><span class="item-meta">الكود: ${item.code || 'N/A'}</span></div>`;
-            card.querySelector('input').addEventListener('change', (e) => {
-                const id = parseInt(e.target.dataset.id);
-                e.target.checked ? state.selectedItemIds.add(id) : state.selectedItemIds.delete(id);
-                card.classList.toggle('selected', e.target.checked);
-            });
-            dom.itemList.appendChild(card);
+            // *** MODIFICATION START: Add event listeners for the new calculation buttons ***
+            document.getElementById('calculatePricesBtn').addEventListener('click', () => triggerPriceCalculation(false));
+            document.getElementById('calculateNewPricesBtn').addEventListener('click', () => triggerPriceCalculation(true));
+            // *** MODIFICATION END ***
         });
-    };
 
-    const handleAdvancedSearch = () => {
-        if (state.searchTags.length === 0) return renderItems(state.allItems);
-        const filtered = state.allItems.filter(item => {
-            return state.searchTags.every(tag => {
-                const query = tag.value.toLowerCase();
-                const fieldToSearch = String(item[tag.field] || '').toLowerCase();
-                return fieldToSearch.includes(query);
+        let database = [];
+        let selectedItem = null;
+        const googleSheetURL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRfw5j64mu2wbzx-22AGTlXGWKgCKnssOPjNHrQ6xo-_zDBloRVL2DoTmWSKPFfzg/pub?output=csv';
+
+        function initTheme() {
+            const themeToggle = document.getElementById('checkbox');
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            themeToggle.checked = savedTheme === 'dark';
+            themeToggle.addEventListener('change', function() {
+                const theme = this.checked ? 'dark' : 'light';
+                document.documentElement.setAttribute('data-theme', theme);
+                localStorage.setItem('theme', theme);
             });
-        });
-        renderItems(filtered);
-    };
-
-    const renderSearchTags = () => {
-        dom.searchContainer.querySelectorAll('.search-tag').forEach(tag => tag.remove());
-        state.searchTags.forEach((tag, index) => {
-            const tagEl = document.createElement('div');
-            tagEl.className = 'search-tag';
-            tagEl.innerHTML = `<span class="field">${tag.field_label}:</span><span>${tag.value}</span><button class="search-tag-remove">${icons.close}</button>`;
-            tagEl.querySelector('.search-tag-remove').addEventListener('click', () => {
-                state.searchTags.splice(index, 1);
-                renderSearchTags();
-                handleAdvancedSearch();
-            });
-            dom.searchContainer.insertBefore(tagEl, dom.searchInput);
-        });
-    };
-
-    const updatePreview = () => {
-        if (!state.currentPreviewData) return;
-        const { name, price } = state.currentPreviewData;
-        const { controls } = dom;
-
-        const root = document.documentElement.style;
-        Object.entries({
-            '--label-padding': `${controls.labelPadding.value}px`, '--label-border-width': `${controls.labelBorderWidth.value}px`,
-            '--label-border-style': controls.labelBorderStyle.value, '--label-border-color': controls.labelBorderColor.value,
-            '--label-border-radius': `${controls.labelBorderRadius.value}px`, '--price-box-bg': controls.priceBoxBg.value,
-            '--price-box-border-color': controls.priceBoxBorderColor.value, '--label-price-color': controls.labelPriceColor.value,
-            '--label-item-font-size': `${controls.itemFontSize.value}px`, '--label-item-font-weight': controls.itemFontWeight.value,
-            '--label-item-text-transform': controls.itemTextTransform.value, '--label-price-font-size': `${controls.priceFontSize.value}px`,
-        }).forEach(([prop, val]) => root.setProperty(prop, val));
-
-        const PAGE_HEIGHT_MM = 297, MARGIN_MM = 10, PRINTABLE_HEIGHT = PAGE_HEIGHT_MM - (MARGIN_MM * 2);
-        const labelHeight = 30, gap = 5;
-        const totalLabels = Math.floor((PRINTABLE_HEIGHT + gap) / (labelHeight + gap));
-        
-        dom.layoutStatus.textContent = `سيتم طباعة ${totalLabels} بطاقة في الصفحة الواحدة.`;
-        dom.layoutStatus.style.display = 'block';
-        
-        dom.a4Sheet.innerHTML = '';
-        dom.a4Sheet.style.gridTemplateColumns = `1fr`;
-        dom.a4Sheet.style.gridAutoRows = `${labelHeight}mm`;
-        dom.a4Sheet.style.gap = `${gap}mm`;
-
-        const logoHtml = `<img src="${state.currentLogoSrc}" alt="Logo">`;
-
-        for (let i = 0; i < totalLabels; i++) {
-            const label = document.createElement('div');
-            label.className = 'price-label';
-            label.innerHTML = `
-                <div class="label-logo-area">${logoHtml}</div>
-                <div class="label-info-area">${name}</div>
-                <div class="label-price-area"><div class="label-price-container"><div class="label-price">${price.toFixed(2)} ج.م</div></div></div>`;
-            dom.a4Sheet.appendChild(label);
         }
         
-        const printButtonIcon = dom.printButton.querySelector('.btn-icon');
-        if (printButtonIcon) {
-            printButtonIcon.innerHTML = icons.print;
+        function showHomepage() {
+            document.getElementById('homepage').style.display = 'flex';
+            document.getElementById('workspace').style.display = 'none';
         }
-        dom.printButton.style.display = totalLabels > 0 ? 'inline-flex' : 'none';
-    };
+        function showWorkspace(mode) {
+            document.getElementById('homepage').style.display = 'none';
+            document.getElementById('workspace').style.display = 'flex';
+            if (mode === 'add') openModal(document.getElementById('addNewItemModal'));
+        }
+        
+        function initModalClosers() {
+            document.querySelectorAll('.modal-overlay').forEach(o => o.addEventListener('click', e => { if (e.target === o) closeModal(o); }));
+            document.querySelectorAll('.modal-close-btn').forEach(b => b.addEventListener('click', () => closeModal(b.closest('.modal-overlay'))));
+        }
+        function openModal(modal) { modal.classList.add('active'); }
+        function closeModal(modal) { modal.classList.remove('active'); }
 
-    const generateLabelData = () => {
-        try {
-            if (state.selectedItemIds.size === 0) {
-                return showStatus('خطأ: يرجى تحديد صنف واحد على الأقل.', 'error');
+        async function fetchDataFromGoogleSheet() {
+            try {
+                const response = await fetch(googleSheetURL);
+                const csvText = await response.text();
+                const rows = csvText.trim().split('\n');
+                const headers = rows[0].split(',').map(h => h.trim().toLowerCase());
+                const indices = {
+                    code: headers.indexOf('code'), plu: headers.indexOf('plu'), name: headers.indexOf('name'),
+                    status: headers.indexOf('status'), cairoMargin: headers.indexOf('cairo margin'), coastMargin: headers.indexOf('coast margin')
+                };
+                database = rows.slice(1).map(row => {
+                    const values = row.split(',');
+                    const cairoMargin = parseFloat(values[indices.cairoMargin]?.trim());
+                    const coastMargin = parseFloat(values[indices.coastMargin]?.trim());
+                    return {
+                        code: values[indices.code]?.trim() || '',
+                        pluCode: values[indices.plu]?.trim() || '',
+                        name: values[indices.name]?.trim() || '',
+                        status: values[indices.status]?.trim() || '',
+                        cairoMargin: !isNaN(cairoMargin) ? cairoMargin : 0,
+                        coastMargin: !isNaN(coastMargin) ? coastMargin : 0
+                    };
+                }).filter(item => item.code || item.name);
+                renderList(database);
+            } catch (error) {
+                console.error("Data Fetch Error:", error);
+                alert("حدث خطأ أثناء تحميل البيانات.");
             }
-            const price = parseFloat(dom.priceInput.value);
-            if (isNaN(price) || price <= 0) {
-                return showStatus('خطأ: يرجى إدخال سعر صحيح وموجب.', 'error');
+        }
+        
+        function renderList(listData) {
+            const itemList = document.getElementById('itemList');
+            const headerRow = itemList.querySelector('.list-header-row');
+            itemList.innerHTML = '';
+            itemList.appendChild(headerRow);
+            if (!listData.length) {
+                const li = document.createElement('li');
+                li.innerHTML = `<span>لا توجد نتائج</span>`;
+                li.style.gridColumn = 'span 4';
+                itemList.appendChild(li);
+                return;
             }
-            
-            const selectedItems = state.allItems.filter(item => state.selectedItemIds.has(item.id));
-            let newName;
-            
-            if (selectedItems.length === 1) {
-                newName = selectedItems[0].name;
-            } else {
-                const allNames = selectedItems.map(item => item.name);
-                let commonUnit = '';
-                const allUnits = allNames.map(name => extractUnit(name)).filter(Boolean);
-                if (allUnits.length > 0) {
-                    const unitCounts = allUnits.reduce((acc, unit) => {
-                        acc[unit] = (acc[unit] || 0) + 1;
-                        return acc;
-                    }, {});
-                    if(Object.keys(unitCounts).length > 0) {
-                        commonUnit = Object.keys(unitCounts).reduce((a, b) => unitCounts[a] > unitCounts[b] ? a : b);
-                    }
+            listData.forEach(item => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <span>${item.code || 'N/A'}</span>
+                    <span>${item.pluCode || 'N/A'}</span>
+                    <span>${item.name || 'N/A'}</span>
+                    <span>${item.status || 'N/A'}</span>`;
+                li.addEventListener('click', () => selectItemForEditing(item));
+                itemList.appendChild(li);
+            });
+        }
+        document.getElementById('searchInput').addEventListener('input', e => {
+            const term = e.target.value.toLowerCase();
+            const filtered = database.filter(item => Object.values(item).some(val => String(val).toLowerCase().includes(term)));
+            renderList(filtered);
+        });
+
+        function selectItemForEditing(item) {
+            selectedItem = item;
+            document.getElementById('nameDisplay').textContent = item.name;
+            document.getElementById('codeDisplay').textContent = item.code;
+            document.getElementById('statusDisplay').textContent = item.status;
+            // Pre-fill margin inputs with default values from the sheet
+            document.getElementById('cairoMarginInput').value = item.cairoMargin > 0 ? item.cairoMargin.toFixed(3) : '';
+            document.getElementById('coastMarginInput').value = item.coastMargin > 0 ? item.coastMargin.toFixed(3) : '';
+            resetEditModalInputs();
+            openModal(document.getElementById('editItemModal'));
+        }
+        document.getElementById('showAddItemModalBtn').addEventListener('click', () => {
+            resetAddModal(); // Reset fields when opening
+            openModal(document.getElementById('addNewItemModal'))
+        });
+        
+        const formatDecimal = numStr => (!numStr || isNaN(parseFloat(numStr))) ? '' : parseFloat(numStr).toFixed(3);
+        const calculatePrice = (cost, margin) => (cost > 0 && margin >= 0 && margin < 100) ? cost / (1 - (margin / 100)) : 0;
+        
+        // *** MODIFICATION START: Renamed the function and added a check for the cost input ***
+        function triggerPriceCalculation(isNewItem) {
+            const costInput = document.getElementById(isNewItem ? 'newItemCost' : 'costInput');
+            const cairoMarginInput = document.getElementById(isNewItem ? 'newItemCairoMargin' : 'cairoMarginInput');
+            const coastMarginInput = document.getElementById(isNewItem ? 'newItemCoastMargin' : 'coastMarginInput');
+            const cairoCostOutput = document.getElementById(isNewItem ? 'newItemCairoCost' : 'cairoCostInput');
+            const sahelCostOutput = document.getElementById(isNewItem ? 'newItemSahelCost' : 'sahelCostInput');
+
+            const cost = parseFloat(costInput.value);
+            // Check if a valid cost has been entered first
+            if (isNaN(cost) || cost <= 0) {
+                alert('الرجاء إدخال قيمة تكلفة صالحة أولاً.');
+                costInput.focus();
+                return;
+            }
+
+            const cairoPrice = calculatePrice(cost, parseFloat(cairoMarginInput.value));
+            const sahelPrice = calculatePrice(cost, parseFloat(coastMarginInput.value));
+            cairoCostOutput.value = cairoPrice > 0 ? cairoPrice.toFixed(3) : '';
+            sahelCostOutput.value = sahelPrice > 0 ? sahelPrice.toFixed(3) : '';
+        }
+        // *** MODIFICATION END ***
+
+        // *** MODIFICATION: Removed the old automatic calculation event listeners ***
+        /* 
+        ['costInput', 'cairoMarginInput', 'coastMarginInput'].forEach(id => document.getElementById(id).addEventListener('input', () => triggerPriceCalculation(false)));
+        ['newItemCost', 'newItemCairoMargin', 'newItemCoastMargin'].forEach(id => document.getElementById(id).addEventListener('input', () => triggerPriceCalculation(true)));
+        */
+        
+        document.getElementById('addButton').addEventListener('click', () => {
+            if (!selectedItem) { alert('الرجاء اختيار صنف أولاً.'); return; }
+            const tableBody = document.getElementById('dataTableBody');
+            const newRow = tableBody.insertRow();
+            newRow.innerHTML = `
+                <td>${selectedItem.code}</td>
+                <td>${selectedItem.pluCode || 'N/A'}</td>
+                <td class="sticky-col-name">${selectedItem.name}</td>
+                <td>${formatDecimal(document.getElementById('costInput').value)}</td>
+                <td>${formatDecimal(document.getElementById('cairoCostInput').value)}</td>
+                <td>${formatDecimal(document.getElementById('sahelCostInput').value)}</td>
+                <td>${document.getElementById('supplierInput').value}</td>
+                <td>${document.getElementById('newStatusInput').value || 'بدون تغيير'}</td>
+                <td>${document.getElementById('expiryInput').value || ''}</td>
+                <td class="sticky-col-action"><i class="fas fa-trash-alt delete-icon"></i></td>`;
+            newRow.querySelector('.delete-icon').onclick = () => { newRow.remove(); updateChangesCount(); };
+            closeModal(document.getElementById('editItemModal'));
+            updateChangesCount();
+            if (!document.getElementById('pendingChangesPanel').classList.contains('open')) togglePanel();
+        });
+        
+        document.getElementById('addNewItemButton').addEventListener('click', () => {
+            const name = document.getElementById('newItemName').value;
+            if (!name.trim()) { alert('الرجاء إدخال اسم الصنف.'); return; }
+            const tableBody = document.getElementById('dataTableBodyNewItem');
+            const newRow = tableBody.insertRow();
+            newRow.innerHTML = `
+                <td class="sticky-col-name">${name}</td>
+                <td>${formatDecimal(document.getElementById('newItemCost').value)}</td>
+                <td>${formatDecimal(document.getElementById('newItemCairoCost').value)}</td>
+                <td>${formatDecimal(document.getElementById('newItemSahelCost').value)}</td>
+                <td>${document.getElementById('newItemSupplier').value}</td>
+                <td>${document.getElementById('newItemExpiry').value || ''}</td>
+                <td class="sticky-col-action"><i class="fas fa-trash-alt delete-icon"></i></td>`;
+            newRow.querySelector('.delete-icon').onclick = () => { newRow.remove(); updateChangesCount(); };
+            closeModal(document.getElementById('addNewItemModal'));
+            resetAddModal();
+            updateChangesCount();
+            if (!document.getElementById('pendingChangesPanel').classList.contains('open')) togglePanel();
+        });
+
+        // *** MODIFICATION: Updated reset function to clear all relevant fields ***
+        function resetEditModalInputs() { 
+            ['costInput', 'supplierInput', 'cairoCostInput', 'sahelCostInput', 'newStatusInput', 'expiryInput'].forEach(id => {
+                const el = document.getElementById(id);
+                if(el.tagName.toLowerCase() === 'select') {
+                    el.selectedIndex = 0; // Reset select to the first option
+                } else {
+                    el.value = ''; // Reset input values
                 }
+            });
+        }
+        function resetAddModal() { 
+            document.getElementById('addNewItemModal').querySelectorAll('input, select').forEach(el => el.value = ''); 
+        }
 
-                const namesWithoutUnits = allNames.map(name => name.replace(extractUnit(name) || '', '').trim());
-                const commonStart = findCommon(namesWithoutUnits);
-                const nameParts = [commonStart, "أنواع", commonUnit].filter(Boolean);
-                newName = nameParts.join(' ').replace(/\s+/g, ' ');
+        function togglePanel() { document.getElementById('pendingChangesPanel').classList.toggle('open'); }
+        function updateChangesCount() { document.getElementById('changesCount').textContent = document.getElementById('dataTableBody').rows.length + document.getElementById('dataTableBodyNewItem').rows.length; }
+        
+        document.getElementById('clearTableButton').addEventListener('click', () => {
+            document.getElementById('dataTableBody').innerHTML = '';
+            document.getElementById('dataTableBodyNewItem').innerHTML = '';
+            updateChangesCount();
+        });
+        
+        function cloneAndRemoveColumn(tableElement, columnIndex) {
+            const clone = tableElement.cloneNode(true);
+            for (const row of clone.rows) {
+                if(row.cells[columnIndex]) {
+                    row.deleteCell(columnIndex);
+                }
+            }
+            return clone;
+        }
+
+        document.getElementById('extractButton').addEventListener('click', () => {
+            const excludeCost = document.getElementById('excludeCostCheckbox').checked;
+            const wb = XLSX.utils.book_new();
+
+            if (document.getElementById('dataTableBody').rows.length > 0) {
+                let editTable = document.getElementById('dataTable');
+                if (excludeCost) {
+                    editTable = cloneAndRemoveColumn(editTable, 3); 
+                }
+                const ws1 = XLSX.utils.table_to_sheet(editTable);
+                XLSX.utils.book_append_sheet(wb, ws1, "تعديلات الأسعار");
+            }
+
+            if (document.getElementById('dataTableBodyNewItem').rows.length > 0) {
+                let newTable = document.getElementById('dataTableNewItem');
+                 if (excludeCost) {
+                    newTable = cloneAndRemoveColumn(newTable, 1);
+                }
+                const ws2 = XLSX.utils.table_to_sheet(newTable);
+                XLSX.utils.book_append_sheet(wb, ws2, "أصناف جديدة");
+            }
+
+            if (wb.SheetNames.length > 0) {
+                XLSX.writeFile(wb, "grocery_changes.xlsx");
+            } else {
+                alert("لا توجد تغييرات للتصدير.");
+            }
+        });
+        
+        document.getElementById('saveImageButton').addEventListener('click', () => {
+            const excludeCost = document.getElementById('excludeCostCheckbox').checked;
+            const captureContainer = document.createElement('div');
+            Object.assign(captureContainer.style, {
+                position: 'absolute', left: '-9999px', top: '0', width: '1200px',
+                direction: 'rtl', padding: '1.5rem',
+                background: document.documentElement.getAttribute('data-theme') === 'dark' 
+                    ? 'linear-gradient(135deg, #1e293b, #0f172a)' 
+                    : 'linear-gradient(135deg, #f0f9ff, #e0f2fe)'
+            });
+            
+            let contentAdded = false;
+            const editTableRows = document.getElementById('dataTableBody').rows.length;
+            const newItemTableRows = document.getElementById('dataTableBodyNewItem').rows.length;
+
+            if (editTableRows > 0) {
+                let editChangesWrapper = document.getElementById('editChanges').cloneNode(true);
+                if (excludeCost) {
+                    let tableToModify = editChangesWrapper.querySelector('#dataTable');
+                    let newTable = cloneAndRemoveColumn(tableToModify, 3);
+                    tableToModify.parentNode.replaceChild(newTable, tableToModify);
+                }
+                captureContainer.appendChild(editChangesWrapper);
+                contentAdded = true;
+            }
+
+            if (editTableRows > 0 && newItemTableRows > 0) {
+                const separator = document.createElement('hr');
+                Object.assign(separator.style, { border: 'none', borderTop: '1px solid var(--border-color)', margin: '1.5rem 0' });
+                captureContainer.appendChild(separator);
+            }
+
+            if (newItemTableRows > 0) {
+                 let newChangesWrapper = document.getElementById('newChanges').cloneNode(true);
+                 if (excludeCost) {
+                    let tableToModify = newChangesWrapper.querySelector('#dataTableNewItem');
+                    let newTable = cloneAndRemoveColumn(tableToModify, 1);
+                    tableToModify.parentNode.replaceChild(newTable, tableToModify);
+                }
+                captureContainer.appendChild(newChangesWrapper);
+                contentAdded = true;
+            }
+
+            if (!contentAdded) {
+                alert('لا توجد بيانات لحفظها كصورة.');
+                return;
             }
             
-            state.currentPreviewData = { name: newName, price };
-            updatePreview();
-
-        } catch (error) {
-            console.error(error);
-            showStatus('حدث خطأ غير متوقع أثناء إنشاء البطاقة.', 'error');
-        }
-    };
-
-    const loadData = async () => {
-        if (!WEB_APP_URL || !WEB_APP_URL.includes('script.google.com')) { return showStatus('خطأ فادح: لم يتم تحديد رابط API.', 'error'); }
-        dom.loader.style.display = 'block';
-        try {
-            const response = await fetch(WEB_APP_URL);
-            if (!response.ok) throw new Error(`فشل الاتصال بالخادم (Status: ${response.status})`);
-            const data = await response.json();
-            if (data.error) throw new Error(data.message);
-            state.allItems = data;
-            if (state.allItems.length > 0) {
-                showStatus(`تم تحميل ${state.allItems.length} صنف بنجاح.`, 'success');
-                dom.itemSelectionSection.style.display = 'block';
-                dom.generationSection.style.display = 'block';
-                renderItems(state.allItems);
-            } else {
-                 showStatus('تم الاتصال بنجاح ولكن لم يتم العثور على بيانات.', 'info');
-            }
-        } catch (error) {
-            showStatus(`فشل تحميل البيانات: ${error.message}. تحقق من الرابط واتصالك بالانترنت.`, 'error');
-        } finally {
-            dom.loader.style.display = 'none';
-        }
-    };
-    
-    const debouncedUpdatePreview = debounce(updatePreview, 250);
-    dom.generateBtn.addEventListener('click', generateLabelData);
-    dom.printButton.addEventListener('click', () => window.print());
-    dom.searchInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            const value = dom.searchInput.value.trim();
-            if (!value) return;
-            const field = dom.searchField.value;
-            const field_label = dom.searchField.options[dom.searchField.selectedIndex].text;
-            state.searchTags.push({ value, field, field_label });
-            renderSearchTags(); 
-            handleAdvancedSearch();
-            dom.searchInput.value = '';
-        }
-    });
-    
-    Object.values(dom.controls).forEach(control => {
-        if (!control) return;
-        const event = ['range', 'color', 'number', 'text'].includes(control.type) ? 'input' : 'change';
-        control.addEventListener(event, debouncedUpdatePreview);
-    });
-    
-    const sliderValueIds = ['label-padding', 'label-border-radius', 'item-font-size', 'price-font-size'];
-    sliderValueIds.forEach(id => {
-        const input = document.getElementById(id);
-        const valueSpan = document.getElementById(`${id}-value`);
-        if(input && valueSpan) {
-            valueSpan.textContent = input.value;
-            input.addEventListener('input', e => valueSpan.textContent = e.target.value);
-        }
-    });
-
-    // ADDED: Event listener for the new checkbox
-    dom.prePrintedModeCheckbox.addEventListener('change', (e) => {
-        document.body.classList.toggle('pre-printed-mode', e.target.checked);
-    });
-    
-    loadData();
-});
-</script>
+            document.body.appendChild(captureContainer);
+            
+            const isDarkMode = document.documentElement.getAttribute('data-theme') === 'dark';
+            html2canvas(captureContainer, {
+                scale: 2,
+                useCORS: true,
+                backgroundColor: isDarkMode ? '#0f172a' : '#f0f9ff'
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = 'pending_changes.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            }).catch(err => {
+                console.error('Image capture failed:', err);
+                alert('حدث خطأ أثناء حفظ الصورة.');
+            }).finally(() => {
+                document.body.removeChild(captureContainer);
+            });
+        });
+    </script>
 </body>
 </html>
