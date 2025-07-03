@@ -93,6 +93,9 @@
         .modal-footer { flex-shrink: 0; display: flex; justify-content: flex-end; gap: 1rem; padding: 1rem 1.5rem; border-top: 1px solid var(--border-color); }
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
         .form-group.full-width { grid-column: span 2; }
+        /* *** NEW: Grid layout for 3 columns for margins/prices *** */
+        .form-grid-3-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.5rem; }
+
 
         /* Pending Changes Panel */
         .pending-changes-panel { position: fixed; bottom: 0; left: 0; width: 100%; z-index: 500; background: var(--card-bg); border-top: 1px solid var(--border-color); box-shadow: 0 -5px 20px var(--shadow-color); border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0; backdrop-filter: blur(10px); transition: transform var(--transition-speed); transform: translateY(calc(100% - 60px)); }
@@ -111,7 +114,7 @@
         table {
             border-collapse: collapse;
             width: 100%;
-            min-width: 1000px;
+            min-width: 1200px; /* Increased min-width for the new column */
             font-size: 0.9em;
         }
         th, td {
@@ -166,6 +169,9 @@
         input:checked + .slider { background-color: var(--primary-color); }
         input:checked + .slider:before { transform: translateX(20px); }
 
+        @media (max-width: 768px) {
+            .form-grid-3-col { grid-template-columns: 1fr; }
+        }
         @media (max-width: 640px) {
             .form-grid { grid-template-columns: 1fr; }
             .form-group.full-width { grid-column: span 1; }
@@ -241,25 +247,33 @@
                 </div>
                 <hr style="border:none; border-top: 1px solid var(--border-color); margin: 1.5rem 0;">
                 
-                <div class="form-grid">
-                    <!-- *** MODIFICATION: Restructured Cost input and button to be side-by-side *** -->
-                    <div class="form-group full-width">
-                        <label for="costInput">التكلفة</label>
-                        <div style="display: flex; gap: 0.75rem; align-items: center;">
-                            <input type="number" id="costInput" step="0.001" placeholder="أدخل التكلفة" style="flex-grow: 1;">
-                            <button id="calculatePricesBtn" type="button" class="btn btn-secondary" style="flex-shrink: 0; padding: 0.75rem 1rem;">
-                                <i class="fa-solid fa-calculator"></i> حساب
-                            </button>
-                        </div>
+                <div class="form-group full-width">
+                    <label for="costInput">التكلفة</label>
+                    <div style="display: flex; gap: 0.75rem; align-items: center;">
+                        <input type="number" id="costInput" step="0.001" placeholder="أدخل التكلفة" style="flex-grow: 1;">
+                        <button id="calculatePricesBtn" type="button" class="btn btn-secondary" style="flex-shrink: 0; padding: 0.75rem 1rem;">
+                            <i class="fa-solid fa-calculator"></i> حساب
+                        </button>
                     </div>
-                    <!-- *** END MODIFICATION *** -->
-                    
+                </div>
+
+                <!-- *** MODIFICATION: Using 3-column grid for margins *** -->
+                <div class="form-grid-3-col" style="margin-top: 1.5rem;">
+                    <div class="form-group"><label for="cairoMarginInput">نسبة القاهرة (%)</label><input type="number" id="cairoMarginInput" step="0.001" placeholder="أدخل النسبة"></div>
+                    <div class="form-group"><label for="sahelMarginInput">نسبة الساحل (%)</label><input type="number" id="sahelMarginInput" step="0.001" placeholder="أدخل النسبة"></div>
+                    <div class="form-group"><label for="sokhnaMarginInput">نسبة السخنة (%)</label><input type="number" id="sokhnaMarginInput" step="0.001" placeholder="أدخل النسبة"></div>
+                </div>
+
+                <!-- *** MODIFICATION: Using 3-column grid for prices *** -->
+                <div class="form-grid-3-col" style="margin-top: 1.5rem;">
+                    <div class="form-group"><label for="cairoPriceInput">سعر القاهرة</label><input type="number" id="cairoPriceInput" step="0.001" placeholder="أدخل السعر يدوياً"></div>
+                    <div class="form-group"><label for="sahelPriceInput">سعر الساحل</label><input type="number" id="sahelPriceInput" step="0.001" placeholder="أدخل السعر يدوياً"></div>
+                    <div class="form-group"><label for="sokhnaPriceInput">سعر السخنة</label><input type="number" id="sokhnaPriceInput" step="0.001" placeholder="أدخل السعر يدوياً"></div>
+                </div>
+
+                <div class="form-grid" style="margin-top: 1.5rem;">
                     <div class="form-group"><label for="supplierInput">المورد</label><input type="text" id="supplierInput" placeholder="اسم المورد"></div>
                     <div class="form-group"><label for="expiryInput">صلاحية (يوم)</label><input type="number" id="expiryInput" placeholder="e.g., 30"></div>
-                    <div class="form-group"><label for="cairoMarginInput">نسبة القاهرة (%)</label><input type="number" id="cairoMarginInput" step="0.001" placeholder="أدخل النسبة"></div>
-                    <div class="form-group"><label for="coastMarginInput">نسبة الساحل (%)</label><input type="number" id="coastMarginInput" step="0.001" placeholder="أدخل النسبة"></div>
-                    <div class="form-group"><label for="cairoCostInput">سعر القاهرة</label><input type="number" id="cairoCostInput" step="0.001" placeholder="يتم حسابه أو إدخاله يدوياً"></div>
-                    <div class="form-group"><label for="sahelCostInput">سعر الساحل</label><input type="number" id="sahelCostInput" step="0.001" placeholder="يتم حسابه أو إدخاله يدوياً"></div>
                     <div class="form-group full-width"><label for="newStatusInput">الحالة الجديدة</label><select id="newStatusInput"><option value="" selected>بدون تغيير</option><option value="جاري">جاري</option><option value="موقوف">موقوف</option></select></div>
                 </div>
             </div>
@@ -272,27 +286,35 @@
         <div class="modal-content">
             <div class="modal-header"><h2>إضافة صنف جديد</h2><button class="modal-close-btn">×</button></div>
             <div class="modal-body">
-                <div class="form-grid">
-                    <div class="form-group full-width"><label for="newItemName">اسم الصنف</label><input type="text" id="newItemName" placeholder="مثال: جبنة فيتا"></div>
-                    
-                    <!-- *** MODIFICATION: Restructured Cost input and button to be side-by-side *** -->
-                    <div class="form-group full-width">
-                        <label for="newItemCost">التكلفة</label>
-                        <div style="display: flex; gap: 0.75rem; align-items: center;">
-                            <input type="number" id="newItemCost" step="0.001" placeholder="أدخل التكلفة" style="flex-grow: 1;">
-                            <button id="calculateNewPricesBtn" type="button" class="btn btn-secondary" style="flex-shrink: 0; padding: 0.75rem 1rem;">
-                                <i class="fa-solid fa-calculator"></i> حساب
-                            </button>
-                        </div>
-                    </div>
-                    <!-- *** END MODIFICATION *** -->
+                <div class="form-group full-width"><label for="newItemName">اسم الصنف</label><input type="text" id="newItemName" placeholder="مثال: جبنة فيتا"></div>
 
+                <div class="form-group full-width" style="margin-top: 1.5rem;">
+                    <label for="newItemCost">التكلفة</label>
+                    <div style="display: flex; gap: 0.75rem; align-items: center;">
+                        <input type="number" id="newItemCost" step="0.001" placeholder="أدخل التكلفة" style="flex-grow: 1;">
+                        <button id="calculateNewPricesBtn" type="button" class="btn btn-secondary" style="flex-shrink: 0; padding: 0.75rem 1rem;">
+                            <i class="fa-solid fa-calculator"></i> حساب
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- *** MODIFICATION: Using 3-column grid for margins *** -->
+                <div class="form-grid-3-col" style="margin-top: 1.5rem;">
+                    <div class="form-group"><label for="newItemCairoMargin">نسبة القاهرة (%)</label><input type="number" id="newItemCairoMargin" step="0.001" placeholder="أدخل النسبة"></div>
+                    <div class="form-group"><label for="newItemSahelMargin">نسبة الساحل (%)</label><input type="number" id="newItemSahelMargin" step="0.001" placeholder="أدخل النسبة"></div>
+                    <div class="form-group"><label for="newItemSokhnaMargin">نسبة السخنة (%)</label><input type="number" id="newItemSokhnaMargin" step="0.001" placeholder="أدخل النسبة"></div>
+                </div>
+                
+                <!-- *** MODIFICATION: Using 3-column grid for prices *** -->
+                <div class="form-grid-3-col" style="margin-top: 1.5rem;">
+                    <div class="form-group"><label for="newItemCairoPrice">سعر القاهرة</label><input type="number" id="newItemCairoPrice" step="0.001" placeholder="أدخل السعر يدوياً"></div>
+                    <div class="form-group"><label for="newItemSahelPrice">سعر الساحل</label><input type="number" id="newItemSahelPrice" step="0.001" placeholder="أدخل السعر يدوياً"></div>
+                    <div class="form-group"><label for="newItemSokhnaPrice">سعر السخنة</label><input type="number" id="newItemSokhnaPrice" step="0.001" placeholder="أدخل السعر يدوياً"></div>
+                </div>
+
+                <div class="form-grid" style="margin-top: 1.5rem;">
                     <div class="form-group"><label for="newItemSupplier">المورد</label><input type="text" id="newItemSupplier" placeholder="اسم المورد"></div>
                     <div class="form-group"><label for="newItemExpiry">صلاحية (يوم)</label><input type="number" id="newItemExpiry" placeholder="e.g., 90"></div>
-                    <div class="form-group"><label for="newItemCairoMargin">نسبة القاهرة (%)</label><input type="number" id="newItemCairoMargin" step="0.001" placeholder="أدخل النسبة"></div>
-                    <div class="form-group"><label for="newItemCoastMargin">نسبة الساحل (%)</label><input type="number" id="newItemCoastMargin" step="0.001" placeholder="أدخل النسبة"></div>
-                    <div class="form-group"><label for="newItemCairoCost">سعر القاهرة</label><input type="number" id="newItemCairoCost" step="0.001" placeholder="يتم حسابه أو إدخاله يدوياً"></div>
-                    <div class="form-group"><label for="newItemSahelCost">سعر الساحل</label><input type="number" id="newItemSahelCost" step="0.001" placeholder="يتم حسابه أو إدخاله يدوياً"></div>
                 </div>
             </div>
             <div class="modal-footer"><button class="btn btn-secondary modal-close-btn">إلغاء</button><button id="addNewItemButton" class="btn btn-primary"><i class="fa-solid fa-plus"></i> إضافة الصنف</button></div>
@@ -309,21 +331,20 @@
                 <label class="export-option"><input type="checkbox" id="excludeCostCheckbox" /> إخفاء التكلفة</label>
                 <button id="clearTableButton" class="btn btn-danger" style="margin-right: auto;"><i class="fas fa-trash-alt"></i> مسح الكل</button>
             </div>
-            <div id="editChanges" class="table-wrapper"><h4>تعديلات الأسعار</h4><table id="dataTable"><thead><tr><th>الكود</th><th>كود PLU</th><th class="sticky-col-name">الاسم</th><th>التكلفة</th><th>القاهرة</th><th>الساحل</th><th>المورد</th><th>الحالة الجديدة</th><th>الصلاحية</th><th class="sticky-col-action">حذف</th></tr></thead><tbody id="dataTableBody"></tbody></table></div>
+            <!-- *** MODIFICATION: Added 'Sokhna' column to the tables *** -->
+            <div id="editChanges" class="table-wrapper"><h4>تعديلات الأسعار</h4><table id="dataTable"><thead><tr><th>الكود</th><th>كود PLU</th><th class="sticky-col-name">الاسم</th><th>التكلفة</th><th>القاهرة</th><th>الساحل</th><th>السخنة</th><th>المورد</th><th>الحالة الجديدة</th><th>الصلاحية</th><th class="sticky-col-action">حذف</th></tr></thead><tbody id="dataTableBody"></tbody></table></div>
             <hr style="border:none; border-top: 1px solid var(--border-color); margin: 1.5rem 0;">
-            <div id="newChanges" class="table-wrapper"><h4>أصناف جديدة</h4><table id="dataTableNewItem"><thead><tr><th class="sticky-col-name">الاسم</th><th>التكلفة</th><th>القاهرة</th><th>الساحل</th><th>المورد</th><th>الصلاحية</th><th class="sticky-col-action">حذف</th></tr></thead><tbody id="dataTableBodyNewItem"></tbody></table></div>
+            <div id="newChanges" class="table-wrapper"><h4>أصناف جديدة</h4><table id="dataTableNewItem"><thead><tr><th class="sticky-col-name">الاسم</th><th>التكلفة</th><th>القاهرة</th><th>الساحل</th><th>السخنة</th><th>المورد</th><th>الصلاحية</th><th class="sticky-col-action">حذف</th></tr></thead><tbody id="dataTableBodyNewItem"></tbody></table></div>
         </div>
     </div>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script>
-        // NO CHANGES ARE NEEDED IN THE JAVASCRIPT
         document.addEventListener('DOMContentLoaded', () => {
             initTheme();
             initModalClosers();
             fetchDataFromGoogleSheet();
-
             document.getElementById('calculatePricesBtn').addEventListener('click', () => triggerPriceCalculation(false));
             document.getElementById('calculateNewPricesBtn').addEventListener('click', () => triggerPriceCalculation(true));
         });
@@ -344,15 +365,8 @@
             });
         }
         
-        function showHomepage() {
-            document.getElementById('homepage').style.display = 'flex';
-            document.getElementById('workspace').style.display = 'none';
-        }
-        function showWorkspace(mode) {
-            document.getElementById('homepage').style.display = 'none';
-            document.getElementById('workspace').style.display = 'flex';
-            if (mode === 'add') openModal(document.getElementById('addNewItemModal'));
-        }
+        function showHomepage() { document.getElementById('homepage').style.display = 'flex'; document.getElementById('workspace').style.display = 'none'; }
+        function showWorkspace(mode) { document.getElementById('homepage').style.display = 'none'; document.getElementById('workspace').style.display = 'flex'; if (mode === 'add') openModal(document.getElementById('addNewItemModal')); }
         
         function initModalClosers() {
             document.querySelectorAll('.modal-overlay').forEach(o => o.addEventListener('click', e => { if (e.target === o) closeModal(o); }));
@@ -367,28 +381,29 @@
                 const csvText = await response.text();
                 const rows = csvText.trim().split('\n');
                 const headers = rows[0].split(',').map(h => h.trim().toLowerCase());
+                // *** MODIFICATION: Added sokhna margin to the indices ***
                 const indices = {
                     code: headers.indexOf('code'), plu: headers.indexOf('plu'), name: headers.indexOf('name'),
-                    status: headers.indexOf('status'), cairoMargin: headers.indexOf('cairo margin'), coastMargin: headers.indexOf('coast margin')
+                    status: headers.indexOf('status'), cairoMargin: headers.indexOf('cairo margin'), 
+                    coastMargin: headers.indexOf('coast margin'), sokhnaMargin: headers.indexOf('sokhna margin')
                 };
                 database = rows.slice(1).map(row => {
                     const values = row.split(',');
                     const cairoMargin = parseFloat(values[indices.cairoMargin]?.trim());
                     const coastMargin = parseFloat(values[indices.coastMargin]?.trim());
+                    const sokhnaMargin = parseFloat(values[indices.sokhnaMargin]?.trim()); // Parse Sokhna margin
                     return {
                         code: values[indices.code]?.trim() || '',
                         pluCode: values[indices.plu]?.trim() || '',
                         name: values[indices.name]?.trim() || '',
                         status: values[indices.status]?.trim() || '',
                         cairoMargin: !isNaN(cairoMargin) ? cairoMargin : 0,
-                        coastMargin: !isNaN(coastMargin) ? coastMargin : 0
+                        coastMargin: !isNaN(coastMargin) ? coastMargin : 0,
+                        sokhnaMargin: !isNaN(sokhnaMargin) ? sokhnaMargin : 0 // Add to item object
                     };
                 }).filter(item => item.code || item.name);
                 renderList(database);
-            } catch (error) {
-                console.error("Data Fetch Error:", error);
-                alert("حدث خطأ أثناء تحميل البيانات.");
-            }
+            } catch (error) { console.error("Data Fetch Error:", error); alert("حدث خطأ أثناء تحميل البيانات."); }
         }
         
         function renderList(listData) {
@@ -397,19 +412,11 @@
             itemList.innerHTML = '';
             itemList.appendChild(headerRow);
             if (!listData.length) {
-                const li = document.createElement('li');
-                li.innerHTML = `<span>لا توجد نتائج</span>`;
-                li.style.gridColumn = 'span 4';
-                itemList.appendChild(li);
-                return;
+                const li = document.createElement('li'); li.innerHTML = `<span>لا توجد نتائج</span>`; li.style.gridColumn = 'span 4'; itemList.appendChild(li); return;
             }
             listData.forEach(item => {
                 const li = document.createElement('li');
-                li.innerHTML = `
-                    <span>${item.code || 'N/A'}</span>
-                    <span>${item.pluCode || 'N/A'}</span>
-                    <span>${item.name || 'N/A'}</span>
-                    <span>${item.status || 'N/A'}</span>`;
+                li.innerHTML = `<span>${item.code || 'N/A'}</span><span>${item.pluCode || 'N/A'}</span><span>${item.name || 'N/A'}</span><span>${item.status || 'N/A'}</span>`;
                 li.addEventListener('click', () => selectItemForEditing(item));
                 itemList.appendChild(li);
             });
@@ -425,50 +432,53 @@
             document.getElementById('nameDisplay').textContent = item.name;
             document.getElementById('codeDisplay').textContent = item.code;
             document.getElementById('statusDisplay').textContent = item.status;
+            // *** MODIFICATION: Pre-fill all margins including Sokhna ***
             document.getElementById('cairoMarginInput').value = item.cairoMargin > 0 ? item.cairoMargin.toFixed(3) : '';
-            document.getElementById('coastMarginInput').value = item.coastMargin > 0 ? item.coastMargin.toFixed(3) : '';
+            document.getElementById('sahelMarginInput').value = item.coastMargin > 0 ? item.coastMargin.toFixed(3) : '';
+            document.getElementById('sokhnaMarginInput').value = item.sokhnaMargin > 0 ? item.sokhnaMargin.toFixed(3) : '';
             resetEditModalInputs();
             openModal(document.getElementById('editItemModal'));
         }
-        document.getElementById('showAddItemModalBtn').addEventListener('click', () => {
-            resetAddModal();
-            openModal(document.getElementById('addNewItemModal'))
-        });
+        document.getElementById('showAddItemModalBtn').addEventListener('click', () => { resetAddModal(); openModal(document.getElementById('addNewItemModal')) });
         
         const formatDecimal = numStr => (!numStr || isNaN(parseFloat(numStr))) ? '' : parseFloat(numStr).toFixed(3);
         const calculatePrice = (cost, margin) => (cost > 0 && margin >= 0 && margin < 100) ? cost / (1 - (margin / 100)) : 0;
         
         function triggerPriceCalculation(isNewItem) {
+            // *** MODIFICATION: Get all Sokhna-related inputs ***
             const costInput = document.getElementById(isNewItem ? 'newItemCost' : 'costInput');
             const cairoMarginInput = document.getElementById(isNewItem ? 'newItemCairoMargin' : 'cairoMarginInput');
-            const coastMarginInput = document.getElementById(isNewItem ? 'newItemCoastMargin' : 'coastMarginInput');
-            const cairoCostOutput = document.getElementById(isNewItem ? 'newItemCairoCost' : 'cairoCostInput');
-            const sahelCostOutput = document.getElementById(isNewItem ? 'newItemSahelCost' : 'sahelCostInput');
+            const sahelMarginInput = document.getElementById(isNewItem ? 'newItemSahelMargin' : 'sahelMarginInput');
+            const sokhnaMarginInput = document.getElementById(isNewItem ? 'newItemSokhnaMargin' : 'sokhnaMarginInput');
+            const cairoPriceOutput = document.getElementById(isNewItem ? 'newItemCairoPrice' : 'cairoPriceInput');
+            const sahelPriceOutput = document.getElementById(isNewItem ? 'newItemSahelPrice' : 'sahelPriceInput');
+            const sokhnaPriceOutput = document.getElementById(isNewItem ? 'newItemSokhnaPrice' : 'sokhnaPriceInput');
 
             const cost = parseFloat(costInput.value);
-            if (isNaN(cost) || cost <= 0) {
-                alert('الرجاء إدخال قيمة تكلفة صالحة أولاً.');
-                costInput.focus();
-                return;
-            }
+            if (isNaN(cost) || cost <= 0) { alert('الرجاء إدخال قيمة تكلفة صالحة أولاً.'); costInput.focus(); return; }
 
+            // *** MODIFICATION: Calculate and set all prices including Sokhna ***
             const cairoPrice = calculatePrice(cost, parseFloat(cairoMarginInput.value));
-            const sahelPrice = calculatePrice(cost, parseFloat(coastMarginInput.value));
-            cairoCostOutput.value = cairoPrice > 0 ? cairoPrice.toFixed(3) : '';
-            sahelCostOutput.value = sahelPrice > 0 ? sahelPrice.toFixed(3) : '';
+            const sahelPrice = calculatePrice(cost, parseFloat(sahelMarginInput.value));
+            const sokhnaPrice = calculatePrice(cost, parseFloat(sokhnaMarginInput.value));
+            cairoPriceOutput.value = cairoPrice > 0 ? cairoPrice.toFixed(3) : '';
+            sahelPriceOutput.value = sahelPrice > 0 ? sahelPrice.toFixed(3) : '';
+            sokhnaPriceOutput.value = sokhnaPrice > 0 ? sokhnaPrice.toFixed(3) : '';
         }
         
         document.getElementById('addButton').addEventListener('click', () => {
             if (!selectedItem) { alert('الرجاء اختيار صنف أولاً.'); return; }
             const tableBody = document.getElementById('dataTableBody');
             const newRow = tableBody.insertRow();
+            // *** MODIFICATION: Add Sokhna price to the table row ***
             newRow.innerHTML = `
                 <td>${selectedItem.code}</td>
                 <td>${selectedItem.pluCode || 'N/A'}</td>
                 <td class="sticky-col-name">${selectedItem.name}</td>
                 <td>${formatDecimal(document.getElementById('costInput').value)}</td>
-                <td>${formatDecimal(document.getElementById('cairoCostInput').value)}</td>
-                <td>${formatDecimal(document.getElementById('sahelCostInput').value)}</td>
+                <td>${formatDecimal(document.getElementById('cairoPriceInput').value)}</td>
+                <td>${formatDecimal(document.getElementById('sahelPriceInput').value)}</td>
+                <td>${formatDecimal(document.getElementById('sokhnaPriceInput').value)}</td>
                 <td>${document.getElementById('supplierInput').value}</td>
                 <td>${document.getElementById('newStatusInput').value || 'بدون تغيير'}</td>
                 <td>${document.getElementById('expiryInput').value || ''}</td>
@@ -484,11 +494,13 @@
             if (!name.trim()) { alert('الرجاء إدخال اسم الصنف.'); return; }
             const tableBody = document.getElementById('dataTableBodyNewItem');
             const newRow = tableBody.insertRow();
+            // *** MODIFICATION: Add Sokhna price to the new item table row ***
             newRow.innerHTML = `
                 <td class="sticky-col-name">${name}</td>
                 <td>${formatDecimal(document.getElementById('newItemCost').value)}</td>
-                <td>${formatDecimal(document.getElementById('newItemCairoCost').value)}</td>
-                <td>${formatDecimal(document.getElementById('newItemSahelCost').value)}</td>
+                <td>${formatDecimal(document.getElementById('newItemCairoPrice').value)}</td>
+                <td>${formatDecimal(document.getElementById('newItemSahelPrice').value)}</td>
+                <td>${formatDecimal(document.getElementById('newItemSokhnaPrice').value)}</td>
                 <td>${document.getElementById('newItemSupplier').value}</td>
                 <td>${document.getElementById('newItemExpiry').value || ''}</td>
                 <td class="sticky-col-action"><i class="fas fa-trash-alt delete-icon"></i></td>`;
@@ -500,18 +512,13 @@
         });
 
         function resetEditModalInputs() { 
-            ['costInput', 'supplierInput', 'cairoCostInput', 'sahelCostInput', 'newStatusInput', 'expiryInput'].forEach(id => {
+            // *** MODIFICATION: Clear Sokhna inputs on reset ***
+            ['costInput', 'supplierInput', 'cairoPriceInput', 'sahelPriceInput', 'sokhnaPriceInput', 'newStatusInput', 'expiryInput'].forEach(id => {
                 const el = document.getElementById(id);
-                if(el.tagName.toLowerCase() === 'select') {
-                    el.selectedIndex = 0;
-                } else {
-                    el.value = '';
-                }
+                if(el.tagName.toLowerCase() === 'select') { el.selectedIndex = 0; } else { el.value = ''; }
             });
         }
-        function resetAddModal() { 
-            document.getElementById('addNewItemModal').querySelectorAll('input, select').forEach(el => el.value = ''); 
-        }
+        function resetAddModal() { document.getElementById('addNewItemModal').querySelectorAll('input, select').forEach(el => el.value = ''); }
 
         function togglePanel() { document.getElementById('pendingChangesPanel').classList.toggle('open'); }
         function updateChangesCount() { document.getElementById('changesCount').textContent = document.getElementById('dataTableBody').rows.length + document.getElementById('dataTableBodyNewItem').rows.length; }
@@ -524,41 +531,26 @@
         
         function cloneAndRemoveColumn(tableElement, columnIndex) {
             const clone = tableElement.cloneNode(true);
-            for (const row of clone.rows) {
-                if(row.cells[columnIndex]) {
-                    row.deleteCell(columnIndex);
-                }
-            }
+            for (const row of clone.rows) { if(row.cells[columnIndex]) { row.deleteCell(columnIndex); } }
             return clone;
         }
 
         document.getElementById('extractButton').addEventListener('click', () => {
             const excludeCost = document.getElementById('excludeCostCheckbox').checked;
             const wb = XLSX.utils.book_new();
-
             if (document.getElementById('dataTableBody').rows.length > 0) {
                 let editTable = document.getElementById('dataTable');
-                if (excludeCost) {
-                    editTable = cloneAndRemoveColumn(editTable, 3); 
-                }
+                if (excludeCost) { editTable = cloneAndRemoveColumn(editTable, 3); }
                 const ws1 = XLSX.utils.table_to_sheet(editTable);
                 XLSX.utils.book_append_sheet(wb, ws1, "تعديلات الأسعار");
             }
-
             if (document.getElementById('dataTableBodyNewItem').rows.length > 0) {
                 let newTable = document.getElementById('dataTableNewItem');
-                 if (excludeCost) {
-                    newTable = cloneAndRemoveColumn(newTable, 1);
-                }
+                 if (excludeCost) { newTable = cloneAndRemoveColumn(newTable, 1); }
                 const ws2 = XLSX.utils.table_to_sheet(newTable);
                 XLSX.utils.book_append_sheet(wb, ws2, "أصناف جديدة");
             }
-
-            if (wb.SheetNames.length > 0) {
-                XLSX.writeFile(wb, "grocery_changes.xlsx");
-            } else {
-                alert("لا توجد تغييرات للتصدير.");
-            }
+            if (wb.SheetNames.length > 0) { XLSX.writeFile(wb, "grocery_changes.xlsx"); } else { alert("لا توجد تغييرات للتصدير."); }
         });
         
         document.getElementById('saveImageButton').addEventListener('click', () => {
@@ -571,62 +563,38 @@
                     ? 'linear-gradient(135deg, #1e293b, #0f172a)' 
                     : 'linear-gradient(135deg, #f0f9ff, #e0f2fe)'
             });
-            
             let contentAdded = false;
             const editTableRows = document.getElementById('dataTableBody').rows.length;
             const newItemTableRows = document.getElementById('dataTableBodyNewItem').rows.length;
-
             if (editTableRows > 0) {
                 let editChangesWrapper = document.getElementById('editChanges').cloneNode(true);
-                if (excludeCost) {
-                    let tableToModify = editChangesWrapper.querySelector('#dataTable');
-                    let newTable = cloneAndRemoveColumn(tableToModify, 3);
-                    tableToModify.parentNode.replaceChild(newTable, tableToModify);
-                }
+                if (excludeCost) { let tableToModify = editChangesWrapper.querySelector('#dataTable'); let newTable = cloneAndRemoveColumn(tableToModify, 3); tableToModify.parentNode.replaceChild(newTable, tableToModify); }
                 captureContainer.appendChild(editChangesWrapper);
                 contentAdded = true;
             }
-
             if (editTableRows > 0 && newItemTableRows > 0) {
                 const separator = document.createElement('hr');
                 Object.assign(separator.style, { border: 'none', borderTop: '1px solid var(--border-color)', margin: '1.5rem 0' });
                 captureContainer.appendChild(separator);
             }
-
             if (newItemTableRows > 0) {
                  let newChangesWrapper = document.getElementById('newChanges').cloneNode(true);
-                 if (excludeCost) {
-                    let tableToModify = newChangesWrapper.querySelector('#dataTableNewItem');
-                    let newTable = cloneAndRemoveColumn(tableToModify, 1);
-                    tableToModify.parentNode.replaceChild(newTable, tableToModify);
-                }
+                 if (excludeCost) { let tableToModify = newChangesWrapper.querySelector('#dataTableNewItem'); let newTable = cloneAndRemoveColumn(tableToModify, 1); tableToModify.parentNode.replaceChild(newTable, tableToModify); }
                 captureContainer.appendChild(newChangesWrapper);
                 contentAdded = true;
             }
-
-            if (!contentAdded) {
-                alert('لا توجد بيانات لحفظها كصورة.');
-                return;
-            }
-            
+            if (!contentAdded) { alert('لا توجد بيانات لحفظها كصورة.'); return; }
             document.body.appendChild(captureContainer);
-            
             const isDarkMode = document.documentElement.getAttribute('data-theme') === 'dark';
             html2canvas(captureContainer, {
-                scale: 2,
-                useCORS: true,
-                backgroundColor: isDarkMode ? '#0f172a' : '#f0f9ff'
+                scale: 2, useCORS: true, backgroundColor: isDarkMode ? '#0f172a' : '#f0f9ff'
             }).then(canvas => {
                 const link = document.createElement('a');
                 link.download = 'pending_changes.png';
                 link.href = canvas.toDataURL('image/png');
                 link.click();
-            }).catch(err => {
-                console.error('Image capture failed:', err);
-                alert('حدث خطأ أثناء حفظ الصورة.');
-            }).finally(() => {
-                document.body.removeChild(captureContainer);
-            });
+            }).catch(err => { console.error('Image capture failed:', err); alert('حدث خطأ أثناء حفظ الصورة.');
+            }).finally(() => { document.body.removeChild(captureContainer); });
         });
     </script>
 </body>
