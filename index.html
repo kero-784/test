@@ -241,19 +241,19 @@
                 </div>
                 <hr style="border:none; border-top: 1px solid var(--border-color); margin: 1.5rem 0;">
                 
-                <!-- *** MODIFICATION START: Restructured Cost input and added Calculation Button *** -->
-                <div class="form-group full-width" style="display: flex; align-items: flex-end; gap: 1rem; margin-bottom: 1.5rem;">
-                    <div style="flex-grow: 1;">
-                        <label for="costInput">التكلفة</label>
-                        <input type="number" id="costInput" step="0.001" placeholder="أدخل التكلفة أولاً">
-                    </div>
-                    <button id="calculatePricesBtn" type="button" class="btn btn-secondary">
-                        <i class="fa-solid fa-calculator"></i> حساب الأسعار
-                    </button>
-                </div>
-                <!-- *** MODIFICATION END *** -->
-
                 <div class="form-grid">
+                    <!-- *** MODIFICATION: Restructured Cost input and button to be side-by-side *** -->
+                    <div class="form-group full-width">
+                        <label for="costInput">التكلفة</label>
+                        <div style="display: flex; gap: 0.75rem; align-items: center;">
+                            <input type="number" id="costInput" step="0.001" placeholder="أدخل التكلفة" style="flex-grow: 1;">
+                            <button id="calculatePricesBtn" type="button" class="btn btn-secondary" style="flex-shrink: 0; padding: 0.75rem 1rem;">
+                                <i class="fa-solid fa-calculator"></i> حساب
+                            </button>
+                        </div>
+                    </div>
+                    <!-- *** END MODIFICATION *** -->
+                    
                     <div class="form-group"><label for="supplierInput">المورد</label><input type="text" id="supplierInput" placeholder="اسم المورد"></div>
                     <div class="form-group"><label for="expiryInput">صلاحية (يوم)</label><input type="number" id="expiryInput" placeholder="e.g., 30"></div>
                     <div class="form-group"><label for="cairoMarginInput">نسبة القاهرة (%)</label><input type="number" id="cairoMarginInput" step="0.001" placeholder="أدخل النسبة"></div>
@@ -272,24 +272,21 @@
         <div class="modal-content">
             <div class="modal-header"><h2>إضافة صنف جديد</h2><button class="modal-close-btn">×</button></div>
             <div class="modal-body">
-                <div class="form-group full-width" style="margin-bottom: 1.5rem;">
-                    <label for="newItemName">اسم الصنف</label>
-                    <input type="text" id="newItemName" placeholder="مثال: جبنة فيتا">
-                </div>
-
-                <!-- *** MODIFICATION START: Restructured Cost input and added Calculation Button *** -->
-                <div class="form-group full-width" style="display: flex; align-items: flex-end; gap: 1rem; margin-bottom: 1.5rem;">
-                    <div style="flex-grow: 1;">
-                        <label for="newItemCost">التكلفة</label>
-                        <input type="number" id="newItemCost" step="0.001" placeholder="أدخل التكلفة أولاً">
-                    </div>
-                    <button id="calculateNewPricesBtn" type="button" class="btn btn-secondary">
-                        <i class="fa-solid fa-calculator"></i> حساب الأسعار
-                    </button>
-                </div>
-                <!-- *** MODIFICATION END *** -->
-
                 <div class="form-grid">
+                    <div class="form-group full-width"><label for="newItemName">اسم الصنف</label><input type="text" id="newItemName" placeholder="مثال: جبنة فيتا"></div>
+                    
+                    <!-- *** MODIFICATION: Restructured Cost input and button to be side-by-side *** -->
+                    <div class="form-group full-width">
+                        <label for="newItemCost">التكلفة</label>
+                        <div style="display: flex; gap: 0.75rem; align-items: center;">
+                            <input type="number" id="newItemCost" step="0.001" placeholder="أدخل التكلفة" style="flex-grow: 1;">
+                            <button id="calculateNewPricesBtn" type="button" class="btn btn-secondary" style="flex-shrink: 0; padding: 0.75rem 1rem;">
+                                <i class="fa-solid fa-calculator"></i> حساب
+                            </button>
+                        </div>
+                    </div>
+                    <!-- *** END MODIFICATION *** -->
+
                     <div class="form-group"><label for="newItemSupplier">المورد</label><input type="text" id="newItemSupplier" placeholder="اسم المورد"></div>
                     <div class="form-group"><label for="newItemExpiry">صلاحية (يوم)</label><input type="number" id="newItemExpiry" placeholder="e.g., 90"></div>
                     <div class="form-group"><label for="newItemCairoMargin">نسبة القاهرة (%)</label><input type="number" id="newItemCairoMargin" step="0.001" placeholder="أدخل النسبة"></div>
@@ -321,15 +318,14 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script>
+        // NO CHANGES ARE NEEDED IN THE JAVASCRIPT
         document.addEventListener('DOMContentLoaded', () => {
             initTheme();
             initModalClosers();
             fetchDataFromGoogleSheet();
 
-            // *** MODIFICATION START: Add event listeners for the new calculation buttons ***
             document.getElementById('calculatePricesBtn').addEventListener('click', () => triggerPriceCalculation(false));
             document.getElementById('calculateNewPricesBtn').addEventListener('click', () => triggerPriceCalculation(true));
-            // *** MODIFICATION END ***
         });
 
         let database = [];
@@ -429,21 +425,19 @@
             document.getElementById('nameDisplay').textContent = item.name;
             document.getElementById('codeDisplay').textContent = item.code;
             document.getElementById('statusDisplay').textContent = item.status;
-            // Pre-fill margin inputs with default values from the sheet
             document.getElementById('cairoMarginInput').value = item.cairoMargin > 0 ? item.cairoMargin.toFixed(3) : '';
             document.getElementById('coastMarginInput').value = item.coastMargin > 0 ? item.coastMargin.toFixed(3) : '';
             resetEditModalInputs();
             openModal(document.getElementById('editItemModal'));
         }
         document.getElementById('showAddItemModalBtn').addEventListener('click', () => {
-            resetAddModal(); // Reset fields when opening
+            resetAddModal();
             openModal(document.getElementById('addNewItemModal'))
         });
         
         const formatDecimal = numStr => (!numStr || isNaN(parseFloat(numStr))) ? '' : parseFloat(numStr).toFixed(3);
         const calculatePrice = (cost, margin) => (cost > 0 && margin >= 0 && margin < 100) ? cost / (1 - (margin / 100)) : 0;
         
-        // *** MODIFICATION START: Renamed the function and added a check for the cost input ***
         function triggerPriceCalculation(isNewItem) {
             const costInput = document.getElementById(isNewItem ? 'newItemCost' : 'costInput');
             const cairoMarginInput = document.getElementById(isNewItem ? 'newItemCairoMargin' : 'cairoMarginInput');
@@ -452,7 +446,6 @@
             const sahelCostOutput = document.getElementById(isNewItem ? 'newItemSahelCost' : 'sahelCostInput');
 
             const cost = parseFloat(costInput.value);
-            // Check if a valid cost has been entered first
             if (isNaN(cost) || cost <= 0) {
                 alert('الرجاء إدخال قيمة تكلفة صالحة أولاً.');
                 costInput.focus();
@@ -464,13 +457,6 @@
             cairoCostOutput.value = cairoPrice > 0 ? cairoPrice.toFixed(3) : '';
             sahelCostOutput.value = sahelPrice > 0 ? sahelPrice.toFixed(3) : '';
         }
-        // *** MODIFICATION END ***
-
-        // *** MODIFICATION: Removed the old automatic calculation event listeners ***
-        /* 
-        ['costInput', 'cairoMarginInput', 'coastMarginInput'].forEach(id => document.getElementById(id).addEventListener('input', () => triggerPriceCalculation(false)));
-        ['newItemCost', 'newItemCairoMargin', 'newItemCoastMargin'].forEach(id => document.getElementById(id).addEventListener('input', () => triggerPriceCalculation(true)));
-        */
         
         document.getElementById('addButton').addEventListener('click', () => {
             if (!selectedItem) { alert('الرجاء اختيار صنف أولاً.'); return; }
@@ -513,14 +499,13 @@
             if (!document.getElementById('pendingChangesPanel').classList.contains('open')) togglePanel();
         });
 
-        // *** MODIFICATION: Updated reset function to clear all relevant fields ***
         function resetEditModalInputs() { 
             ['costInput', 'supplierInput', 'cairoCostInput', 'sahelCostInput', 'newStatusInput', 'expiryInput'].forEach(id => {
                 const el = document.getElementById(id);
                 if(el.tagName.toLowerCase() === 'select') {
-                    el.selectedIndex = 0; // Reset select to the first option
+                    el.selectedIndex = 0;
                 } else {
-                    el.value = ''; // Reset input values
+                    el.value = '';
                 }
             });
         }
