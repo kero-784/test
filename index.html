@@ -319,7 +319,7 @@
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script>
     // --- CONFIGURATION ---
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz-3LOWtcHtv2IenwyQRoL1ME7yhOt8lkYyeZQ6rt5ATfMD4BVNmxXVCMUH4EEgTM0T/exec"; // <--- PASTE YOUR DEPLOYED URL
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyRr9kMO4oZX-Af3ZdLxF8ivifuSqjVJ8JAU8_q4-029ahmZsrKv_yg2MaRIBBNn-p9/exec"; // <--- PASTE YOUR DEPLOYED URL
     const branchOptions = [ "نادى هليوبوليس", "تلال السخنه", "جاردنز السخنه", "لازوردی بای", "الدبلوماسيين", "ستيلا", "كاسكادا", "تلال الساحل", "لافيستا بای", "سوان ليك", "لافيستا رأس الحكمة", "دبلوماسيين - خضار", "هاسيندا ريد - خضار", "فوكا باي", "القطامية", "بالم هيلز رايد" ];
     const statusOptions = ["Pending", "In Transit", "Delivered", "Problem"];
     let allRecords = [];
@@ -357,7 +357,7 @@
         showLoader(`Processing ${action}...`);
         try {
             const res = await fetch(SCRIPT_URL, {
-                method: 'POST', redirect: "follow", 
+                method: 'POST',
                 body: JSON.stringify({ action, ...data }),
                 headers: { "Content-Type": "text/plain;charset=utf-8" }
             });
