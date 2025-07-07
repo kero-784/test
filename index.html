@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tracker </title>
+    <title>Tracker Pro</title>
     
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -18,93 +18,137 @@
     <link rel="stylesheet" href="https://npmcdn.com/flatpickr/dist/themes/dark.css">
 
     <style>
-        /* --- AURORA THEME: ROOT VARIABLES --- */
+        /* --- MODERN UI: ROOT VARIABLES --- */
         :root {
-            --bg-color: #11101d; --sidebar-bg: #1d1b31; --glass-bg: rgba(255, 255, 255, 0.07);
-            --glass-border: rgba(255, 255, 255, 0.1); --text-primary: #e4e4e4; --text-secondary: #a0a0b0;
-            --accent-color: #00d9ff; --accent-rgb: 0, 217, 255; --danger-color: #ff4d4d;
-            --success-color: #42f5a3; --font-family: 'Be Vietnam Pro', sans-serif; --radius: 12px;
-            --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37); --transition-smooth: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            --bg-color: #0f0e17;
+            --sidebar-bg: #1a1826;
+            --card-bg: rgba(26, 24, 38, 0.7);
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-primary: #fffffe;
+            --text-secondary: #a7a9be;
+            --accent-primary: #ff8906;
+            --accent-primary-rgb: 255, 137, 6;
+            --accent-secondary: #f25f4c;
+            --danger-color: #e53170;
+            --success-color: #00f5a0;
+            --font-family: 'Be Vietnam Pro', sans-serif;
+            --radius: 16px;
+            --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            --transition-smooth: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(25px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes pulseGlow { 0%, 100% { box-shadow: 0 0 15px rgba(var(--accent-rgb), 0.4); } 50% { box-shadow: 0 0 30px rgba(var(--accent-rgb), 0.8); } }
-        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* --- KEYFRAME ANIMATIONS --- */
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
         /* --- GENERAL & LAYOUT --- */
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         html { height: 100%; }
         body {
-            font-family: var(--font-family); background-color: var(--bg-color);
-            background-image: radial-gradient(circle at 100% 0%, rgba(var(--accent-rgb), 0.15) 0%, transparent 40%), radial-gradient(circle at 0% 100%, rgba(120, 80, 220, 0.15) 0%, transparent 40%);
-            color: var(--text-primary); line-height: 1.6; font-size: 15px; -webkit-font-smoothing: antialiased;
+            font-family: var(--font-family); background-color: var(--bg-color); color: var(--text-primary);
+            background-image: radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), radial-gradient(at 50% 0%, hsla(22,99%,49%,0.1) 0, transparent 50%), radial-gradient(at 100% 0%, hsla(343,73%,42%,0.2) 0, transparent 50%);
+            line-height: 1.6; font-size: 16px; -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale; overflow: hidden;
         }
         .page-container { display: flex; height: 100vh; }
         .sidebar { width: 260px; flex-shrink: 0; background: var(--sidebar-bg); padding: 2.5rem 1.5rem; display: flex; flex-direction: column; border-right: 1px solid var(--glass-border); }
         .sidebar-header { text-align: center; margin-bottom: 3rem; animation: fadeInUp 0.5s ease forwards; }
-        .sidebar-header .logo { font-size: 2.5rem; color: var(--accent-color); margin-bottom: 0.5rem; text-shadow: 0 0 10px rgba(var(--accent-rgb), 0.5); }
-        .sidebar-header h1 { font-size: 1.5rem; font-weight: 600; color: var(--text-primary); }
+        .sidebar-header .logo { font-size: 2.8rem; color: var(--accent-primary); margin-bottom: 0.5rem; text-shadow: 0 0 15px rgba(var(--accent-primary-rgb), 0.4); }
+        .sidebar-header h1 { font-size: 1.6rem; font-weight: 700; color: var(--text-primary); }
         .sidebar p { font-size: 0.9rem; color: var(--text-secondary); text-align: center; margin-top: auto; animation: fadeInUp 0.5s 0.2s ease backwards; }
         .main-content { flex-grow: 1; padding: 2.5rem; overflow-y: auto; }
-        .glass-card { background: var(--glass-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-radius: var(--radius); border: 1px solid var(--glass-border); box-shadow: var(--shadow); padding: 2.5rem; margin-bottom: 2.5rem; animation: fadeInUp 0.6s ease-out forwards; }
-        .card-header { margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; }
+
+        /* --- MODERNIZED GLASS CARD --- */
+        .glass-card {
+            background: var(--card-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            border-radius: var(--radius); border: 1px solid var(--glass-border); box-shadow: var(--shadow);
+            padding: 2.5rem; margin-bottom: 2.5rem; animation: fadeInUp 0.6s ease-out forwards;
+        }
+        .card-header { margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--glass-border); padding-bottom: 1rem;}
         .card-header h2 { font-size: 1.5rem; font-weight: 600; color: var(--text-primary); display: flex; align-items: center; gap: 1rem; }
-        .card-header .fa-solid { color: var(--accent-color); }
+        .card-header .fa-solid { color: var(--accent-primary); }
 
-        /* --- FORM ELEMENTS --- */
-        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.75rem; margin-bottom: 1.75rem; }
+        /* --- NEW: MAIN FORM LAYOUT --- */
+        #main-form-layout { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 2.5rem; }
+        .form-section { display: flex; flex-direction: column; gap: 1.75rem; }
+
+        /* --- MODERNIZED FORM ELEMENTS --- */
         .form-group label { display: block; margin-bottom: 0.6rem; color: var(--text-secondary); font-weight: 500; font-size: 0.9em; }
-        input[type="text"], input[type="date"], textarea, select { width: 100%; padding: 0.9rem 1rem; border: 1px solid var(--glass-border); border-radius: 8px; font-size: 1rem; font-family: inherit; color: var(--text-primary); background-color: rgba(0,0,0,0.2); transition: var(--transition-smooth); }
+        input[type="text"], input[type="date"], textarea, select {
+            width: 100%; padding: 1rem; border: 1px solid var(--glass-border); border-radius: 10px;
+            font-size: 1rem; font-family: inherit; color: var(--text-primary); background-color: var(--glass-bg);
+            transition: var(--transition-smooth);
+        }
         input:-webkit-autofill { -webkit-box-shadow: 0 0 0 1000px #2a2840 inset; -webkit-text-fill-color: var(--text-primary) !important; }
-        input[type="text"]:focus, input[type="date"]:focus, textarea:focus, select:focus { outline: none; border-color: rgba(var(--accent-rgb), 0.5); background-color: rgba(0,0,0,0.3); box-shadow: 0 0 15px rgba(var(--accent-rgb), 0.2); }
-        textarea { resize: vertical; min-height: 100px; }
-        #branch-checkboxes { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem; max-height: 220px; overflow-y: auto; border: 1px solid var(--glass-border); border-radius: 8px; padding: 1.25rem; background-color: rgba(0,0,0,0.1); }
-        .checkbox-label { display: flex; align-items: center; cursor: pointer; font-weight: 500; transition: color 0.2s ease; }
-        .checkbox-label:hover { color: var(--accent-color); }
-        .checkbox-label input { margin-right: 12px; height: 1.2em; width: 1.2em; accent-color: var(--accent-color); background-color: transparent; }
+        input[type="text"]:focus, input[type="date"]:focus, textarea:focus, select:focus {
+            outline: none; border-color: rgba(var(--accent-primary-rgb), 0.6);
+            box-shadow: 0 0 20px rgba(var(--accent-primary-rgb), 0.2);
+        }
+        textarea { resize: vertical; min-height: 120px; }
 
-        /* --- BUTTONS --- */
+        /* --- NEW: BRANCH FILTER & LIST --- */
+        #branchSearch { margin-bottom: 1rem; }
+        #branch-checkboxes {
+            display: flex; flex-direction: column; gap: 0.75rem;
+            max-height: 300px; overflow-y: auto; border: 1px solid var(--glass-border);
+            border-radius: 10px; padding: 1rem; background-color: rgba(0,0,0,0.1);
+        }
+        .checkbox-label { display: flex; align-items: center; cursor: pointer; font-weight: 500; transition: color 0.2s ease; padding: 0.5rem; border-radius: 6px; }
+        .checkbox-label:hover { color: var(--accent-primary); background-color: var(--glass-bg); }
+        .checkbox-label input { margin-right: 12px; height: 1.2em; width: 1.2em; accent-color: var(--accent-primary); background-color: transparent; }
+
+        /* --- MODERNIZED BUTTONS --- */
         .button-group { display: flex; justify-content: flex-end; margin-top: 2rem; gap: 1rem; flex-wrap: wrap; }
-        .btn { display: inline-flex; align-items: center; gap: 0.75rem; padding: 0.8rem 1.75rem; border: 1px solid transparent; border-radius: 8px; cursor: pointer; font-size: 0.95rem; font-weight: 600; font-family: inherit; transition: var(--transition-smooth); text-decoration: none; transform: scale(1); }
-        .btn:hover { transform: scale(1.05); } .btn:active { transform: scale(0.98); }
-        .btn-primary { background: var(--accent-color); color: var(--bg-color); box-shadow: 0 0 15px rgba(var(--accent-rgb), 0.3); }
-        .btn-primary:hover { background: var(--accent-color); box-shadow: 0 0 25px rgba(var(--accent-rgb), 0.6); }
-        .btn-secondary { background-color: transparent; color: var(--text-secondary); border-color: var(--glass-border); }
-        .btn-secondary:hover { border-color: var(--accent-color); color: var(--accent-color); }
-        
-        /* --- MODAL STYLES --- */
+        .btn {
+            display: inline-flex; align-items: center; gap: 0.75rem; padding: 0.8rem 1.75rem;
+            border: 1px solid transparent; border-radius: 10px; cursor: pointer;
+            font-size: 1rem; font-weight: 600; font-family: inherit; transition: var(--transition-smooth);
+            text-decoration: none; transform: translateY(0);
+        }
+        .btn:hover { transform: translateY(-3px); box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
+        .btn:active { transform: translateY(-1px); }
+        .btn-primary {
+            background-image: linear-gradient(45deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+            color: var(--text-primary);
+            box-shadow: 0 0 20px rgba(var(--accent-primary-rgb), 0.3);
+        }
+        .btn-primary:hover { box-shadow: 0 0 30px rgba(var(--accent-primary-rgb), 0.5); }
+        .btn-secondary { background-color: var(--glass-bg); color: var(--text-secondary); border-color: var(--glass-border); }
+        .btn-secondary:hover { border-color: var(--accent-primary); color: var(--accent-primary); }
+
+        /* --- MODAL, TABLE & FILTER STYLES --- */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(17, 16, 29, 0.7); backdrop-filter: blur(8px); z-index: 1000; display: none; justify-content: center; align-items: center; padding: 2rem; animation: fadeIn 0.4s ease; }
         .modal-overlay.show { display: flex; }
         .modal-content { width: 100%; max-width: 90vw; max-height: 90vh; display: flex; flex-direction: column; }
         .modal-content .glass-card { width: 100%; height: 100%; display: flex; flex-direction: column; margin-bottom: 0; }
         #recordsContainer { flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; }
         .table-responsive { flex-grow: 1; overflow-y: auto; overflow-x: auto; }
-        .modal-close-btn { position: absolute; top: 20px; right: 20px; background: var(--glass-bg); border: 1px solid var(--glass-border); color: var(--text-secondary); width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 1.2rem; display: flex; justify-content: center; align-items: center; transition: var(--transition-fast); }
-        .modal-close-btn:hover { color: var(--accent-color); border-color: var(--accent-color); transform: rotate(90deg); }
-
-        /* --- TABLE & FILTER STYLES --- */
-        #recordTable { width: 100%; border-collapse: separate; border-spacing: 0; }
-        #recordTable th, #recordTable td { padding: 1rem 1.25rem; text-align: left; white-space: nowrap; border-bottom: 1px solid var(--glass-border); }
-        #recordTable th { color: var(--text-secondary); font-weight: 500; text-transform: uppercase; font-size: 0.8em; letter-spacing: 0.05em; }
-        #recordTable tbody tr:hover { background-color: var(--glass-bg); }
-        .action-buttons button { background: transparent; border: none; color: var(--text-secondary); font-size: 1.1rem; cursor: pointer; padding: 0.5rem; transition: var(--transition-fast); }
-        .action-buttons button:hover { color: var(--accent-color); transform: scale(1.2); }
-        .action-buttons button[title="Delete"]:hover { color: var(--danger-color); }
-        .status-select { font-size: 0.9rem; padding: 5px 10px; border-radius: 6px; }
-        .checkbox-col input { height: 1.2em; width: 1.2em; accent-color: var(--accent-color); }
         #filterSearch { display: flex; flex-grow: 1; gap: 1.5rem; align-items: center; flex-wrap: wrap; margin-bottom: 2rem; }
         #filterSearch .filter-group, #filterSearch .date-filter-group { flex-grow: 1; min-width: 250px; }
+        #recordTable { width: 100%; border-collapse: separate; border-spacing: 0; }
+        #recordTable th, #recordTable td { padding: 1rem 1.25rem; text-align: left; white-space: nowrap; border-bottom: 1px solid var(--glass-border); }
+        #recordTable td:nth-child(4) { white-space: normal; max-width: 300px; }
+        #recordTable th { color: var(--text-secondary); font-weight: 500; text-transform: uppercase; font-size: 0.8em; letter-spacing: 0.05em; }
+        #recordTable tbody tr:nth-child(odd) { background-color: rgba(255,255,255,0.02); }
+        #recordTable tbody tr:hover { background-color: var(--glass-bg); }
+        .status-select { font-size: 0.9rem; padding: 5px 10px; border-radius: 6px; }
+        .checkbox-col input { height: 1.2em; width: 1.2em; accent-color: var(--accent-primary); }
 
-        /* --- LOADER & POPUP --- */
-        #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(17, 16, 29, 0.8); backdrop-filter: blur(5px); z-index: 9999; display: flex; justify-content: center; align-items: center; flex-direction: column; gap: 1rem; color: var(--text-primary); font-size: 1.2rem; }
-        #loader::before { content: ''; width: 60px; height: 60px; border-radius: 50%; border: 4px solid var(--glass-border); border-top-color: var(--accent-color); animation: spin 1s linear infinite, pulseGlow 2s infinite ease-in-out; }
-        #popupMessage { display: none; position: fixed; bottom: 30px; right: 30px; color: #111; padding: 1rem 1.75rem; border-radius: 8px; box-shadow: var(--shadow); z-index: 10001; opacity: 0; transform: translateY(20px); transition: all .4s cubic-bezier(0.25, 0.8, 0.25, 1); font-weight: 600; }
+        /* --- LOADER, POPUP, SCROLLBARS --- */
+        #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 14, 23, 0.8); backdrop-filter: blur(5px); z-index: 9999; display: flex; justify-content: center; align-items: center; flex-direction: column; gap: 1rem; color: var(--text-primary); font-size: 1.2rem; }
+        #loader::before { content: ''; width: 60px; height: 60px; border-radius: 50%; border: 4px solid var(--glass-border); border-top-color: var(--accent-primary); animation: spin 1s linear infinite; }
+        #popupMessage { display: none; position: fixed; bottom: 30px; right: 30px; color: #fff; padding: 1rem 1.75rem; border-radius: 10px; box-shadow: var(--shadow); z-index: 10001; opacity: 0; transform: translateY(20px); transition: all .4s cubic-bezier(0.25, 0.8, 0.25, 1); font-weight: 600; }
         #popupMessage.show { display: block; opacity: 1; transform: translateY(0); }
-        #popupMessage.success { background-color: var(--success-color); }
-        #popupMessage.error { background-color: var(--danger-color); }
+        #popupMessage.success { background-image: linear-gradient(45deg, var(--success-color), #0abf82); }
+        #popupMessage.error { background-image: linear-gradient(45deg, var(--danger-color), #d12c62); }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(var(--accent-primary-rgb), 0.5); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(var(--accent-primary-rgb), 0.8); }
 
-        /* --- FINAL PRINT STYLES --- */
+        /* --- CONSOLIDATED PRINT STYLES --- */
         @media print {
             body { background: #fff !important; }
             body * { visibility: hidden; }
@@ -116,7 +160,7 @@
             .order-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
             .order-item { border: 1px solid #ddd; padding: 8px; border-radius: 4px; font-size: .9em; word-wrap: break-word; }
             .order-item.full-width { grid-column: 1 / -1; }
-            .branches-list { padding-left: 20px; margin-top: 5px; }
+            .branches-list { padding-left: 20px; margin-top: 5px; list-style-type: square; }
             .branches-list li { margin-bottom: 3px; }
             .signature-area { display: flex; justify-content: space-around; margin-top: 25px; padding-top: 15px; border-top: 1px solid #ccc; }
             .signature-box p { margin: 0; font-weight: bold; }
@@ -132,45 +176,51 @@
 <div class="page-container">
     <aside class="sidebar">
         <div class="sidebar-header">
-            <div class="logo"><i class="fa-solid fa-rocket"></i></div>
-            <h1> Tracker</h1>
+            <div class="logo"><i class="fa-solid fa-satellite-dish"></i></div>
+            <h1>Tracker Pro</h1>
         </div>
-        <p>Aurora Edition © 2024</p>
+        <p>Quantum Leap Edition © 2024</p>
     </aside>
 
     <main class="main-content">
         <div class="glass-card" id="form-card">
             <div class="card-header">
-                <h2><i class="fa-solid fa-plus-circle"></i>Create New Batch</h2>
-                <button class="btn btn-primary" id="viewRecordsBtn"><i class="fa-solid fa-list-check"></i> View Saved Records</button>
+                <h2><i class="fa-solid fa-plus-circle"></i>Create New Dispatch</h2>
+                <button class="btn btn-secondary" id="viewRecordsBtn"><i class="fa-solid fa-list-check"></i> View Records</button>
             </div>
             
-            <div class="form-group" style="margin-bottom: 1.75rem;">
-                <label for="description">Document Description</label>
-                <textarea id="description" rows="3" required placeholder="e.g., Invoices, Contracts, Memos..."></textarea>
-            </div>
-            
-            <div class="form-grid">
-                <div class="form-group">
-                    <label for="driverName">Driver Name</label>
-                    <input type="text" id="driverName" required>
+            <div id="main-form-layout">
+                <!-- Left Column: Batch Details -->
+                <div class="form-section">
+                    <div class="form-group">
+                        <label for="driverName">Driver Name</label>
+                        <input type="text" id="driverName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="date">Document Date</label>
+                        <input type="text" id="date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="status">Initial Status</label>
+                        <select id="status">
+                            <option value="Pending">Pending</option>
+                            <option value="In Transit">In Transit</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="description">Document Description</label>
+                        <textarea id="description" rows="4" required placeholder="e.g., Invoices, Contracts, Memos..."></textarea>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="date">Document Date</label>
-                    <input type="text" id="date" required>
+
+                <!-- Right Column: Destinations -->
+                <div class="form-section">
+                    <div class="form-group">
+                        <label>Select Destination Branches</label>
+                        <input type="text" id="branchSearch" placeholder="Type to filter branches...">
+                        <div id="branch-checkboxes"></div>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="status">Initial Status</label>
-                    <select id="status">
-                        <option value="Pending">Pending</option>
-                        <option value="In Transit">In Transit</option>
-                    </select>
-                </div>
-            </div>
-            
-            <div class="form-group">
-                <label>Select Destination Branches</label>
-                <div id="branch-checkboxes"></div>
             </div>
 
             <div class="button-group">
@@ -182,24 +232,18 @@
     </main>
 </div>
 
-<!-- RECORDS MODAL -->
+<!-- All Modals remain structurally the same but will inherit new styles -->
 <div class="modal-overlay" id="recordsModal">
     <div class="modal-content">
         <div class="glass-card" id="recordsContainer">
-             <div class="card-header">
-                <h2><i class="fa-solid fa-layer-group"></i>Saved Records</h2>
-            </div>
+             <div class="card-header"><h2><i class="fa-solid fa-layer-group"></i>Saved Records</h2></div>
             <div id="filterSearch">
-                <div class="date-filter-group">
-                    <input type="text" id="dateFilter" placeholder="Filter by creation date...">
-                </div>
+                <div class="date-filter-group"><input type="text" id="dateFilter" placeholder="Filter by creation date..."></div>
                 <div class="filter-group">
                     <select id="categoryFilter">
                         <option value="">Filter by category...</option>
-                        <option value="trackingNumber">Tracking #</option>
-                        <option value="driverName">Driver</option>
-                        <option value="branch">Branch</option>
-                        <option value="status">Status</option>
+                        <option value="trackingNumber">Tracking #</option> <option value="driverName">Driver</option>
+                        <option value="branch">Branch</option> <option value="status">Status</option>
                     </select>
                     <input type="text" id="searchTerms" placeholder="Enter search term...">
                 </div>
@@ -208,53 +252,28 @@
                     <button class="btn btn-primary" id="applyFiltersBtn"><i class="fa-solid fa-filter"></i> Apply</button>
                 </div>
             </div>
-
             <div class="table-responsive">
                 <table id="recordTable">
-                    <thead>
-                        <tr>
-                            <th class="checkbox-col"><input type="checkbox" id="selectAllCheckbox" title="Select All"></th>
-                            <th>Tracking #</th>
-                            <th>Driver</th>
-                            <th>Branch</th>
-                            <th>Date</th>
-                            <th>Status</th>
-                            <th style="text-align:center;">Actions</th>
-                        </tr>
-                    </thead>
+                    <thead><tr><th class="checkbox-col"><input type="checkbox" id="selectAllCheckbox" title="Select All"></th><th>Tracking #</th><th>Driver</th><th>Branch</th><th>Date</th><th>Status</th><th style="text-align:center;">Actions</th></tr></thead>
                     <tbody id="recordTableBody"></tbody>
                 </table>
             </div>
-            <div class="button-group" style="justify-content: flex-start; margin-top: 1.5rem;">
-                 <button class="btn btn-secondary" onclick="printSelectedRecords()"><i class="fa-solid fa-print"></i> Print Selected</button>
-            </div>
+            <div class="button-group" style="justify-content: flex-start; margin-top: 1.5rem;"><button class="btn btn-secondary" onclick="printSelectedRecords()"><i class="fa-solid fa-print"></i> Print Selected</button></div>
         </div>
     </div>
     <button class="modal-close-btn" id="closeRecordsModalBtn" title="Close"><i class="fa-solid fa-times"></i></button>
 </div>
 
-<!-- EDIT RECORD MODAL -->
 <div class="modal-overlay" id="editModal">
     <div class="modal-content" style="max-width: 800px;">
         <div class="glass-card">
-            <div class="card-header">
-                <h2><i class="fa-solid fa-pencil-alt"></i>Edit Record</h2>
-            </div>
+            <div class="card-header"><h2><i class="fa-solid fa-pencil-alt"></i>Edit Record</h2></div>
             <input type="hidden" id="editRecordId">
             <div class="form-grid">
-                <div class="form-group">
-                    <label for="editDriverName">Driver Name</label>
-                    <input type="text" id="editDriverName" required>
-                </div>
-                <div class="form-group">
-                    <label for="editDate">Document Date</label>
-                    <input type="text" id="editDate" required>
-                </div>
+                <div class="form-group"><label for="editDriverName">Driver Name</label><input type="text" id="editDriverName" required></div>
+                <div class="form-group"><label for="editDate">Document Date</label><input type="text" id="editDate" required></div>
             </div>
-             <div class="form-group" style="margin-bottom: 1.75rem;">
-                <label for="editDescription">Document Description</label>
-                <textarea id="editDescription" rows="3" required></textarea>
-            </div>
+             <div class="form-group" style="margin-bottom: 1.75rem;"><label for="editDescription">Document Description</label><textarea id="editDescription" rows="3" required></textarea></div>
             <div class="button-group">
                 <button class="btn btn-secondary" id="closeEditModalBtn"><i class="fa-solid fa-times"></i> Cancel</button>
                 <button class="btn btn-primary" onclick="saveRecordChanges()"><i class="fa-solid fa-save"></i> Save Changes</button>
@@ -269,7 +288,7 @@
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script>
     // --- CONFIGURATION ---
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwF3IUfof7HARjbTSNARBZyM1rwvDSiaT_Wqifss4GxT2waLPw2hxfwZKX67v3_9Dto/exec"; // <--- IMPORTANT!
+    const SCRIPT_URL = "PASTE_YOUR_DEPLOYED_URL_HERE"; // <--- IMPORTANT!
     const branchOptions = [ "نادى هليوبوليس", "تلال السخنه", "جاردنز السخنه", "لازوردی بای", "الدبلوماسيين", "ستيلا", "كاسكادا", "تلال الساحل", "لافيستا بای", "سوان ليك", "لافيستا رأس الحكمة", "دبلوماسيين - خضار", "هاسيندا ريد - خضار", "فوكا باي", "القطامية", "بالم هيلز رايد" ];
     const statusOptions = ["Pending", "In Transit", "Delivered", "Problem"];
     let allRecords = [];
@@ -293,8 +312,7 @@
     function resetFiltersAndRender() {
         document.getElementById('searchTerms').value = '';
         document.getElementById('categoryFilter').value = '';
-        const datePicker = document.querySelector("#dateFilter")._flatpickr;
-        if (datePicker) datePicker.clear();
+        document.querySelector("#dateFilter")._flatpickr.clear();
         renderTable();
     }
     
@@ -307,8 +325,7 @@
         showLoader(`Processing ${action}...`);
         try {
             const res = await fetch(SCRIPT_URL, {
-                method: 'POST',
-                body: JSON.stringify({ action, ...data }),
+                method: 'POST', body: JSON.stringify({ action, ...data }),
                 headers: { "Content-Type": "text/plain;charset=utf-8" }
             });
             if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
@@ -317,12 +334,10 @@
             console.error('API Request Failed:', error);
             showPopupMessage('An error occurred. Check the console.', true);
             return null;
-        } finally {
-            hideLoader();
-        }
+        } finally { hideLoader(); }
     }
 
-    // --- CORE LOGIC (Each branch is a separate record) ---
+    // --- CORE LOGIC (Consolidated Branches) ---
     async function processBatch(shouldPrint = false) {
         const driverName = document.getElementById('driverName').value;
         const date = document.getElementById('date').value;
@@ -333,37 +348,30 @@
         if (!description || !driverName || !date || selectedBranches.length === 0) {
             return showPopupMessage('Please fill all fields and select at least one branch.', true);
         }
-        
-        let recordsToProcess = [];
-        const creationTimestamp = new Date().toLocaleString("en-US", { timeZone: "Africa/Cairo" });
-        const trackingNumber = generateTrackingNumber(); // One tracking number for the whole batch
-        
-        for (const branch of selectedBranches) {
-            recordsToProcess.push({ trackingNumber, creationTimestamp, driverName, branch, date, description, status });
-        }
 
-        const result = await apiRequest("createBatch", { records: recordsToProcess });
+        const branchesString = selectedBranches.join(' - ');
+        const record = {
+            trackingNumber: generateTrackingNumber(),
+            creationTimestamp: new Date().toLocaleString("en-US", { timeZone: "Africa/Cairo" }),
+            driverName, branch: branchesString, date, description, status
+        };
+
+        const result = await apiRequest("create", { record });
         
         if (result && result.success) {
-            showPopupMessage(`${selectedBranches.length} records processed successfully.`);
-            if (shouldPrint) {
-                printConsolidated([{ key: trackingNumber, records: recordsToProcess }]);
-            }
+            showPopupMessage(`Dispatch saved successfully!`);
+            if (shouldPrint) { printRecords([result.record]); }
             resetForm();
             fetchAndRenderRecords();
-        } else {
-             showPopupMessage('Failed to save batch. Please check console.', true);
-        }
+        } else { showPopupMessage('Failed to save dispatch. Please check console.', true); }
     }
     
     async function fetchAndRenderRecords() {
         const result = await apiRequest('fetchAll');
         if (!result || !Array.isArray(result)) {
-            showPopupMessage('Could not load data. Response was invalid.', true);
+            showPopupMessage('Could not load data. The response was invalid.', true);
             allRecords = [];
-        } else {
-            allRecords = result;
-        }
+        } else { allRecords = result; }
         allRecords.sort((a, b) => (new Date(b.creationTimestamp) - new Date(a.creationTimestamp)));
         renderTable();
     }
@@ -372,8 +380,7 @@
         const recordTableBody = document.getElementById('recordTableBody');
         const searchTerm = document.getElementById('searchTerms').value.toUpperCase();
         const category = document.getElementById('categoryFilter').value;
-        const datePicker = document.querySelector("#dateFilter")._flatpickr;
-        const selectedDates = datePicker ? datePicker.selectedDates : [];
+        const selectedDates = document.querySelector("#dateFilter")._flatpickr.selectedDates;
 
         const filteredRecords = allRecords.filter(record => {
             if (typeof record !== 'object' || record === null) return false;
@@ -394,23 +401,16 @@
         }
 
         recordTableBody.innerHTML = filteredRecords.map((t, index) => {
-            const statusDropdown = `<select class="status-select" onchange="updateStatus('${t.id}', this.value)">
-                ${statusOptions.map(e => `<option value="${e}" ${t.status === e ? 'selected' : ''}>${e}</option>`).join('')}
-            </select>`;
+            const statusDropdown = `<select class="status-select" onchange="updateStatus('${t.id}', this.value)">${statusOptions.map(e => `<option value="${e}" ${t.status === e ? 'selected' : ''}>${e}</option>`).join('')}</select>`;
             const recordDataString = JSON.stringify(t);
-
             return `<tr style="animation: fadeInUp 0.5s ease-out ${index * 0.05}s backwards;">
                 <td class="checkbox-col"><input type="checkbox" class="record-checkbox" data-record='${recordDataString}'></td>
-                <td>${t.trackingNumber || ''}</td>
-                <td>${t.driverName || ''}</td>
-                <td>${t.branch || ''}</td>
-                <td>${t.date || ''}</td>
-                <td>${statusDropdown}</td>
+                <td>${t.trackingNumber || ''}</td><td>${t.driverName || ''}</td><td>${t.branch || ''}</td>
+                <td>${t.date || ''}</td><td>${statusDropdown}</td>
                 <td style="text-align:center;"><div class="action-buttons">
                     <button title="Edit" onclick='openEditModal(${recordDataString})'><i class="fa-solid fa-pencil-alt"></i></button>
                     <button title="Delete" onclick="deleteRecord('${t.id}')"><i class="fa-solid fa-trash-can"></i></button>
-                </div></td>
-            </tr>`;
+                </div></td></tr>`;
         }).join('');
     }
 
@@ -434,7 +434,14 @@
         }
     }
     
-    function resetForm(){document.getElementById("driverName").value="",document.getElementById("description").value="",document.querySelectorAll("#branch-checkboxes input:checked").forEach(t=>t.checked=!1),flatpickr("#date",{}).setDate(new Date)}
+    function resetForm(){
+        document.getElementById("driverName").value="";
+        document.getElementById("description").value="";
+        document.querySelectorAll("#branch-checkboxes input:checked").forEach(t=>t.checked=false);
+        document.getElementById("branchSearch").value="";
+        filterBranches(); // Reset branch filter
+        flatpickr("#date",{}).setDate(new Date);
+    }
     
     function openEditModal(record) {
         document.getElementById('editRecordId').value = record.id;
@@ -461,31 +468,12 @@
         }
     }
 
-    // --- CONSOLIDATED PRINTING LOGIC ---
-    function printConsolidated(recordGroups) {
+    // --- CONSOLIDATED PRINTING ---
+    function printRecords(recordsToPrint) {
         let printHTML = '';
-        recordGroups.forEach(group => {
-            const firstRecord = group.records[0];
-            const branchesHTML = group.records.map(r => `<li>${r.branch}</li>`).join('');
-            printHTML += `
-                <div class="transfer-order">
-                    <h2>Document Transfer Order</h2>
-                    <div class="order-grid">
-                        <div class="order-item"><strong>Driver:</strong> ${firstRecord.driverName || ""}</div>
-                        <div class="order-item"><strong>Date:</strong> ${firstRecord.date || ""}</div>
-                        <div class="order-item full-width"><strong>Tracking #:</strong> ${firstRecord.trackingNumber || ""}</div>
-                        <div class="order-item full-width"><strong>Description:</strong> ${firstRecord.description || ""}</div>
-                        <div class="order-item full-width">
-                            <strong>Destination Branches:</strong>
-                            <ul class="branches-list">${branchesHTML}</ul>
-                        </div>
-                    </div>
-                    <div class="signature-area">
-                        <div class="signature-box"><p>Driver Signature</p><div class="signature-line"></div></div>
-                        <div class="signature-box"><p>Receiver Signature</p><div class="signature-line"></div></div>
-                    </div>
-                    <p class="version-number">v3.0 Consolidated</p>
-                </div>`;
+        recordsToPrint.forEach(record => {
+            const branchesHTML = record.branch.split(' - ').map(b => `<li>${b.trim()}</li>`).join('');
+            printHTML += `<div class="transfer-order"><h2>Document Transfer Order</h2><div class="order-grid"><div class="order-item"><strong>Driver:</strong> ${record.driverName || ""}</div><div class="order-item"><strong>Date:</strong> ${record.date || ""}</div><div class="order-item full-width"><strong>Tracking #:</strong> ${record.trackingNumber || ""}</div><div class="order-item full-width"><strong>Description:</strong> ${record.description || ""}</div><div class="order-item full-width"><strong>Destination Branches:</strong><ul class="branches-list">${branchesHTML}</ul></div></div><div class="signature-area"><div class="signature-box"><p>Driver Signature</p><div class="signature-line"></div></div><div class="signature-box"><p>Receiver Signature</p><div class="signature-line"></div></div></div><p class="version-number">v5.0 Pro</p></div>`;
         });
         document.getElementById("printSection").innerHTML = printHTML;
         window.print();
@@ -495,13 +483,21 @@
         const selectedCheckboxes = document.querySelectorAll(".record-checkbox:checked");
         if (selectedCheckboxes.length === 0) { return showPopupMessage("Please select at least one record to print.", true); }
         const recordsToPrint = Array.from(selectedCheckboxes).map(cb => JSON.parse(cb.dataset.record));
-        const groupedByTracking = recordsToPrint.reduce((acc, record) => {
-            const key = record.trackingNumber;
-            if (!acc[key]) { acc[key] = { key: key, records: [] }; }
-            acc[key].records.push(record);
-            return acc;
-        }, {});
-        printConsolidated(Object.values(groupedByTracking));
+        printRecords(recordsToPrint);
+    }
+
+    // --- NEW: Branch Filter Logic ---
+    function filterBranches() {
+        const searchTerm = document.getElementById('branchSearch').value.toUpperCase();
+        const labels = document.querySelectorAll('#branch-checkboxes .checkbox-label');
+        labels.forEach(label => {
+            const branchName = label.innerText.toUpperCase();
+            if (branchName.includes(searchTerm)) {
+                label.style.display = 'flex';
+            } else {
+                label.style.display = 'none';
+            }
+        });
     }
 
     // --- INITIALIZATION ---
@@ -518,6 +514,8 @@
         document.getElementById('selectAllCheckbox').addEventListener('change', e => {
             document.querySelectorAll('#recordTableBody .record-checkbox').forEach(cb => cb.checked = e.target.checked);
         });
+        // Add event listener for the new branch search
+        document.getElementById('branchSearch').addEventListener('keyup', filterBranches);
     });
 </script>
 
