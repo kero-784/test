@@ -1,7 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tracker Pro</title>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Google Fonts: Be Vietnam Pro -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Flatpickr (Date Picker) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://npmcdn.com/flatpickr/dist/themes/dark.css">
+
+    <style>
+        /* --- MODERN UI: ROOT VARIABLES --- */
+        :root {
+            --bg-color: #0f0e17; --sidebar-bg: #1a1826; --card-bg: rgba(26, 24, 38, 0.7);
+            --glass-bg: rgba(255, 255, 255, 0.05); --glass-border: rgba(255, 255, 255, 0.1);
+            --text-primary: #fffffe; --text-secondary: #a7a9be; --accent-primary: #ff8906;
+            --accent-primary-rgb: 255, 137, 6; --accent-secondary: #f25f4c; --danger-color: #e53170;
+            --success-color: #00f5a0; --font-family: 'Be Vietnam Pro', sans-serif; --radius: 16px;
+            --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37); --transition-smooth: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* --- GENERAL & LAYOUT --- */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { height: 100%; }
+        body {
+            font-family: var(--font-family); background-color: var(--bg-color); color: var(--text-primary);
+            background-image: radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), radial-gradient(at 50% 0%, hsla(22,99%,49%,0.1) 0, transparent 50%), radial-gradient(at 100% 0%, hsla(343,73%,42%,0.2) 0, transparent 50%);
+            line-height: 1.6; font-size: 16px; -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale; overflow: hidden;
+        }
+        .page-container { display: flex; height: 100vh; }
+        .sidebar { width: 260px; flex-shrink: 0; background: var(--sidebar-bg); padding: 2.5rem 1.5rem; display: flex; flex-direction: column; border-right: 1px solid var(--glass-border); }
+        .sidebar-header { text-align: center; margin-bottom: 3rem; animation: fadeInUp 0.5s ease forwards; }
+        .sidebar-header .logo { font-size: 2.8rem; color: var(--accent-primary); margin-bottom: 0.5rem; text-shadow: 0 0 15px rgba(var(--accent-primary-rgb), 0.4); }
+        .sidebar-header h1 { font-size: 1.6rem; font-weight: 700; color: var(--text-primary); }
+        .sidebar p { font-size: 0.9rem; color: var(--text-secondary); text-align: center; margin-top: auto; animation: fadeInUp 0.5s 0.2s ease backwards; }
+        .main-content { flex-grow: 1; padding: 2.5rem; overflow-y: auto; }
+
+        /* --- MODERNIZED GLASS CARD --- */
+        .glass-card { background: var(--card-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-radius: var(--radius); border: 1px solid var(--glass-border); box-shadow: var(--shadow); padding: 2.5rem; margin-bottom: 2.5rem; animation: fadeInUp 0.6s ease-out forwards; }
+        .card-header { margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--glass-border); padding-bottom: 1rem;}
+        .card-header h2 { font-size: 1.5rem; font-weight: 600; color: var(--text-primary); display: flex; align-items: center; gap: 1rem; }
+        .card-header .fa-solid { color: var(--accent-primary); }
+
+        /* --- NEW: MAIN FORM LAYOUT --- */
+        #main-form-layout { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 2.5rem; }
+        .form-section { display: flex; flex-direction: column; gap: 1.75rem; }
+
+        /* --- MODERNIZED FORM ELEMENTS --- */
+        .form-group label { display: block; margin-bottom: 0.6rem; color: var(--text-secondary); font-weight: 500; font-size: 0.9em; }
+        input[type="text"], input[type="date"], textarea, select { width: 100%; padding: 1rem; border: 1px solid var(--glass-border); border-radius: 10px; font-size: 1rem; font-family: inherit; color: var(--text-primary); background-color: var(--glass-bg); transition: var(--transition-smooth); }
+        input:-webkit-autofill { -webkit-box-shadow: 0 0 0 1000px #2a2840 inset; -webkit-text-fill-color: var(--text-primary) !important; }
+        input[type="text"]:focus, input[type="date"]:focus, textarea:focus, select:focus { outline: none; border-color: rgba(var(--accent-primary-rgb), 0.6); box-shadow: 0 0 20px rgba(var(--accent-primary-rgb), 0.2); }
+        textarea { resize: vertical; min-height: 120px; }
+
+        /* --- NEW: BRANCH FILTER & LIST --- */
+        #branchSearch { margin-bottom: 1rem; }
+        #branch-checkboxes { display: flex; flex-direction: column; gap: 0.75rem; max-height: 300px; overflow-y: auto; border: 1px solid var(--glass-border); border-radius: 10px; padding: 1rem; background-color: rgba(0,0,0,0.1); }
+        .checkbox-label { display: flex; align-items: center; cursor: pointer; font-weight: 500; transition: color 0.2s ease; padding: 0.5rem; border-radius: 6px; }
+        .checkbox-label:hover { color: var(--accent-primary); background-color: var(--glass-bg); }
+        .checkbox-label input { margin-right: 12px; height: 1.2em; width: 1.2em; accent-color: var(--accent-primary); background-color: transparent; }
+
+        /* --- MODERNIZED BUTTONS --- */
+        .button-group { display: flex; justify-content: flex-end; margin-top: 2rem; gap: 1rem; flex-wrap: wrap; }
+        .btn { display: inline-flex; align-items: center; gap: 0.75rem; padding: 0.8rem 1.75rem; border: 1px solid transparent; border-radius: 10px; cursor: pointer; font-size: 1rem; font-weight: 600; font-family: inherit; transition: var(--transition-smooth); text-decoration: none; transform: translateY(0); }
+        .btn:hover { transform: translateY(-3px); box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
+        .btn:active { transform: translateY(-1px); }
+        .btn-primary { background-image: linear-gradient(45deg, var(--accent-primary) 0%, var(--accent-secondary) 100%); color: var(--text-primary); box-shadow: 0 0 20px rgba(var(--accent-primary-rgb), 0.3); }
+        .btn-primary:hover { box-shadow: 0 0 30px rgba(var(--accent-primary-rgb), 0.5); }
+        .btn-secondary { background-color: var(--glass-bg); color: var(--text-secondary); border-color: var(--glass-border); }
+        .btn-secondary:hover { border-color: var(--accent-primary); color: var(--accent-primary); }
+
+        /* --- MODAL, TABLE & FILTER STYLES --- */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(17, 16, 29, 0.7); backdrop-filter: blur(8px); z-index: 1000; display: none; justify-content: center; align-items: center; padding: 2rem; animation: fadeIn 0.4s ease; }
+        .modal-overlay.show { display: flex; }
+        .modal-content { width: 100%; max-width: 90vw; max-height: 90vh; display: flex; flex-direction: column; }
+        .modal-content .glass-card { width: 100%; height: 100%; display: flex; flex-direction: column; margin-bottom: 0; }
+        #recordsContainer { flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .table-responsive { flex-grow: 1; overflow-y: auto; overflow-x: auto; }
+        #filterSearch { display: flex; flex-grow: 1; gap: 1.5rem; align-items: center; flex-wrap: wrap; margin-bottom: 2rem; }
+        #filterSearch .filter-group, #filterSearch .date-filter-group { flex-grow: 1; min-width: 250px; }
+        #recordTable { width: 100%; border-collapse: separate; border-spacing: 0; }
+        #recordTable th, #recordTable td { padding: 1rem 1.25rem; text-align: left; white-space: nowrap; border-bottom: 1px solid var(--glass-border); }
+        #recordTable th { color: var(--text-secondary); font-weight: 500; text-transform: uppercase; font-size: 0.8em; letter-spacing: 0.05em; }
+        #recordTable tbody tr:nth-child(odd) { background-color: rgba(255,255,255,0.02); }
+        #recordTable tbody tr:hover { background-color: var(--glass-bg); }
+        .status-select { font-size: 0.9rem; padding: 5px 10px; border-radius: 6px; }
+        .checkbox-col input { height: 1.2em; width: 1.2em; accent-color: var(--accent-primary); }
+
+        /* --- LOADER, POPUP, SCROLLBARS --- */
+        #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 14, 23, 0.8); backdrop-filter: blur(5px); z-index: 9999; display: flex; justify-content: center; align-items: center; flex-direction: column; gap: 1rem; color: var(--text-primary); font-size: 1.2rem; }
+        #loader::before { content: ''; width: 60px; height: 60px; border-radius: 50%; border: 4px solid var(--glass-border); border-top-color: var(--accent-primary); animation: spin 1s linear infinite; }
+        #popupMessage { display: none; position: fixed; bottom: 30px; right: 30px; color: #fff; padding: 1rem 1.75rem; border-radius: 10px; box-shadow: var(--shadow); z-index: 10001; opacity: 0; transform: translateY(20px); transition: all .4s cubic-bezier(0.25, 0.8, 0.25, 1); font-weight: 600; }
+        #popupMessage.show { display: block; opacity: 1; transform: translateY(0); }
+        #popupMessage.success { background-image: linear-gradient(45deg, var(--success-color), #0abf82); }
+        #popupMessage.error { background-image: linear-gradient(45deg, var(--danger-color), #d12c62); }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(var(--accent-primary-rgb), 0.5); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(var(--accent-primary-rgb), 0.8); }
+
+        /* --- INDIVIDUAL PRINT STYLES --- */
+        @media print {
+            body { background: #fff !important; }
+            body * { visibility: hidden; }
+            .print-section, .print-section * { visibility: visible; }
+            .print-section { position: absolute; top: 0; right: 0; width: 50%; }
+            @page { size: A4 portrait; margin: 0.5in; }
+            .transfer-order {
+                width: 4in; height: 9in; margin: 0; padding: 15px; border: 1px solid #000;
+                border-radius: 10px; display: flex; flex-direction: column; justify-content: space-between;
+                font-family: Arial, sans-serif; color: #000; box-sizing: border-box; page-break-after: always;
+            }
+            .print-section > .transfer-order:last-of-type { page-break-after: avoid; }
+            .transfer-order h2 { font-size: 1.1em; text-align: center; margin-bottom: 8px; color: #000; border-bottom: 1px solid #ddd; padding-bottom: 5px; }
+            .transfer-order-item { border: 1px solid #ddd; padding: 6px; margin-bottom: 6px; border-radius: 3px; font-size: .8em; word-wrap: break-word; }
+            .signature-line { border-bottom: 1px dashed #777; width: 70%; margin-top: 10px; }
+            .version-number { position: absolute; top: 10px; left: 10px; font-size: .8em; color: #555; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="loader" style="display: none;">Loading...</div>
+
+<div class="page-container">
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo"><i class="fa-solid fa-satellite-dish"></i></div>
+            <h1>Tracker Pro</h1>
+        </div>
+        <p>Quantum Leap Edition © 2024</p>
+    </aside>
+
+    <main class="main-content">
+        <div class="glass-card" id="form-card">
+            <div class="card-header">
+                <h2><i class="fa-solid fa-plus-circle"></i>Create New Dispatch</h2>
+                <button class="btn btn-secondary" id="viewRecordsBtn"><i class="fa-solid fa-list-check"></i> View Records</button>
+            </div>
+            
+            <div id="main-form-layout">
+                <div class="form-section">
+                    <div class="form-group"><label for="driverName">Driver Name</label><input type="text" id="driverName" required></div>
+                    <div class="form-group"><label for="date">Document Date</label><input type="text" id="date" required></div>
+                    <div class="form-group"><label for="status">Initial Status</label><select id="status"><option value="Pending">Pending</option><option value="In Transit">In Transit</option></select></div>
+                    <div class="form-group"><label for="description">Document Description</label><textarea id="description" rows="4" required placeholder="e.g., Invoices, Contracts, Memos..."></textarea></div>
+                </div>
+                <div class="form-section">
+                    <div class="form-group">
+                        <label>Select Destination Branches</label>
+                        <input type="text" id="branchSearch" placeholder="Type to filter branches...">
+                        <div id="branch-checkboxes"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-secondary" onclick="resetForm()"><i class="fa-solid fa-rotate-left"></i> Reset</button>
+                <button class="btn btn-primary" onclick="processBatch(false)"><i class="fa-solid fa-floppy-disk"></i> Save</button>
+                <button class="btn btn-primary" onclick="processBatch(true)"><i class="fa-solid fa-print"></i> Save & Print</button>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- Modals and other elements -->
+<div class="modal-overlay" id="recordsModal">
+    <div class="modal-content">
+        <div class="glass-card" id="recordsContainer">
+             <div class="card-header"><h2><i class="fa-solid fa-layer-group"></i>Saved Records</h2></div>
+            <div id="filterSearch">
+                <div class="date-filter-group"><input type="text" id="dateFilter" placeholder="Filter by creation date..."></div>
+                <div class="filter-group">
+                    <select id="categoryFilter"><option value="">Filter by category...</option><option value="trackingNumber">Tracking #</option><option value="driverName">Driver</option><option value="branch">Branch</option><option value="status">Status</option></select>
+                    <input type="text" id="searchTerms" placeholder="Enter search term...">
+                </div>
+                <div class="button-group" style="margin-top: 0;">
+                    <button class="btn btn-secondary" id="resetFiltersBtn"><i class="fa-solid fa-eraser"></i> Reset</button>
+                    <button class="btn btn-primary" id="applyFiltersBtn"><i class="fa-solid fa-filter"></i> Apply</button>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table id="recordTable">
+                    <thead><tr><th class="checkbox-col"><input type="checkbox" id="selectAllCheckbox" title="Select All"></th><th>Tracking #</th><th>Driver</th><th>Branch</th><th>Date</th><th>Status</th><th style="text-align:center;">Actions</th></tr></thead>
+                    <tbody id="recordTableBody"></tbody>
+                </table>
+            </div>
+            <div class="button-group" style="justify-content: flex-start; margin-top: 1.5rem;"><button class="btn btn-secondary" onclick="printSelectedRecords()"><i class="fa-solid fa-print"></i> Print Selected</button></div>
+        </div>
+    </div>
+    <button class="modal-close-btn" id="closeRecordsModalBtn" title="Close"><i class="fa-solid fa-times"></i></button>
+</div>
+
+<div class="modal-overlay" id="editModal">
+    <div class="modal-content" style="max-width: 800px;">
+        <div class="glass-card">
+            <div class="card-header"><h2><i class="fa-solid fa-pencil-alt"></i>Edit Record</h2></div>
+            <input type="hidden" id="editRecordId">
+            <div class="form-grid"><div class="form-group"><label for="editDriverName">Driver Name</label><input type="text" id="editDriverName" required></div><div class="form-group"><label for="editDate">Document Date</label><input type="text" id="editDate" required></div></div>
+            <div class="form-group" style="margin-bottom: 1.75rem;"><label for="editDescription">Document Description</label><textarea id="editDescription" rows="3" required></textarea></div>
+            <div class="button-group"><button class="btn btn-secondary" id="closeEditModalBtn"><i class="fa-solid fa-times"></i> Cancel</button><button class="btn btn-primary" onclick="saveRecordChanges()"><i class="fa-solid fa-save"></i> Save Changes</button></div>
+        </div>
+    </div>
+</div>
+
+<div class="print-section" id="printSection"></div>
+<div id="popupMessage"></div>
+
 <!-- CORRECTED SCRIPT SECTION - ONLY ONE SCRIPT TAG -->
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script>
-    const SCRIPT_URL = "PASTE_YOUR_DEPLOYED_URL_HERE";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzJUpDo8qkxX6UYrnrQJYjtGFfmgsTFEB-euCK5Ay6evB2gsT2AfU53z0BKXCG42iz8/exec";
     const branchOptions = [ "نادى هليوبوليس", "تلال السخنه", "جاردنز السخنه", "لازوردی بای", "الدبلوماسيين", "ستيلا", "كاسكادا", "تلال الساحل", "لافيستا بای", "سوان ليك", "لافيستا رأس الحكمة", "دبلوماسيين - خضار", "هاسيندا ريد - خضار", "فوكا باي", "القطامية", "بالم هيلز رايد" ];
     const statusOptions = ["Pending", "In Transit", "Delivered", "Problem"];
     let allRecords = [];
@@ -18,7 +239,7 @@
     function resetFiltersAndRender() { document.getElementById('searchTerms').value = ''; document.getElementById('categoryFilter').value = ''; document.querySelector("#dateFilter")._flatpickr.clear(); renderTable(); }
     
     async function apiRequest(action, data = {}) {
-        if (SCRIPT_URL === "https://script.google.com/macros/s/AKfycbzJUpDo8qkxX6UYrnrQJYjtGFfmgsTFEB-euCK5Ay6evB2gsT2AfU53z0BKXCG42iz8/exec" || !SCRIPT_URL.startsWith("https://script.google.com/")) {
+        if (SCRIPT_URL === "PASTE_YOUR_DEPLOYED_URL_HERE" || !SCRIPT_URL.startsWith("https://script.google.com/")) {
             showPopupMessage("ERROR: Please update the SCRIPT_URL constant in the HTML code.", true);
             return null;
         }
@@ -174,7 +395,6 @@
         }
     }
 
-    // --- UPDATED PRINTING LOGIC ---
     function printMultipleRecords(recordsToPrint) {
         let printHTML = '<div class="version-number">v5.2 Driver Copy</div>';
         recordsToPrint.forEach(record => {
@@ -238,3 +458,6 @@
         document.getElementById('branchSearch').addEventListener('keyup', filterBranches);
     });
 </script>
+
+</body>
+</html>
