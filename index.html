@@ -333,302 +333,153 @@
 <div class="print-section" id="printSection"></div>
 <div id="popupMessage"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-<script>
-    // --- CONFIGURATION ---
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx6009GpYUw3ZSWge2t20Pa0ngVjdVg1tuCT9qdscvDCBr8Avw28miglABSAlVtMewB/exec"; // <--- PASTE YOUR DEPLOYED URL
-    const branchOptions = [ "نادى هليوبوليس", "تلال السخنه", "جاردنز السخنه", "لازوردی بای", "الدبلوماسيين", "ستيلا", "كاسكادا", "تلال الساحل", "لافيستا بای", "سوان ليك", "لافيستا رأس الحكمة", "دبلوماسيين - خضار", "هاسيندا ريد - خضار", "فوكا باي", "القطامية", "بالم هيلز رايد" ];
-    const statusOptions = ["Pending", "In Transit", "Delivered", "Problem"];
-    let allRecords = [];
+// The sheet where your data is stored.
+const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
 
-    // --- UI & HELPER FUNCTIONS ---
-    const loader = document.getElementById('loader');
-    const recordsModal = document.getElementById('recordsModal');
-    const editModal = document.getElementById('editModal');
+/**
+ * Handles ALL requests to the web app.
+ */
+function doPost(e) {
+  try {
+    const request = JSON.parse(e.postData.contents);
+    const action = request.action;
 
-    function showLoader(text = "Loading...") { loader.textContent = text; loader.style.display = 'flex'; }
-    function hideLoader() { loader.style.display = 'none'; }
-    function showPopupMessage(message, isError = false) {
-        const popup = document.getElementById("popupMessage");
-        popup.textContent = message;
-        popup.className = `popup-message ${isError ? "error" : "success"}`;
-        popup.classList.add("show");
-        setTimeout(() => popup.classList.remove("show"), 4000);
+    switch (action) {
+      // REPLACED 'createBatch' with 'create' to handle a single record
+      case 'create':
+        return createRecord(request.record);
+      
+      case 'updateRecord':
+        return updateRecordDetails(request.recordData);
+
+      case 'fetchAll':
+        return fetchAllRecords();
+      case 'updateStatus':
+        return updateRecordStatus(request.id, request.status);
+      case 'delete':
+        return deleteRecord(request.id);
+      default:
+        return createResponse({ success: false, message: 'Invalid action' });
     }
-    function populateBranchCheckboxes(){document.getElementById("branch-checkboxes").innerHTML=branchOptions.map(t=>`<label class="checkbox-label"><input type="checkbox" value="${t}" name="branch"> ${t}</label>`).join("")}
-    function generateTrackingNumber(){return`TRACK-${Date.now().toString(36)}-${Math.random().toString(36).substring(2,7)}`.toUpperCase()}
-    function resetFiltersAndRender() {
-        document.getElementById('searchTerms').value = '';
-        document.getElementById('categoryFilter').value = '';
-        const datePicker = document.querySelector("#dateFilter")._flatpickr;
-        if (datePicker) datePicker.clear();
-        renderTable();
+  } catch (err) {
+    return createResponse({ success: false, message: 'Error: ' + err.message });
+  }
+}
+
+// ===================================================================
+// UPDATED & NEW FUNCTIONS
+// ===================================================================
+
+/**
+ * Creates a single new record.
+ * This is called by the main form now.
+ */
+function createRecord(record) {
+  // Generate a unique ID for the new record
+  const newId = new Date().getTime().toString() + Math.random().toString(36).substring(2, 8);
+  record.id = newId;
+
+  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  
+  // Build the new row in the exact order of the headers.
+  const newRow = headers.map(header => record[header] || ""); 
+  
+  sheet.appendRow(newRow);
+  
+  return createResponse({ success: true, message: 'Record created', record: record });
+}
+
+
+/**
+ * Dynamically updates a record's details based on the "Edit" modal.
+ */
+function updateRecordDetails(recordData) {
+  const idToFind = recordData.id;
+  const idColumn = 1; 
+
+  if (sheet.getLastRow() < 2) {
+      return createResponse({ success: false, message: 'Record not found in empty sheet' });
+  }
+  
+  const ids = sheet.getRange(2, idColumn, sheet.getLastRow() - 1, 1).getValues().flat();
+  const rowIndex = ids.findIndex(rowId => rowId == idToFind);
+  
+  if (rowIndex === -1) {
+    return createResponse({ success: false, message: 'Record ID not found' });
+  }
+
+  const rowNum = rowIndex + 2;
+  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+
+  for (const key in recordData) {
+    if (key === 'id') continue;
+    const colIndex = headers.indexOf(key);
+    if (colIndex !== -1) {
+      sheet.getRange(rowNum, colIndex + 1).setValue(recordData[key]);
     }
-    
-    // --- API COMMUNICATION ---
-    async function apiRequest(action, data = {}) {
-        if (!SCRIPT_URL.startsWith("https://script.google.com/")) {
-            showPopupMessage("ERROR: Please paste your Web App URL in the SCRIPT_URL constant.", true);
-            return null;
-        }
-        showLoader(`Processing ${action}...`);
-        try {
-            const res = await fetch(SCRIPT_URL, {
-                method: 'POST',
-                body: JSON.stringify({ action, ...data }),
-                headers: { "Content-Type": "text/plain;charset=utf-8" }
-            });
-            if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-            return await res.json();
-        } catch (error) {
-            console.error('API Request Failed:', error);
-            showPopupMessage('An error occurred. Check the console.', true);
-            return null;
-        } finally {
-            hideLoader();
-        }
-    }
-
-    // --- CORE LOGIC ---
-    async function processBatch(shouldPrint = false) {
-        const driverName = document.getElementById('driverName').value;
-        const date = document.getElementById('date').value;
-        const description = document.getElementById('description').value;
-        const status = document.getElementById('status').value;
-        const selectedBranches = Array.from(document.querySelectorAll('#branch-checkboxes input:checked')).map(cb => cb.value);
-
-        if (!description || !driverName || !date || selectedBranches.length === 0) {
-            return showPopupMessage('Please fill all fields and select at least one branch.', true);
-        }
-        
-        let recordsToProcess = [];
-        const creationTimestamp = new Date().toLocaleString("en-US", { timeZone: "Africa/Cairo" });
-        const trackingNumber = generateTrackingNumber(); // One tracking number for the whole batch
-        
-        for (const branch of selectedBranches) {
-            recordsToProcess.push({ trackingNumber, creationTimestamp, driverName, branch, date, description, status });
-        }
-
-        const result = await apiRequest("createBatch", { records: recordsToProcess });
-        
-        if (result && result.success) {
-            showPopupMessage(`${selectedBranches.length} records processed successfully.`);
-            if (shouldPrint) {
-                // The new consolidated print logic expects records grouped. This new batch is one group.
-                printConsolidated([{
-                    key: trackingNumber,
-                    records: recordsToProcess
-                }]);
-            }
-            resetForm();
-            fetchAndRenderRecords(); // Refresh the list
-        } else {
-             showPopupMessage('Failed to save batch. Please check console.', true);
-        }
-    }
-    
-    async function fetchAndRenderRecords() {
-        const result = await apiRequest('fetchAll');
-        if (!result || !Array.isArray(result)) {
-            console.error('Fetch Failed: API did not return a valid array.', result);
-            showPopupMessage('Could not load data. Response was invalid.', true);
-            allRecords = [];
-        } else {
-            allRecords = result;
-        }
-        allRecords.sort((a, b) => (new Date(b.creationTimestamp) - new Date(a.creationTimestamp)));
-        renderTable();
-    }
-
-    function renderTable() {
-        const recordTableBody = document.getElementById('recordTableBody');
-        const searchTerm = document.getElementById('searchTerms').value.toUpperCase();
-        const category = document.getElementById('categoryFilter').value;
-        const datePicker = document.querySelector("#dateFilter")._flatpickr;
-        const selectedDates = datePicker ? datePicker.selectedDates : [];
-
-        const filteredRecords = allRecords.filter(record => {
-            if (typeof record !== 'object' || record === null) return false;
-            const textMatch = !searchTerm || !category || String(record[category] || '').toUpperCase().includes(searchTerm);
-            let dateMatch = true; 
-            if (selectedDates.length > 0 && record.creationTimestamp) {
-                const recordDate = new Date(new Date(record.creationTimestamp).toDateString());
-                const startDate = new Date(selectedDates[0].toDateString());
-                const endDate = selectedDates.length > 1 ? new Date(selectedDates[1].toDateString()) : startDate;
-                dateMatch = recordDate >= startDate && recordDate <= endDate;
-            }
-            return textMatch && dateMatch;
-        });
-
-        if (filteredRecords.length === 0) {
-            recordTableBody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 3rem; color: var(--text-secondary);">No records match your filters.</td></tr>`;
-            return;
-        }
-
-        recordTableBody.innerHTML = filteredRecords.map((t, index) => {
-            const statusDropdown = `<select class="status-select" onchange="updateStatus('${t.id}', this.value)">
-                ${statusOptions.map(e => `<option value="${e}" ${t.status === e ? 'selected' : ''}>${e}</option>`).join('')}
-            </select>`;
-            const recordDataString = JSON.stringify(t);
-
-            return `<tr class="animate-in" style="animation-delay: calc(${index} * 0.05s);">
-                <td class="checkbox-col"><input type="checkbox" class="record-checkbox" data-record='${recordDataString}'></td>
-                <td>${t.trackingNumber || ''}</td>
-                <td>${t.driverName || ''}</td>
-                <td>${t.branch || ''}</td>
-                <td>${t.date || ''}</td>
-                <td>${statusDropdown}</td>
-                <td style="text-align:center;"><div class="action-buttons">
-                    <button title="Edit" onclick='openEditModal(${recordDataString})'><i class="fa-solid fa-pencil-alt"></i></button>
-                    <button title="Delete" onclick="deleteRecord('${t.id}')"><i class="fa-solid fa-trash-can"></i></button>
-                </div></td>
-            </tr>`;
-        }).join('');
-    }
-
-    async function updateStatus(recordId, newStatus) {
-        const result = await apiRequest("updateStatus", {id: recordId, status: newStatus});
-        if (result && result.success) {
-            showPopupMessage("Status updated!");
-            const record = allRecords.find(r => r.id == recordId);
-            if (record) record.status = newStatus;
-        }
-    }
-    
-    async function deleteRecord(recordId) {
-        if (confirm("Are you sure you want to permanently delete this record?")) {
-            const result = await apiRequest("delete", {id: recordId});
-            if (result && result.success) {
-                showPopupMessage("Record deleted.");
-                allRecords = allRecords.filter(r => r.id != recordId);
-                renderTable();
-            }
-        }
-    }
-    
-    function resetForm(){document.getElementById("driverName").value="",document.getElementById("description").value="",document.querySelectorAll("#branch-checkboxes input:checked").forEach(t=>t.checked=!1),flatpickr("#date",{}).setDate(new Date)}
-    
-    // --- NEW EDIT MODAL LOGIC ---
-    function openEditModal(record) {
-        document.getElementById('editRecordId').value = record.id;
-        document.getElementById('editDriverName').value = record.driverName;
-        document.getElementById('editDate').value = record.date;
-        document.getElementById('editDescription').value = record.description;
-        flatpickr("#editDate", { dateFormat: "Y-m-d" }).setDate(record.date);
-        editModal.classList.add('show');
-    }
-
-    async function saveRecordChanges() {
-        const recordData = {
-            id: document.getElementById('editRecordId').value,
-            driverName: document.getElementById('editDriverName').value,
-            date: document.getElementById('editDate').value,
-            description: document.getElementById('editDescription').value
-        };
-
-        if (!recordData.driverName || !recordData.date || !recordData.description) {
-            return showPopupMessage('Please fill all fields.', true);
-        }
-
-        const result = await apiRequest("updateRecord", { recordData });
-        if (result && result.success) {
-            showPopupMessage("Record updated successfully!");
-            editModal.classList.remove('show');
-            // Update local data and re-render
-            const recordIndex = allRecords.findIndex(r => r.id == recordData.id);
-            if (recordIndex > -1) {
-                allRecords[recordIndex] = { ...allRecords[recordIndex], ...recordData };
-                renderTable();
-            } else {
-                fetchAndRenderRecords(); // Fallback to refetch all
-            }
-        }
-    }
-
-    // --- REWRITTEN & CONSOLIDATED PRINTING LOGIC ---
-    function printConsolidated(recordGroups) {
-        let printHTML = '';
-        
-        recordGroups.forEach(group => {
-            const firstRecord = group.records[0];
-            const branchesHTML = group.records.map(r => `<li>${r.branch}</li>`).join('');
-
-            printHTML += `
-                <div class="transfer-order">
-                    <h2>Document Transfer Order</h2>
-                    <div class="order-grid">
-                        <div class="order-item"><strong>Driver:</strong> ${firstRecord.driverName || ""}</div>
-                        <div class="order-item"><strong>Date:</strong> ${firstRecord.date || ""}</div>
-                        <div class="order-item full-width"><strong>Tracking #:</strong> ${firstRecord.trackingNumber || ""}</div>
-                        <div class="order-item full-width"><strong>Description:</strong> ${firstRecord.description || ""}</div>
-                        <div class="order-item full-width">
-                            <strong>Destination Branches:</strong>
-                            <ul class="branches-list">${branchesHTML}</ul>
-                        </div>
-                    </div>
-                    <div class="signature-area">
-                        <div class="signature-box">
-                            <p>Driver Signature</p>
-                            <div class="signature-line"></div>
-                        </div>
-                        <div class="signature-box">
-                            <p>Receiver Signature</p>
-                            <div class="signature-line"></div>
-                        </div>
-                    </div>
-                    <p class="version-number">v3.0 Consolidated</p>
-                </div>`;
-        });
-        
-        document.getElementById("printSection").innerHTML = printHTML;
-        window.print();
-    }
-
-    function printSelectedRecords() {
-        const selectedCheckboxes = document.querySelectorAll(".record-checkbox:checked");
-        if (selectedCheckboxes.length === 0) {
-            return showPopupMessage("Please select at least one record to print.", true);
-        }
-        
-        const recordsToPrint = Array.from(selectedCheckboxes).map(cb => JSON.parse(cb.dataset.record));
-        
-        // Group records by Tracking Number
-        const groupedByTracking = recordsToPrint.reduce((acc, record) => {
-            const key = record.trackingNumber;
-            if (!acc[key]) {
-                acc[key] = { key: key, records: [] };
-            }
-            acc[key].records.push(record);
-            return acc;
-        }, {});
-
-        printConsolidated(Object.values(groupedByTracking));
-    }
+  }
+  return createResponse({ success: true, message: 'Record updated' });
+}
 
 
-    // --- INITIALIZATION ---
-    document.addEventListener('DOMContentLoaded', () => {
-        flatpickr("#date", { dateFormat: "Y-m-d", defaultDate: "today" });
-        flatpickr("#dateFilter", { mode: "range", dateFormat: "Y-m-d", altInput: true, altFormat: "M j, Y" });
+// ===================================================================
+// ORIGINAL FUNCTIONS (UNCHANGED)
+// ===================================================================
 
-        populateBranchCheckboxes();
-        fetchAndRenderRecords(); // Initial fetch
-        
-        // Modal Triggers
-        document.getElementById('viewRecordsBtn').addEventListener('click', () => recordsModal.classList.add('show'));
-        document.getElementById('closeRecordsModalBtn').addEventListener('click', () => recordsModal.classList.remove('show'));
-        document.getElementById('closeEditModalBtn').addEventListener('click', () => editModal.classList.remove('show'));
-
-        // Filter Triggers
-        document.getElementById('applyFiltersBtn').addEventListener('click', renderTable);
-        document.getElementById('resetFiltersBtn').addEventListener('click', resetFiltersAndRender);
-
-        // Select All Checkbox
-        document.getElementById('selectAllCheckbox').addEventListener('change', e => {
-            document.querySelectorAll('#recordTableBody .record-checkbox').forEach(cb => cb.checked = e.target.checked);
-        });
+function fetchAllRecords() {
+  if (sheet.getLastRow() < 2) return createResponse([]); 
+  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  const dataRange = sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn());
+  const data = dataRange.getValues();
+  const dateColumnIndex = headers.indexOf('date');
+  const records = data.map(row => {
+    let record = {};
+    headers.forEach((header, i) => {
+      let value = row[i] || ""; 
+      if (i === dateColumnIndex && value instanceof Date) {
+        value = Utilities.formatDate(value, Session.getScriptTimeZone(), "yyyy-MM-dd");
+      }
+      record[header] = value;
     });
-</script>
+    return record;
+  });
+  return createResponse(records);
+}
+
+function updateRecordStatus(id, status) {
+  const idColumn = 1; 
+  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  const statusColumn = headers.indexOf('status') + 1;
+
+  if (sheet.getLastRow() < 2) return createResponse({ success: false, message: 'Record not found' });
+
+  const ids = sheet.getRange(2, idColumn, sheet.getLastRow() - 1, 1).getValues().flat();
+  const rowIndex = ids.findIndex(rowId => rowId == id);
+  
+  if (rowIndex !== -1) {
+    sheet.getRange(rowIndex + 2, statusColumn).setValue(status);
+    return createResponse({ success: true, message: 'Status updated' });
+  }
+  return createResponse({ success: false, message: 'Record not found' });
+}
+
+function deleteRecord(id) {
+  const idColumn = 1;
+  if (sheet.getLastRow() < 2) return createResponse({ success: false, message: 'Record not found' });
+
+  const ids = sheet.getRange(2, idColumn, sheet.getLastRow() - 1, 1).getValues().flat();
+  const rowIndex = ids.findIndex(rowId => rowId == id);
+
+  if (rowIndex !== -1) {
+    sheet.deleteRow(rowIndex + 2);
+    return createResponse({ success: true, message: 'Record deleted' });
+  }
+  return createResponse({ success: false, message: 'Record not found' });
+}
+
+function createResponse(data) {
+  return ContentService.createTextOutput(JSON.stringify(data)).setMimeType(ContentService.MimeType.JSON);
+}
 
 </body>
 </html>
