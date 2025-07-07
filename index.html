@@ -1,601 +1,617 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cheeeeeeeeeeeeeeese</title>
-    <!-- Google Fonts: Poppins -->
+    <title>Tracker </title>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Google Fonts: Be Vietnam Pro -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Font Awesome CDN -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Flatpickr (Date Picker) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <!-- Dark theme for Flatpickr -->
+    <link rel="stylesheet" href="https://npmcdn.com/flatpickr/dist/themes/dark.css">
+
+
     <style>
-        /* CSS Variables for Theming */
+        /* --- AURORA THEME: ROOT VARIABLES (UNCHANGED) --- */
         :root {
-            --font-family: 'Poppins', sans-serif;
-            --primary-color: #4f46e5;
-            --primary-hover: #4338ca;
-            --danger-color: #dc2626;
-            
-            /* Light Theme */
-            --bg-gradient-start: #f0f9ff;
-            --bg-gradient-end: #e0f2fe;
-            --card-bg: rgba(255, 255, 255, 0.9);
-            --text-primary: #1e293b;
-            --text-secondary: #475569;
-            --border-color: #e2e8f0;
-            --input-bg: #f8fafc;
-            --shadow-color: rgba(71, 85, 105, 0.1);
-            --sticky-shadow: rgba(0, 0, 0, 0.1);
-            --backdrop-color: rgba(248, 250, 252, 0.5);
-
-            --border-radius-lg: 16px;
-            --border-radius-md: 10px;
-            --transition-speed: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --bg-color: #11101d;
+            --sidebar-bg: #1d1b31;
+            --glass-bg: rgba(255, 255, 255, 0.07);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-primary: #e4e4e4;
+            --text-secondary: #a0a0b0;
+            --accent-color: #00d9ff;
+            --accent-rgb: 0, 217, 255;
+            --danger-color: #ff4d4d;
+            --success-color: #42f5a3;
+            --font-family: 'Be Vietnam Pro', sans-serif;
+            --radius: 12px;
+            --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            --transition-fast: all 0.2s ease;
+            --transition-smooth: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
 
-        [data-theme="dark"] {
-            --primary-color: #818cf8;
-            --primary-hover: #6366f1;
-            --bg-gradient-start: #1e293b;
-            --bg-gradient-end: #0f172a;
-            --card-bg: rgba(30, 41, 59, 0.9);
-            --text-primary: #f1f5f9;
-            --text-secondary: #94a3b8;
-            --border-color: #334155;
-            --input-bg: #334155;
-            --shadow-color: rgba(0, 0, 0, 0.2);
-            --sticky-shadow: rgba(0, 0, 0, 0.5);
-            --backdrop-color: rgba(15, 23, 42, 0.5);
+        /* --- KEYFRAME ANIMATIONS (UNCHANGED) --- */
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(25px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes pulseGlow { 0%, 100% { box-shadow: 0 0 15px rgba(var(--accent-rgb), 0.4); } 50% { box-shadow: 0 0 30px rgba(var(--accent-rgb), 0.8); } }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* --- GENERAL & LAYOUT (UNCHANGED) --- */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { height: 100%; }
+        body {
+            font-family: var(--font-family); background-color: var(--bg-color);
+            background-image: radial-gradient(circle at 100% 0%, rgba(var(--accent-rgb), 0.15) 0%, transparent 40%), radial-gradient(circle at 0% 100%, rgba(120, 80, 220, 0.15) 0%, transparent 40%);
+            color: var(--text-primary); line-height: 1.6; font-size: 15px;
+            -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+            overflow: hidden;
         }
+        .page-container { display: flex; height: 100vh; }
+        .sidebar { width: 260px; flex-shrink: 0; background: var(--sidebar-bg); padding: 2.5rem 1.5rem; display: flex; flex-direction: column; border-right: 1px solid var(--glass-border); }
+        .sidebar-header { text-align: center; margin-bottom: 3rem; animation: fadeInUp 0.5s ease forwards; }
+        .sidebar-header .logo { font-size: 2.5rem; color: var(--accent-color); margin-bottom: 0.5rem; text-shadow: 0 0 10px rgba(var(--accent-rgb), 0.5); }
+        .sidebar-header h1 { font-size: 1.5rem; font-weight: 600; color: var(--text-primary); }
+        .sidebar p { font-size: 0.9rem; color: var(--text-secondary); text-align: center; margin-top: auto; animation: fadeInUp 0.5s 0.2s ease backwards; }
+        .main-content { flex-grow: 1; padding: 2.5rem; overflow-y: auto; }
+
+        /* --- GLASS CARDS (UNCHANGED) --- */
+        .glass-card {
+            background: var(--glass-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            border-radius: var(--radius); border: 1px solid var(--glass-border); box-shadow: var(--shadow);
+            padding: 2.5rem; margin-bottom: 2.5rem; animation: fadeInUp 0.6s ease-out forwards;
+        }
+        .card-header { margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; }
+        .card-header h2 { font-size: 1.5rem; font-weight: 600; color: var(--text-primary); display: flex; align-items: center; gap: 1rem; }
+        .card-header .fa-solid { color: var(--accent-color); }
+
+        /* --- FORM ELEMENTS (UNCHANGED) --- */
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.75rem; margin-bottom: 1.75rem; }
+        .form-group label { display: block; margin-bottom: 0.6rem; color: var(--text-secondary); font-weight: 500; font-size: 0.9em; }
+        input[type="text"], input[type="date"], textarea, select { width: 100%; padding: 0.9rem 1rem; border: 1px solid var(--glass-border); border-radius: 8px; font-size: 1rem; font-family: inherit; color: var(--text-primary); background-color: rgba(0,0,0,0.2); transition: var(--transition-smooth); }
+        input:-webkit-autofill { -webkit-box-shadow: 0 0 0 1000px #2a2840 inset; -webkit-text-fill-color: var(--text-primary) !important; }
+        input[type="text"]:focus, input[type="date"]:focus, textarea:focus, select:focus { outline: none; border-color: rgba(var(--accent-rgb), 0.5); background-color: rgba(0,0,0,0.3); box-shadow: 0 0 15px rgba(var(--accent-rgb), 0.2); }
+        textarea { resize: vertical; min-height: 100px; }
+        #branch-checkboxes { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem; max-height: 220px; overflow-y: auto; border: 1px solid var(--glass-border); border-radius: 8px; padding: 1.25rem; background-color: rgba(0,0,0,0.1); }
+        .checkbox-label { display: flex; align-items: center; cursor: pointer; font-weight: 500; transition: color 0.2s ease; }
+        .checkbox-label:hover { color: var(--accent-color); }
+        .checkbox-label input { margin-right: 12px; height: 1.2em; width: 1.2em; accent-color: var(--accent-color); background-color: transparent; }
+
+        /* --- BUTTONS (UNCHANGED) --- */
+        .button-group { display: flex; justify-content: flex-end; margin-top: 2rem; gap: 1rem; flex-wrap: wrap; }
+        .btn { display: inline-flex; align-items: center; gap: 0.75rem; padding: 0.8rem 1.75rem; border: 1px solid transparent; border-radius: 8px; cursor: pointer; font-size: 0.95rem; font-weight: 600; font-family: inherit; transition: var(--transition-smooth); text-decoration: none; transform: scale(1); }
+        .btn:hover { transform: scale(1.05); }
+        .btn:active { transform: scale(0.98); }
+        .btn-primary { background: var(--accent-color); color: var(--bg-color); box-shadow: 0 0 15px rgba(var(--accent-rgb), 0.3); }
+        .btn-primary:hover { background: var(--accent-color); box-shadow: 0 0 25px rgba(var(--accent-rgb), 0.6); }
+        .btn-secondary { background-color: transparent; color: var(--text-secondary); border-color: var(--glass-border); }
+        .btn-secondary:hover { border-color: var(--accent-color); color: var(--accent-color); }
         
-        /* General & Layout */
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        html { scroll-behavior: smooth; }
-        body { font-family: var(--font-family); background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end)); color: var(--text-primary); min-height: 100vh; padding-bottom: 200px; }
-        .app-header { padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; }
-        .app-header h1 { font-size: 1.5rem; font-weight: 600; }
-        .header-actions { display: flex; align-items: center; gap: 1rem; }
-        
-        /* Homepage */
-        .homepage-container { display: flex; justify-content: center; align-items: center; gap: 1.5rem; padding: 2rem 1rem; flex-wrap: wrap; }
-        .homepage-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: var(--border-radius-lg); padding: 2rem; text-align: center; cursor: pointer; box-shadow: 0 4px 15px var(--shadow-color); backdrop-filter: blur(10px); transition: transform var(--transition-speed), box-shadow var(--transition-speed); flex-basis: 300px; }
-        .homepage-card:hover { transform: translateY(-8px); box-shadow: 0 10px 25px var(--shadow-color); }
-        .homepage-card i { font-size: 2.5rem; color: var(--primary-color); margin-bottom: 1rem; }
-        .homepage-card span { font-size: 1.1rem; font-weight: 500; display: block; }
+        /* --- NEW: MODAL STYLES --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(17, 16, 29, 0.7); backdrop-filter: blur(8px);
+            z-index: 1000; display: none; justify-content: center; align-items: center;
+            padding: 2rem; animation: fadeIn 0.4s ease;
+        }
+        .modal-overlay.show { display: flex; }
+        .modal-content {
+            width: 100%; max-width: 90vw; max-height: 90vh;
+            display: flex; flex-direction: column;
+        }
+        .modal-content .glass-card {
+            width: 100%; height: 100%; display: flex; flex-direction: column;
+            margin-bottom: 0; /* Override margin for modal context */
+        }
+        #recordsContainer { flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .table-responsive { flex-grow: 1; overflow-y: auto; overflow-x: auto; }
+        .modal-close-btn {
+            position: absolute; top: 20px; right: 20px;
+            background: var(--glass-bg); border: 1px solid var(--glass-border); color: var(--text-secondary);
+            width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 1.2rem;
+            display: flex; justify-content: center; align-items: center; transition: var(--transition-fast);
+        }
+        .modal-close-btn:hover { color: var(--accent-color); border-color: var(--accent-color); transform: rotate(90deg); }
 
-        /* Main Workspace */
-        .workspace-container { max-width: 1200px; margin: 0 auto; padding: 0 1rem; }
-        .list-container { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: var(--border-radius-lg); padding: 1.5rem; box-shadow: 0 4px 15px var(--shadow-color); backdrop-filter: blur(10px); }
-        .list-header-controls { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; gap: 1rem; }
-        #searchInput { width: 100%; max-width: 400px; }
-        
-        /* Item Search List */
-        .item-list-wrapper { max-height: 60vh; overflow-y: auto; border: 1px solid var(--border-color); border-radius: var(--border-radius-md); }
-        .item-list { list-style-type: none; }
-        .item-list li { display: grid; grid-template-columns: 1fr 1fr 3fr 1fr; gap: 1rem; padding: 0.85rem 1rem; border-bottom: 1px solid var(--border-color); transition: background-color var(--transition-speed); cursor: pointer; }
-        .item-list li:last-child { border-bottom: none; }
-        .item-list li.list-header-row { font-weight: 600; background-color: var(--input-bg); position: sticky; top: 0; z-index: 10; cursor: default; }
-        .item-list li:not(.list-header-row):hover { background-color: rgba(79, 70, 229, 0.05); }
-        [data-theme="dark"] .item-list li:not(.list-header-row):hover { background-color: rgba(129, 140, 248, 0.1); }
-        
-        /* Modal Dialog (for data entry) */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--backdrop-color); backdrop-filter: blur(5px); display: flex; justify-content: center; z-index: 1000; opacity: 0; visibility: hidden; transition: opacity var(--transition-speed), visibility var(--transition-speed); padding: 1rem; align-items: flex-start; overflow-y: auto; }
-        .modal-overlay.active { opacity: 1; visibility: visible; }
-        .modal-content { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: var(--border-radius-lg); box-shadow: 0 10px 30px var(--shadow-color); width: 100%; max-width: 600px; transform: scale(0.95); transition: transform var(--transition-speed); display: flex; flex-direction: column; max-height: 90vh; margin-top: 5vh; }
-        .modal-overlay.active .modal-content { transform: scale(1); }
-        .modal-header { flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.5rem; border-bottom: 1px solid var(--border-color); }
-        .modal-header h2 { font-size: 1.25rem; font-weight: 600; }
-        .modal-close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-secondary); transition: color var(--transition-speed); }
-        .modal-close-btn:hover { color: var(--text-primary); }
-        .modal-body { flex-grow: 1; overflow-y: auto; padding: 1.5rem; }
-        .modal-footer { flex-shrink: 0; display: flex; justify-content: flex-end; gap: 1rem; padding: 1rem 1.5rem; border-top: 1px solid var(--border-color); }
-        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
-        .form-group.full-width { grid-column: span 2; }
-        /* *** NEW: Grid layout for 3 columns for margins/prices *** */
-        .form-grid-3-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.5rem; }
+        /* --- TABLE & FILTER STYLES (UNCHANGED) --- */
+        #recordTable { width: 100%; border-collapse: separate; border-spacing: 0; }
+        #recordTable th, #recordTable td { padding: 1rem 1.25rem; text-align: left; white-space: nowrap; border-bottom: 1px solid var(--glass-border); }
+        #recordTable th { color: var(--text-secondary); font-weight: 500; text-transform: uppercase; font-size: 0.8em; letter-spacing: 0.05em; }
+        #recordTable tbody tr { transition: background-color 0.3s ease; }
+        #recordTable tbody tr:hover { background-color: var(--glass-bg); }
+        #recordTable tbody tr.animate-in { animation: fadeInUp 0.5s ease-out backwards; }
+        .action-buttons button { background: transparent; border: none; color: var(--text-secondary); font-size: 1.1rem; cursor: pointer; padding: 0.5rem; transition: var(--transition-fast); }
+        .action-buttons button:hover { color: var(--accent-color); transform: scale(1.2); }
+        .action-buttons button[title="Delete"]:hover { color: var(--danger-color); }
+        .status-select { font-size: 0.9rem; padding: 5px 10px; border-radius: 6px; }
+        .checkbox-col input { height: 1.2em; width: 1.2em; accent-color: var(--accent-color); }
+        #filterSearch { display: flex; flex-grow: 1; gap: 1.5rem; align-items: center; flex-wrap: wrap; margin-bottom: 2rem; }
+        #filterSearch .filter-group, #filterSearch .date-filter-group { flex-grow: 1; min-width: 250px; }
 
+        /* --- LOADER & POPUP (UNCHANGED) --- */
+        #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(17, 16, 29, 0.8); backdrop-filter: blur(5px); z-index: 9999; display: flex; justify-content: center; align-items: center; flex-direction: column; gap: 1rem; color: var(--text-primary); font-size: 1.2rem; }
+        #loader::before { content: ''; width: 60px; height: 60px; border-radius: 50%; border: 4px solid var(--glass-border); border-top-color: var(--accent-color); animation: spin 1s linear infinite, pulseGlow 2s infinite ease-in-out; }
+        #popupMessage { display: none; position: fixed; bottom: 30px; right: 30px; color: #111; padding: 1rem 1.75rem; border-radius: 8px; box-shadow: var(--shadow); z-index: 10001; opacity: 0; transform: translateY(20px); transition: all .4s cubic-bezier(0.25, 0.8, 0.25, 1); font-weight: 600; }
+        #popupMessage.show { display: block; opacity: 1; transform: translateY(0); }
+        #popupMessage.success { background-color: var(--success-color); }
+        #popupMessage.error { background-color: var(--danger-color); }
 
-        /* Pending Changes Panel */
-        .pending-changes-panel { position: fixed; bottom: 0; left: 0; width: 100%; z-index: 500; background: var(--card-bg); border-top: 1px solid var(--border-color); box-shadow: 0 -5px 20px var(--shadow-color); border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0; backdrop-filter: blur(10px); transition: transform var(--transition-speed); transform: translateY(calc(100% - 60px)); }
-        .pending-changes-panel.open { transform: translateY(0); }
-        .panel-header { padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
-        .panel-content { padding: 0 1.5rem 1.5rem 1.5rem; max-height: 40vh; overflow-y: auto; }
-        .panel-actions { display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; margin-bottom: 1rem; }
-        .export-option { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; }
-
-        /* UNIFIED RESPONSIVE TABLE WITH STICKY COLUMNS */
-        .table-wrapper {
-            overflow-x: auto;
-            border: 1px solid var(--border-color);
-            border-radius: var(--border-radius-md);
-        }
-        table {
-            border-collapse: collapse;
-            width: 100%;
-            min-width: 1200px; /* Increased min-width for the new column */
-            font-size: 0.9em;
-        }
-        th, td {
-            padding: 0.75rem 1rem;
-            border-bottom: 1px solid var(--border-color);
-            text-align: right;
-            white-space: nowrap;
-            background-color: var(--card-bg);
-        }
-        th {
-            background-color: var(--input-bg);
-            position: sticky;
-            top: 0;
-            z-index: 2;
-        }
-        tbody tr:last-child td { border-bottom: none; }
-        tbody tr:hover td { background-color: var(--input-bg); }
-        
-        th.sticky-col-name, td.sticky-col-name {
-            position: sticky;
-            right: 0; 
-            z-index: 1;
-            box-shadow: -2px 0 5px -2px var(--sticky-shadow);
-        }
-        th.sticky-col-name { z-index: 3; }
-
-        th.sticky-col-action, td.sticky-col-action {
-            position: sticky;
-            left: 0;
-            z-index: 1;
-            box-shadow: 2px 0 5px -2px var(--sticky-shadow);
-            text-align: center;
-        }
-        th.sticky-col-action { z-index: 3; }
-        .delete-icon { color: var(--danger-color); cursor: pointer; font-size: 1.2rem; }
-        
-        /* Generic Form & Button Styles */
-        .form-group { display: flex; flex-direction: column; gap: 0.5rem; }
-        input, select { width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: var(--border-radius-md); background-color: var(--input-bg); color: var(--text-primary); font-size: 1rem; font-family: var(--font-family); }
-        .btn { padding: 0.75rem 1.5rem; border-radius: var(--border-radius-md); cursor: pointer; font-size: 1rem; font-weight: 500; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; border: 1px solid transparent; transition: all var(--transition-speed); }
-        .btn-primary { background-color: var(--primary-color); color: #fff; }
-        .btn-primary:hover { background-color: var(--primary-hover); }
-        .btn-secondary { background-color: transparent; color: var(--text-primary); border-color: var(--border-color); }
-        .btn-danger { background-color: var(--danger-color); color: #fff; }
-        
-        /* Theme Toggle */
-        .theme-switch-wrapper { display: flex; align-items: center; gap: 8px; }
-        .theme-switch { display: inline-block; height: 24px; position: relative; width: 44px; }
-        .theme-switch input { display: none; }
-        .slider { background-color: #ccc; bottom: 0; cursor: pointer; left: 0; position: absolute; right: 0; top: 0; transition: .4s; border-radius: 34px; }
-        .slider:before { background-color: #fff; bottom: 4px; content: ""; height: 16px; left: 4px; position: absolute; transition: .4s; border-radius: 50%; }
-        input:checked + .slider { background-color: var(--primary-color); }
-        input:checked + .slider:before { transform: translateX(20px); }
-
-        @media (max-width: 768px) {
-            .form-grid-3-col { grid-template-columns: 1fr; }
-        }
-        @media (max-width: 640px) {
-            .form-grid { grid-template-columns: 1fr; }
-            .form-group.full-width { grid-column: span 1; }
-            .item-list li { grid-template-columns: 2fr 1fr; grid-template-areas: "name status" "code plu"; }
-            .item-list li span:nth-child(1) { grid-area: code; }
-            .item-list li span:nth-child(2) { grid-area: plu; }
-            .item-list li span:nth-child(3) { grid-area: name; font-size: 1.1em; font-weight: 500; }
-            .item-list li span:nth-child(4) { grid-area: status; justify-self: end; }
-            .list-header-row { display: none; }
+        /* --- UPDATED PRINT STYLES --- */
+        @media print {
+            body { background: #fff !important; }
+            body * { visibility: hidden; }
+            .print-section, .print-section * { visibility: visible; }
+            .print-section { position: absolute; left: 0; top: 0; width: 100%; }
+            @page {
+                size: A4 portrait;
+                margin: 0.5in;
+            }
+            .transfer-order {
+                width: 100%; /* Use full width for better layout */
+                margin: 0 auto 30px auto; /* Center and add space between slips */
+                padding: 15px; border: 1px solid #000; border-radius: 10px;
+                font-family: Arial, sans-serif; color: #000;
+                box-sizing: border-box; page-break-inside: avoid;
+            }
+            .transfer-order h2 { font-size: 1.2em; text-align: center; margin-bottom: 12px; color: #000; border-bottom: 1px solid #ddd; padding-bottom: 8px; }
+            .order-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+            .order-item { border: 1px solid #ddd; padding: 8px; border-radius: 4px; font-size: .9em; word-wrap: break-word; }
+            .order-item.full-width { grid-column: 1 / -1; } /* Span across both columns */
+            .branches-list { padding-left: 20px; margin-top: 5px; }
+            .branches-list li { margin-bottom: 3px; }
+            .signature-area { display: flex; justify-content: space-around; margin-top: 25px; padding-top: 15px; border-top: 1px solid #ccc; }
+            .signature-box p { margin: 0; font-weight: bold; }
+            .signature-line { border-bottom: 1px dashed #777; height: 40px; margin-top: 5px; }
+            .version-number { text-align: right; font-size: .8em; color: #555; margin-top: 10px; }
         }
     </style>
 </head>
 <body>
 
-    <header class="app-header">
-        <h1><i class="fa-solid fa-store"></i> إدارة الأصناف</h1>
-        <div class="header-actions">
-            <button class="btn btn-secondary" onclick="showHomepage()"><i class="fa-solid fa-house"></i> الرئيسية</button>
-            <div class="theme-switch-wrapper">
-                <i class="fas fa-sun"></i>
-                <label class="theme-switch" for="checkbox">
-                    <input type="checkbox" id="checkbox" />
-                    <div class="slider round"></div>
-                </label>
-                <i class="fas fa-moon"></i>
-            </div>
-        </div>
-    </header>
+<div id="loader" style="display: none;">Loading...</div>
 
-    <main id="app-main">
-        <!-- Homepage View -->
-        <div id="homepage" class="homepage-container">
-            <div class="homepage-card" onclick="showWorkspace('edit')">
-                <i class="fas fa-tags"></i>
-                <span>تعديل أسعار الأصناف</span>
-            </div>
-            <div class="homepage-card" onclick="showWorkspace('add')">
-                <i class="fas fa-plus-circle"></i>
-                <span>إضافة صنف جديد</span>
-            </div>
+<div class="page-container">
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo"><i class="fa-solid fa-rocket"></i></div>
+            <h1> Tracker</h1>
         </div>
+        <p>Aurora Edition &copy; 2024</p>
+    </aside>
 
-        <!-- Workspace View -->
-        <div id="workspace" class="workspace-container" style="display: none;">
-            <div class="list-container">
-                <div class="list-header-controls">
-                    <input type="text" id="searchInput" class="btn" placeholder="بحث بالاسم أو الكود...">
-                    <button id="showAddItemModalBtn" class="btn btn-primary"><i class="fa-solid fa-plus"></i> إضافة صنف جديد</button>
+    <main class="main-content">
+        <div class="glass-card" id="form-card">
+            <div class="card-header">
+                <h2><i class="fa-solid fa-plus-circle"></i>Create New Batch</h2>
+                <button class="btn btn-primary" id="viewRecordsBtn"><i class="fa-solid fa-list-check"></i> View Saved Records</button>
+            </div>
+            
+            <div class="form-group" style="margin-bottom: 1.75rem;">
+                <label for="description">Document Description</label>
+                <textarea id="description" rows="3" required placeholder="e.g., Invoices, Contracts, Memos..."></textarea>
+            </div>
+            
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="driverName">Driver Name</label>
+                    <input type="text" id="driverName" required>
                 </div>
-                <div class="item-list-wrapper">
-                    <ul id="itemList" class="item-list">
-                        <li class="list-header-row">
-                            <span>الكود</span>
-                            <span>كود PLU</span>
-                            <span>الاسم</span>
-                            <span>الحالة</span>
-                        </li>
-                    </ul>
+                <div class="form-group">
+                    <label for="date">Document Date</label>
+                    <input type="text" id="date" required>
                 </div>
+                <div class="form-group">
+                    <label for="status">Initial Status</label>
+                    <select id="status">
+                        <option value="Pending">Pending</option>
+                        <option value="In Transit">In Transit</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Select Destination Branches</label>
+                <div id="branch-checkboxes"></div>
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-secondary" onclick="resetForm()"><i class="fa-solid fa-rotate-left"></i> Reset</button>
+                <button class="btn btn-primary" onclick="processBatch(false)"><i class="fa-solid fa-floppy-disk"></i> Save</button>
+                <button class="btn btn-primary" onclick="processBatch(true)"><i class="fa-solid fa-print"></i> Save & Print</button>
             </div>
         </div>
     </main>
+</div>
 
-    <!-- Modal for Editing an Item -->
-    <div id="editItemModal" class="modal-overlay">
-        <div class="modal-content">
-            <div class="modal-header"><h2>تعديل بيانات الصنف</h2><button class="modal-close-btn">×</button></div>
-            <div class="modal-body">
-                <div class="form-grid">
-                    <div class="form-group full-width"><label>الاسم</label><div class="uneditable-display" id="nameDisplay"></div></div>
-                    <div class="form-group"><label>الكود</label><div class="uneditable-display" id="codeDisplay"></div></div>
-                    <div class="form-group"><label>الحالة الحالية</label><div class="uneditable-display" id="statusDisplay"></div></div>
+<!-- NEW: RECORDS MODAL -->
+<div class="modal-overlay" id="recordsModal">
+    <div class="modal-content">
+        <div class="glass-card" id="recordsContainer">
+             <div class="card-header">
+                <h2><i class="fa-solid fa-layer-group"></i>Saved Records</h2>
+            </div>
+            <div id="filterSearch">
+                <div class="date-filter-group">
+                    <input type="text" id="dateFilter" placeholder="Filter by creation date...">
                 </div>
-                <hr style="border:none; border-top: 1px solid var(--border-color); margin: 1.5rem 0;">
-                
-                <div class="form-group full-width">
-                    <label for="costInput">التكلفة</label>
-                    <div style="display: flex; gap: 0.75rem; align-items: center;">
-                        <input type="number" id="costInput" step="0.001" placeholder="أدخل التكلفة" style="flex-grow: 1;">
-                        <button id="calculatePricesBtn" type="button" class="btn btn-secondary" style="flex-shrink: 0; padding: 0.75rem 1rem;">
-                            <i class="fa-solid fa-calculator"></i> حساب
-                        </button>
-                    </div>
+                <div class="filter-group">
+                    <select id="categoryFilter">
+                        <option value="">Filter by category...</option>
+                        <option value="trackingNumber">Tracking #</option>
+                        <option value="driverName">Driver</option>
+                        <option value="branch">Branch</option>
+                        <option value="status">Status</option>
+                    </select>
+                    <input type="text" id="searchTerms" placeholder="Enter search term...">
                 </div>
-
-                <!-- *** MODIFICATION: Using 3-column grid for margins *** -->
-                <div class="form-grid-3-col" style="margin-top: 1.5rem;">
-                    <div class="form-group"><label for="cairoMarginInput">نسبة القاهرة (%)</label><input type="number" id="cairoMarginInput" step="0.001" placeholder="أدخل النسبة"></div>
-                    <div class="form-group"><label for="sahelMarginInput">نسبة الساحل (%)</label><input type="number" id="sahelMarginInput" step="0.001" placeholder="أدخل النسبة"></div>
-                    <div class="form-group"><label for="sokhnaMarginInput">نسبة السخنة (%)</label><input type="number" id="sokhnaMarginInput" step="0.001" placeholder="أدخل النسبة"></div>
-                </div>
-
-                <!-- *** MODIFICATION: Using 3-column grid for prices *** -->
-                <div class="form-grid-3-col" style="margin-top: 1.5rem;">
-                    <div class="form-group"><label for="cairoPriceInput">سعر القاهرة</label><input type="number" id="cairoPriceInput" step="0.001" placeholder="أدخل السعر يدوياً"></div>
-                    <div class="form-group"><label for="sahelPriceInput">سعر الساحل</label><input type="number" id="sahelPriceInput" step="0.001" placeholder="أدخل السعر يدوياً"></div>
-                    <div class="form-group"><label for="sokhnaPriceInput">سعر السخنة</label><input type="number" id="sokhnaPriceInput" step="0.001" placeholder="أدخل السعر يدوياً"></div>
-                </div>
-
-                <div class="form-grid" style="margin-top: 1.5rem;">
-                    <div class="form-group"><label for="supplierInput">المورد</label><input type="text" id="supplierInput" placeholder="اسم المورد"></div>
-                    <div class="form-group"><label for="expiryInput">صلاحية (يوم)</label><input type="number" id="expiryInput" placeholder="e.g., 30"></div>
-                    <div class="form-group full-width"><label for="newStatusInput">الحالة الجديدة</label><select id="newStatusInput"><option value="" selected>بدون تغيير</option><option value="جاري">جاري</option><option value="موقوف">موقوف</option></select></div>
+                <div class="button-group" style="margin-top: 0;">
+                    <button class="btn btn-secondary" id="resetFiltersBtn"><i class="fa-solid fa-eraser"></i> Reset</button>
+                    <button class="btn btn-primary" id="applyFiltersBtn"><i class="fa-solid fa-filter"></i> Apply</button>
                 </div>
             </div>
-            <div class="modal-footer"><button class="btn btn-secondary modal-close-btn">إلغاء</button><button id="addButton" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> حفظ التغييرات</button></div>
+
+            <div class="table-responsive">
+                <table id="recordTable">
+                    <thead>
+                        <tr>
+                            <th class="checkbox-col"><input type="checkbox" id="selectAllCheckbox" title="Select All"></th>
+                            <th>Tracking #</th>
+                            <th>Driver</th>
+                            <th>Branch</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th style="text-align:center;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recordTableBody"></tbody>
+                </table>
+            </div>
+            <div class="button-group" style="justify-content: flex-start; margin-top: 1.5rem;">
+                 <button class="btn btn-secondary" onclick="printSelectedRecords()"><i class="fa-solid fa-print"></i> Print Selected</button>
+            </div>
         </div>
     </div>
+    <button class="modal-close-btn" id="closeRecordsModalBtn" title="Close"><i class="fa-solid fa-times"></i></button>
+</div>
 
-    <!-- Modal for Adding a New Item -->
-    <div id="addNewItemModal" class="modal-overlay">
-        <div class="modal-content">
-            <div class="modal-header"><h2>إضافة صنف جديد</h2><button class="modal-close-btn">×</button></div>
-            <div class="modal-body">
-                <div class="form-group full-width"><label for="newItemName">اسم الصنف</label><input type="text" id="newItemName" placeholder="مثال: جبنة فيتا"></div>
-
-                <div class="form-group full-width" style="margin-top: 1.5rem;">
-                    <label for="newItemCost">التكلفة</label>
-                    <div style="display: flex; gap: 0.75rem; align-items: center;">
-                        <input type="number" id="newItemCost" step="0.001" placeholder="أدخل التكلفة" style="flex-grow: 1;">
-                        <button id="calculateNewPricesBtn" type="button" class="btn btn-secondary" style="flex-shrink: 0; padding: 0.75rem 1rem;">
-                            <i class="fa-solid fa-calculator"></i> حساب
-                        </button>
-                    </div>
+<!-- NEW: EDIT RECORD MODAL -->
+<div class="modal-overlay" id="editModal">
+    <div class="modal-content" style="max-width: 800px;">
+        <div class="glass-card">
+            <div class="card-header">
+                <h2><i class="fa-solid fa-pencil-alt"></i>Edit Record</h2>
+            </div>
+            <input type="hidden" id="editRecordId">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="editDriverName">Driver Name</label>
+                    <input type="text" id="editDriverName" required>
                 </div>
-                
-                <!-- *** MODIFICATION: Using 3-column grid for margins *** -->
-                <div class="form-grid-3-col" style="margin-top: 1.5rem;">
-                    <div class="form-group"><label for="newItemCairoMargin">نسبة القاهرة (%)</label><input type="number" id="newItemCairoMargin" step="0.001" placeholder="أدخل النسبة"></div>
-                    <div class="form-group"><label for="newItemSahelMargin">نسبة الساحل (%)</label><input type="number" id="newItemSahelMargin" step="0.001" placeholder="أدخل النسبة"></div>
-                    <div class="form-group"><label for="newItemSokhnaMargin">نسبة السخنة (%)</label><input type="number" id="newItemSokhnaMargin" step="0.001" placeholder="أدخل النسبة"></div>
-                </div>
-                
-                <!-- *** MODIFICATION: Using 3-column grid for prices *** -->
-                <div class="form-grid-3-col" style="margin-top: 1.5rem;">
-                    <div class="form-group"><label for="newItemCairoPrice">سعر القاهرة</label><input type="number" id="newItemCairoPrice" step="0.001" placeholder="أدخل السعر يدوياً"></div>
-                    <div class="form-group"><label for="newItemSahelPrice">سعر الساحل</label><input type="number" id="newItemSahelPrice" step="0.001" placeholder="أدخل السعر يدوياً"></div>
-                    <div class="form-group"><label for="newItemSokhnaPrice">سعر السخنة</label><input type="number" id="newItemSokhnaPrice" step="0.001" placeholder="أدخل السعر يدوياً"></div>
-                </div>
-
-                <div class="form-grid" style="margin-top: 1.5rem;">
-                    <div class="form-group"><label for="newItemSupplier">المورد</label><input type="text" id="newItemSupplier" placeholder="اسم المورد"></div>
-                    <div class="form-group"><label for="newItemExpiry">صلاحية (يوم)</label><input type="number" id="newItemExpiry" placeholder="e.g., 90"></div>
+                <div class="form-group">
+                    <label for="editDate">Document Date</label>
+                    <input type="text" id="editDate" required>
                 </div>
             </div>
-            <div class="modal-footer"><button class="btn btn-secondary modal-close-btn">إلغاء</button><button id="addNewItemButton" class="btn btn-primary"><i class="fa-solid fa-plus"></i> إضافة الصنف</button></div>
-        </div>
-    </div>
-
-    <!-- Pending Changes Panel -->
-    <div id="pendingChangesPanel" class="pending-changes-panel">
-        <div class="panel-header" onclick="togglePanel()"><h3><i class="fa-solid fa-list-check"></i> التغييرات المعلقة (<span id="changesCount">0</span>)</h3><i id="panelToggleIcon" class="fa-solid fa-chevron-up panel-toggle-icon"></i></div>
-        <div class="panel-content">
-            <div class="panel-actions">
-                <button id="extractButton" class="btn btn-secondary"><i class="fas fa-file-excel"></i> Excel</button>
-                <button id="saveImageButton" class="btn btn-secondary"><i class="fas fa-file-image"></i> صورة</button>
-                <label class="export-option"><input type="checkbox" id="excludeCostCheckbox" /> إخفاء التكلفة</label>
-                <button id="clearTableButton" class="btn btn-danger" style="margin-right: auto;"><i class="fas fa-trash-alt"></i> مسح الكل</button>
+             <div class="form-group" style="margin-bottom: 1.75rem;">
+                <label for="editDescription">Document Description</label>
+                <textarea id="editDescription" rows="3" required></textarea>
             </div>
-            <!-- *** MODIFICATION: Added 'Sokhna' column to the tables *** -->
-            <div id="editChanges" class="table-wrapper"><h4>تعديلات الأسعار</h4><table id="dataTable"><thead><tr><th>الكود</th><th>كود PLU</th><th class="sticky-col-name">الاسم</th><th>التكلفة</th><th>القاهرة</th><th>الساحل</th><th>السخنة</th><th>المورد</th><th>الحالة الجديدة</th><th>الصلاحية</th><th class="sticky-col-action">حذف</th></tr></thead><tbody id="dataTableBody"></tbody></table></div>
-            <hr style="border:none; border-top: 1px solid var(--border-color); margin: 1.5rem 0;">
-            <div id="newChanges" class="table-wrapper"><h4>أصناف جديدة</h4><table id="dataTableNewItem"><thead><tr><th class="sticky-col-name">الاسم</th><th>التكلفة</th><th>القاهرة</th><th>الساحل</th><th>السخنة</th><th>المورد</th><th>الصلاحية</th><th class="sticky-col-action">حذف</th></tr></thead><tbody id="dataTableBodyNewItem"></tbody></table></div>
+            <div class="button-group">
+                <button class="btn btn-secondary" id="closeEditModalBtn"><i class="fa-solid fa-times"></i> Cancel</button>
+                <button class="btn btn-primary" onclick="saveRecordChanges()"><i class="fa-solid fa-save"></i> Save Changes</button>
+            </div>
         </div>
     </div>
+</div>
+
+
+<div class="print-section" id="printSection"></div>
+<div id="popupMessage"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+    // --- CONFIGURATION ---
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyrrY5Lx_mWHebfUHT4tMyTvnx7vEGm4MHSHncJftcg3k00kHWniCKXwtu-63A3wNE3/exec"; // <--- PASTE YOUR DEPLOYED URL
+    const branchOptions = [ "نادى هليوبوليس", "تلال السخنه", "جاردنز السخنه", "لازوردی بای", "الدبلوماسيين", "ستيلا", "كاسكادا", "تلال الساحل", "لافيستا بای", "سوان ليك", "لافيستا رأس الحكمة", "دبلوماسيين - خضار", "هاسيندا ريد - خضار", "فوكا باي", "القطامية", "بالم هيلز رايد" ];
+    const statusOptions = ["Pending", "In Transit", "Delivered", "Problem"];
+    let allRecords = [];
+
+    // --- UI & HELPER FUNCTIONS ---
+    const loader = document.getElementById('loader');
+    const recordsModal = document.getElementById('recordsModal');
+    const editModal = document.getElementById('editModal');
+
+    function showLoader(text = "Loading...") { loader.textContent = text; loader.style.display = 'flex'; }
+    function hideLoader() { loader.style.display = 'none'; }
+    function showPopupMessage(message, isError = false) {
+        const popup = document.getElementById("popupMessage");
+        popup.textContent = message;
+        popup.className = `popup-message ${isError ? "error" : "success"}`;
+        popup.classList.add("show");
+        setTimeout(() => popup.classList.remove("show"), 4000);
+    }
+    function populateBranchCheckboxes(){document.getElementById("branch-checkboxes").innerHTML=branchOptions.map(t=>`<label class="checkbox-label"><input type="checkbox" value="${t}" name="branch"> ${t}</label>`).join("")}
+    function generateTrackingNumber(){return`TRACK-${Date.now().toString(36)}-${Math.random().toString(36).substring(2,7)}`.toUpperCase()}
+    function resetFiltersAndRender() {
+        document.getElementById('searchTerms').value = '';
+        document.getElementById('categoryFilter').value = '';
+        const datePicker = document.querySelector("#dateFilter")._flatpickr;
+        if (datePicker) datePicker.clear();
+        renderTable();
+    }
     
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            initTheme();
-            initModalClosers();
-            fetchDataFromGoogleSheet();
-            document.getElementById('calculatePricesBtn').addEventListener('click', () => triggerPriceCalculation(false));
-            document.getElementById('calculateNewPricesBtn').addEventListener('click', () => triggerPriceCalculation(true));
-        });
-
-        let database = [];
-        let selectedItem = null;
-        const googleSheetURL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRfw5j64mu2wbzx-22AGTlXGWKgCKnssOPjNHrQ6xo-_zDBloRVL2DoTmWSKPFfzg/pub?output=csv';
-
-        function initTheme() {
-            const themeToggle = document.getElementById('checkbox');
-            const savedTheme = localStorage.getItem('theme') || 'light';
-            document.documentElement.setAttribute('data-theme', savedTheme);
-            themeToggle.checked = savedTheme === 'dark';
-            themeToggle.addEventListener('change', function() {
-                const theme = this.checked ? 'dark' : 'light';
-                document.documentElement.setAttribute('data-theme', theme);
-                localStorage.setItem('theme', theme);
+    // --- API COMMUNICATION ---
+    async function apiRequest(action, data = {}) {
+        if (!SCRIPT_URL.startsWith("https://script.google.com/")) {
+            showPopupMessage("ERROR: Please paste your Web App URL in the SCRIPT_URL constant.", true);
+            return null;
+        }
+        showLoader(`Processing ${action}...`);
+        try {
+            const res = await fetch(SCRIPT_URL, {
+                method: 'POST', redirect: "follow", 
+                body: JSON.stringify({ action, ...data }),
+                headers: { "Content-Type": "text/plain;charset=utf-8" }
             });
+            if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+            return await res.json();
+        } catch (error) {
+            console.error('API Request Failed:', error);
+            showPopupMessage('An error occurred. Check the console.', true);
+            return null;
+        } finally {
+            hideLoader();
         }
-        
-        function showHomepage() { document.getElementById('homepage').style.display = 'flex'; document.getElementById('workspace').style.display = 'none'; }
-        function showWorkspace(mode) { document.getElementById('homepage').style.display = 'none'; document.getElementById('workspace').style.display = 'flex'; if (mode === 'add') openModal(document.getElementById('addNewItemModal')); }
-        
-        function initModalClosers() {
-            document.querySelectorAll('.modal-overlay').forEach(o => o.addEventListener('click', e => { if (e.target === o) closeModal(o); }));
-            document.querySelectorAll('.modal-close-btn').forEach(b => b.addEventListener('click', () => closeModal(b.closest('.modal-overlay'))));
-        }
-        function openModal(modal) { modal.classList.add('active'); }
-        function closeModal(modal) { modal.classList.remove('active'); }
+    }
 
-        async function fetchDataFromGoogleSheet() {
-            try {
-                const response = await fetch(googleSheetURL);
-                const csvText = await response.text();
-                const rows = csvText.trim().split('\n');
-                const headers = rows[0].split(',').map(h => h.trim().toLowerCase());
-                // *** MODIFICATION: Added sokhna margin to the indices ***
-                const indices = {
-                    code: headers.indexOf('code'), plu: headers.indexOf('plu'), name: headers.indexOf('name'),
-                    status: headers.indexOf('status'), cairoMargin: headers.indexOf('cairo margin'), 
-                    coastMargin: headers.indexOf('coast margin'), sokhnaMargin: headers.indexOf('sokhna margin')
-                };
-                database = rows.slice(1).map(row => {
-                    const values = row.split(',');
-                    const cairoMargin = parseFloat(values[indices.cairoMargin]?.trim());
-                    const coastMargin = parseFloat(values[indices.coastMargin]?.trim());
-                    const sokhnaMargin = parseFloat(values[indices.sokhnaMargin]?.trim()); // Parse Sokhna margin
-                    return {
-                        code: values[indices.code]?.trim() || '',
-                        pluCode: values[indices.plu]?.trim() || '',
-                        name: values[indices.name]?.trim() || '',
-                        status: values[indices.status]?.trim() || '',
-                        cairoMargin: !isNaN(cairoMargin) ? cairoMargin : 0,
-                        coastMargin: !isNaN(coastMargin) ? coastMargin : 0,
-                        sokhnaMargin: !isNaN(sokhnaMargin) ? sokhnaMargin : 0 // Add to item object
-                    };
-                }).filter(item => item.code || item.name);
-                renderList(database);
-            } catch (error) { console.error("Data Fetch Error:", error); alert("حدث خطأ أثناء تحميل البيانات."); }
+    // --- CORE LOGIC ---
+    async function processBatch(shouldPrint = false) {
+        const driverName = document.getElementById('driverName').value;
+        const date = document.getElementById('date').value;
+        const description = document.getElementById('description').value;
+        const status = document.getElementById('status').value;
+        const selectedBranches = Array.from(document.querySelectorAll('#branch-checkboxes input:checked')).map(cb => cb.value);
+
+        if (!description || !driverName || !date || selectedBranches.length === 0) {
+            return showPopupMessage('Please fill all fields and select at least one branch.', true);
         }
         
-        function renderList(listData) {
-            const itemList = document.getElementById('itemList');
-            const headerRow = itemList.querySelector('.list-header-row');
-            itemList.innerHTML = '';
-            itemList.appendChild(headerRow);
-            if (!listData.length) {
-                const li = document.createElement('li'); li.innerHTML = `<span>لا توجد نتائج</span>`; li.style.gridColumn = 'span 4'; itemList.appendChild(li); return;
-            }
-            listData.forEach(item => {
-                const li = document.createElement('li');
-                li.innerHTML = `<span>${item.code || 'N/A'}</span><span>${item.pluCode || 'N/A'}</span><span>${item.name || 'N/A'}</span><span>${item.status || 'N/A'}</span>`;
-                li.addEventListener('click', () => selectItemForEditing(item));
-                itemList.appendChild(li);
-            });
+        let recordsToProcess = [];
+        const creationTimestamp = new Date().toLocaleString("en-US", { timeZone: "Africa/Cairo" });
+        const trackingNumber = generateTrackingNumber(); // One tracking number for the whole batch
+        
+        for (const branch of selectedBranches) {
+            recordsToProcess.push({ trackingNumber, creationTimestamp, driverName, branch, date, description, status });
         }
-        document.getElementById('searchInput').addEventListener('input', e => {
-            const term = e.target.value.toLowerCase();
-            const filtered = database.filter(item => Object.values(item).some(val => String(val).toLowerCase().includes(term)));
-            renderList(filtered);
+
+        const result = await apiRequest("createBatch", { records: recordsToProcess });
+        
+        if (result && result.success) {
+            showPopupMessage(`${selectedBranches.length} records processed successfully.`);
+            if (shouldPrint) {
+                // The new consolidated print logic expects records grouped. This new batch is one group.
+                printConsolidated([{
+                    key: trackingNumber,
+                    records: recordsToProcess
+                }]);
+            }
+            resetForm();
+            fetchAndRenderRecords(); // Refresh the list
+        } else {
+             showPopupMessage('Failed to save batch. Please check console.', true);
+        }
+    }
+    
+    async function fetchAndRenderRecords() {
+        const result = await apiRequest('fetchAll');
+        if (!result || !Array.isArray(result)) {
+            console.error('Fetch Failed: API did not return a valid array.', result);
+            showPopupMessage('Could not load data. Response was invalid.', true);
+            allRecords = [];
+        } else {
+            allRecords = result;
+        }
+        allRecords.sort((a, b) => (new Date(b.creationTimestamp) - new Date(a.creationTimestamp)));
+        renderTable();
+    }
+
+    function renderTable() {
+        const recordTableBody = document.getElementById('recordTableBody');
+        const searchTerm = document.getElementById('searchTerms').value.toUpperCase();
+        const category = document.getElementById('categoryFilter').value;
+        const datePicker = document.querySelector("#dateFilter")._flatpickr;
+        const selectedDates = datePicker ? datePicker.selectedDates : [];
+
+        const filteredRecords = allRecords.filter(record => {
+            if (typeof record !== 'object' || record === null) return false;
+            const textMatch = !searchTerm || !category || String(record[category] || '').toUpperCase().includes(searchTerm);
+            let dateMatch = true; 
+            if (selectedDates.length > 0 && record.creationTimestamp) {
+                const recordDate = new Date(new Date(record.creationTimestamp).toDateString());
+                const startDate = new Date(selectedDates[0].toDateString());
+                const endDate = selectedDates.length > 1 ? new Date(selectedDates[1].toDateString()) : startDate;
+                dateMatch = recordDate >= startDate && recordDate <= endDate;
+            }
+            return textMatch && dateMatch;
         });
 
-        function selectItemForEditing(item) {
-            selectedItem = item;
-            document.getElementById('nameDisplay').textContent = item.name;
-            document.getElementById('codeDisplay').textContent = item.code;
-            document.getElementById('statusDisplay').textContent = item.status;
-            // *** MODIFICATION: Pre-fill all margins including Sokhna ***
-            document.getElementById('cairoMarginInput').value = item.cairoMargin > 0 ? item.cairoMargin.toFixed(3) : '';
-            document.getElementById('sahelMarginInput').value = item.coastMargin > 0 ? item.coastMargin.toFixed(3) : '';
-            document.getElementById('sokhnaMarginInput').value = item.sokhnaMargin > 0 ? item.sokhnaMargin.toFixed(3) : '';
-            resetEditModalInputs();
-            openModal(document.getElementById('editItemModal'));
-        }
-        document.getElementById('showAddItemModalBtn').addEventListener('click', () => { resetAddModal(); openModal(document.getElementById('addNewItemModal')) });
-        
-        const formatDecimal = numStr => (!numStr || isNaN(parseFloat(numStr))) ? '' : parseFloat(numStr).toFixed(3);
-        const calculatePrice = (cost, margin) => (cost > 0 && margin >= 0 && margin < 100) ? cost / (1 - (margin / 100)) : 0;
-        
-        function triggerPriceCalculation(isNewItem) {
-            // *** MODIFICATION: Get all Sokhna-related inputs ***
-            const costInput = document.getElementById(isNewItem ? 'newItemCost' : 'costInput');
-            const cairoMarginInput = document.getElementById(isNewItem ? 'newItemCairoMargin' : 'cairoMarginInput');
-            const sahelMarginInput = document.getElementById(isNewItem ? 'newItemSahelMargin' : 'sahelMarginInput');
-            const sokhnaMarginInput = document.getElementById(isNewItem ? 'newItemSokhnaMargin' : 'sokhnaMarginInput');
-            const cairoPriceOutput = document.getElementById(isNewItem ? 'newItemCairoPrice' : 'cairoPriceInput');
-            const sahelPriceOutput = document.getElementById(isNewItem ? 'newItemSahelPrice' : 'sahelPriceInput');
-            const sokhnaPriceOutput = document.getElementById(isNewItem ? 'newItemSokhnaPrice' : 'sokhnaPriceInput');
-
-            const cost = parseFloat(costInput.value);
-            if (isNaN(cost) || cost <= 0) { alert('الرجاء إدخال قيمة تكلفة صالحة أولاً.'); costInput.focus(); return; }
-
-            // *** MODIFICATION: Calculate and set all prices including Sokhna ***
-            const cairoPrice = calculatePrice(cost, parseFloat(cairoMarginInput.value));
-            const sahelPrice = calculatePrice(cost, parseFloat(sahelMarginInput.value));
-            const sokhnaPrice = calculatePrice(cost, parseFloat(sokhnaMarginInput.value));
-            cairoPriceOutput.value = cairoPrice > 0 ? cairoPrice.toFixed(3) : '';
-            sahelPriceOutput.value = sahelPrice > 0 ? sahelPrice.toFixed(3) : '';
-            sokhnaPriceOutput.value = sokhnaPrice > 0 ? sokhnaPrice.toFixed(3) : '';
-        }
-        
-        document.getElementById('addButton').addEventListener('click', () => {
-            if (!selectedItem) { alert('الرجاء اختيار صنف أولاً.'); return; }
-            const tableBody = document.getElementById('dataTableBody');
-            const newRow = tableBody.insertRow();
-            // *** MODIFICATION: Add Sokhna price to the table row ***
-            newRow.innerHTML = `
-                <td>${selectedItem.code}</td>
-                <td>${selectedItem.pluCode || 'N/A'}</td>
-                <td class="sticky-col-name">${selectedItem.name}</td>
-                <td>${formatDecimal(document.getElementById('costInput').value)}</td>
-                <td>${formatDecimal(document.getElementById('cairoPriceInput').value)}</td>
-                <td>${formatDecimal(document.getElementById('sahelPriceInput').value)}</td>
-                <td>${formatDecimal(document.getElementById('sokhnaPriceInput').value)}</td>
-                <td>${document.getElementById('supplierInput').value}</td>
-                <td>${document.getElementById('newStatusInput').value || 'بدون تغيير'}</td>
-                <td>${document.getElementById('expiryInput').value || ''}</td>
-                <td class="sticky-col-action"><i class="fas fa-trash-alt delete-icon"></i></td>`;
-            newRow.querySelector('.delete-icon').onclick = () => { newRow.remove(); updateChangesCount(); };
-            closeModal(document.getElementById('editItemModal'));
-            updateChangesCount();
-            if (!document.getElementById('pendingChangesPanel').classList.contains('open')) togglePanel();
-        });
-        
-        document.getElementById('addNewItemButton').addEventListener('click', () => {
-            const name = document.getElementById('newItemName').value;
-            if (!name.trim()) { alert('الرجاء إدخال اسم الصنف.'); return; }
-            const tableBody = document.getElementById('dataTableBodyNewItem');
-            const newRow = tableBody.insertRow();
-            // *** MODIFICATION: Add Sokhna price to the new item table row ***
-            newRow.innerHTML = `
-                <td class="sticky-col-name">${name}</td>
-                <td>${formatDecimal(document.getElementById('newItemCost').value)}</td>
-                <td>${formatDecimal(document.getElementById('newItemCairoPrice').value)}</td>
-                <td>${formatDecimal(document.getElementById('newItemSahelPrice').value)}</td>
-                <td>${formatDecimal(document.getElementById('newItemSokhnaPrice').value)}</td>
-                <td>${document.getElementById('newItemSupplier').value}</td>
-                <td>${document.getElementById('newItemExpiry').value || ''}</td>
-                <td class="sticky-col-action"><i class="fas fa-trash-alt delete-icon"></i></td>`;
-            newRow.querySelector('.delete-icon').onclick = () => { newRow.remove(); updateChangesCount(); };
-            closeModal(document.getElementById('addNewItemModal'));
-            resetAddModal();
-            updateChangesCount();
-            if (!document.getElementById('pendingChangesPanel').classList.contains('open')) togglePanel();
-        });
-
-        function resetEditModalInputs() { 
-            // *** MODIFICATION: Clear Sokhna inputs on reset ***
-            ['costInput', 'supplierInput', 'cairoPriceInput', 'sahelPriceInput', 'sokhnaPriceInput', 'newStatusInput', 'expiryInput'].forEach(id => {
-                const el = document.getElementById(id);
-                if(el.tagName.toLowerCase() === 'select') { el.selectedIndex = 0; } else { el.value = ''; }
-            });
-        }
-        function resetAddModal() { document.getElementById('addNewItemModal').querySelectorAll('input, select').forEach(el => el.value = ''); }
-
-        function togglePanel() { document.getElementById('pendingChangesPanel').classList.toggle('open'); }
-        function updateChangesCount() { document.getElementById('changesCount').textContent = document.getElementById('dataTableBody').rows.length + document.getElementById('dataTableBodyNewItem').rows.length; }
-        
-        document.getElementById('clearTableButton').addEventListener('click', () => {
-            document.getElementById('dataTableBody').innerHTML = '';
-            document.getElementById('dataTableBodyNewItem').innerHTML = '';
-            updateChangesCount();
-        });
-        
-        function cloneAndRemoveColumn(tableElement, columnIndex) {
-            const clone = tableElement.cloneNode(true);
-            for (const row of clone.rows) { if(row.cells[columnIndex]) { row.deleteCell(columnIndex); } }
-            return clone;
+        if (filteredRecords.length === 0) {
+            recordTableBody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 3rem; color: var(--text-secondary);">No records match your filters.</td></tr>`;
+            return;
         }
 
-        document.getElementById('extractButton').addEventListener('click', () => {
-            const excludeCost = document.getElementById('excludeCostCheckbox').checked;
-            const wb = XLSX.utils.book_new();
-            if (document.getElementById('dataTableBody').rows.length > 0) {
-                let editTable = document.getElementById('dataTable');
-                if (excludeCost) { editTable = cloneAndRemoveColumn(editTable, 3); }
-                const ws1 = XLSX.utils.table_to_sheet(editTable);
-                XLSX.utils.book_append_sheet(wb, ws1, "تعديلات الأسعار");
+        recordTableBody.innerHTML = filteredRecords.map((t, index) => {
+            const statusDropdown = `<select class="status-select" onchange="updateStatus('${t.id}', this.value)">
+                ${statusOptions.map(e => `<option value="${e}" ${t.status === e ? 'selected' : ''}>${e}</option>`).join('')}
+            </select>`;
+            const recordDataString = JSON.stringify(t);
+
+            return `<tr class="animate-in" style="animation-delay: calc(${index} * 0.05s);">
+                <td class="checkbox-col"><input type="checkbox" class="record-checkbox" data-record='${recordDataString}'></td>
+                <td>${t.trackingNumber || ''}</td>
+                <td>${t.driverName || ''}</td>
+                <td>${t.branch || ''}</td>
+                <td>${t.date || ''}</td>
+                <td>${statusDropdown}</td>
+                <td style="text-align:center;"><div class="action-buttons">
+                    <button title="Edit" onclick='openEditModal(${recordDataString})'><i class="fa-solid fa-pencil-alt"></i></button>
+                    <button title="Delete" onclick="deleteRecord('${t.id}')"><i class="fa-solid fa-trash-can"></i></button>
+                </div></td>
+            </tr>`;
+        }).join('');
+    }
+
+    async function updateStatus(recordId, newStatus) {
+        const result = await apiRequest("updateStatus", {id: recordId, status: newStatus});
+        if (result && result.success) {
+            showPopupMessage("Status updated!");
+            const record = allRecords.find(r => r.id == recordId);
+            if (record) record.status = newStatus;
+        }
+    }
+    
+    async function deleteRecord(recordId) {
+        if (confirm("Are you sure you want to permanently delete this record?")) {
+            const result = await apiRequest("delete", {id: recordId});
+            if (result && result.success) {
+                showPopupMessage("Record deleted.");
+                allRecords = allRecords.filter(r => r.id != recordId);
+                renderTable();
             }
-            if (document.getElementById('dataTableBodyNewItem').rows.length > 0) {
-                let newTable = document.getElementById('dataTableNewItem');
-                 if (excludeCost) { newTable = cloneAndRemoveColumn(newTable, 1); }
-                const ws2 = XLSX.utils.table_to_sheet(newTable);
-                XLSX.utils.book_append_sheet(wb, ws2, "أصناف جديدة");
+        }
+    }
+    
+    function resetForm(){document.getElementById("driverName").value="",document.getElementById("description").value="",document.querySelectorAll("#branch-checkboxes input:checked").forEach(t=>t.checked=!1),flatpickr("#date",{}).setDate(new Date)}
+    
+    // --- NEW EDIT MODAL LOGIC ---
+    function openEditModal(record) {
+        document.getElementById('editRecordId').value = record.id;
+        document.getElementById('editDriverName').value = record.driverName;
+        document.getElementById('editDate').value = record.date;
+        document.getElementById('editDescription').value = record.description;
+        flatpickr("#editDate", { dateFormat: "Y-m-d" }).setDate(record.date);
+        editModal.classList.add('show');
+    }
+
+    async function saveRecordChanges() {
+        const recordData = {
+            id: document.getElementById('editRecordId').value,
+            driverName: document.getElementById('editDriverName').value,
+            date: document.getElementById('editDate').value,
+            description: document.getElementById('editDescription').value
+        };
+
+        if (!recordData.driverName || !recordData.date || !recordData.description) {
+            return showPopupMessage('Please fill all fields.', true);
+        }
+
+        const result = await apiRequest("updateRecord", { recordData });
+        if (result && result.success) {
+            showPopupMessage("Record updated successfully!");
+            editModal.classList.remove('show');
+            // Update local data and re-render
+            const recordIndex = allRecords.findIndex(r => r.id == recordData.id);
+            if (recordIndex > -1) {
+                allRecords[recordIndex] = { ...allRecords[recordIndex], ...recordData };
+                renderTable();
+            } else {
+                fetchAndRenderRecords(); // Fallback to refetch all
             }
-            if (wb.SheetNames.length > 0) { XLSX.writeFile(wb, "grocery_changes.xlsx"); } else { alert("لا توجد تغييرات للتصدير."); }
+        }
+    }
+
+    // --- REWRITTEN & CONSOLIDATED PRINTING LOGIC ---
+    function printConsolidated(recordGroups) {
+        let printHTML = '';
+        
+        recordGroups.forEach(group => {
+            const firstRecord = group.records[0];
+            const branchesHTML = group.records.map(r => `<li>${r.branch}</li>`).join('');
+
+            printHTML += `
+                <div class="transfer-order">
+                    <h2>Document Transfer Order</h2>
+                    <div class="order-grid">
+                        <div class="order-item"><strong>Driver:</strong> ${firstRecord.driverName || ""}</div>
+                        <div class="order-item"><strong>Date:</strong> ${firstRecord.date || ""}</div>
+                        <div class="order-item full-width"><strong>Tracking #:</strong> ${firstRecord.trackingNumber || ""}</div>
+                        <div class="order-item full-width"><strong>Description:</strong> ${firstRecord.description || ""}</div>
+                        <div class="order-item full-width">
+                            <strong>Destination Branches:</strong>
+                            <ul class="branches-list">${branchesHTML}</ul>
+                        </div>
+                    </div>
+                    <div class="signature-area">
+                        <div class="signature-box">
+                            <p>Driver Signature</p>
+                            <div class="signature-line"></div>
+                        </div>
+                        <div class="signature-box">
+                            <p>Receiver Signature</p>
+                            <div class="signature-line"></div>
+                        </div>
+                    </div>
+                    <p class="version-number">v3.0 Consolidated</p>
+                </div>`;
         });
         
-        document.getElementById('saveImageButton').addEventListener('click', () => {
-            const excludeCost = document.getElementById('excludeCostCheckbox').checked;
-            const captureContainer = document.createElement('div');
-            Object.assign(captureContainer.style, {
-                position: 'absolute', left: '-9999px', top: '0', width: '1200px',
-                direction: 'rtl', padding: '1.5rem',
-                background: document.documentElement.getAttribute('data-theme') === 'dark' 
-                    ? 'linear-gradient(135deg, #1e293b, #0f172a)' 
-                    : 'linear-gradient(135deg, #f0f9ff, #e0f2fe)'
-            });
-            let contentAdded = false;
-            const editTableRows = document.getElementById('dataTableBody').rows.length;
-            const newItemTableRows = document.getElementById('dataTableBodyNewItem').rows.length;
-            if (editTableRows > 0) {
-                let editChangesWrapper = document.getElementById('editChanges').cloneNode(true);
-                if (excludeCost) { let tableToModify = editChangesWrapper.querySelector('#dataTable'); let newTable = cloneAndRemoveColumn(tableToModify, 3); tableToModify.parentNode.replaceChild(newTable, tableToModify); }
-                captureContainer.appendChild(editChangesWrapper);
-                contentAdded = true;
+        document.getElementById("printSection").innerHTML = printHTML;
+        window.print();
+    }
+
+    function printSelectedRecords() {
+        const selectedCheckboxes = document.querySelectorAll(".record-checkbox:checked");
+        if (selectedCheckboxes.length === 0) {
+            return showPopupMessage("Please select at least one record to print.", true);
+        }
+        
+        const recordsToPrint = Array.from(selectedCheckboxes).map(cb => JSON.parse(cb.dataset.record));
+        
+        // Group records by Tracking Number
+        const groupedByTracking = recordsToPrint.reduce((acc, record) => {
+            const key = record.trackingNumber;
+            if (!acc[key]) {
+                acc[key] = { key: key, records: [] };
             }
-            if (editTableRows > 0 && newItemTableRows > 0) {
-                const separator = document.createElement('hr');
-                Object.assign(separator.style, { border: 'none', borderTop: '1px solid var(--border-color)', margin: '1.5rem 0' });
-                captureContainer.appendChild(separator);
-            }
-            if (newItemTableRows > 0) {
-                 let newChangesWrapper = document.getElementById('newChanges').cloneNode(true);
-                 if (excludeCost) { let tableToModify = newChangesWrapper.querySelector('#dataTableNewItem'); let newTable = cloneAndRemoveColumn(tableToModify, 1); tableToModify.parentNode.replaceChild(newTable, tableToModify); }
-                captureContainer.appendChild(newChangesWrapper);
-                contentAdded = true;
-            }
-            if (!contentAdded) { alert('لا توجد بيانات لحفظها كصورة.'); return; }
-            document.body.appendChild(captureContainer);
-            const isDarkMode = document.documentElement.getAttribute('data-theme') === 'dark';
-            html2canvas(captureContainer, {
-                scale: 2, useCORS: true, backgroundColor: isDarkMode ? '#0f172a' : '#f0f9ff'
-            }).then(canvas => {
-                const link = document.createElement('a');
-                link.download = 'pending_changes.png';
-                link.href = canvas.toDataURL('image/png');
-                link.click();
-            }).catch(err => { console.error('Image capture failed:', err); alert('حدث خطأ أثناء حفظ الصورة.');
-            }).finally(() => { document.body.removeChild(captureContainer); });
+            acc[key].records.push(record);
+            return acc;
+        }, {});
+
+        printConsolidated(Object.values(groupedByTracking));
+    }
+
+
+    // --- INITIALIZATION ---
+    document.addEventListener('DOMContentLoaded', () => {
+        flatpickr("#date", { dateFormat: "Y-m-d", defaultDate: "today" });
+        flatpickr("#dateFilter", { mode: "range", dateFormat: "Y-m-d", altInput: true, altFormat: "M j, Y" });
+
+        populateBranchCheckboxes();
+        fetchAndRenderRecords(); // Initial fetch
+        
+        // Modal Triggers
+        document.getElementById('viewRecordsBtn').addEventListener('click', () => recordsModal.classList.add('show'));
+        document.getElementById('closeRecordsModalBtn').addEventListener('click', () => recordsModal.classList.remove('show'));
+        document.getElementById('closeEditModalBtn').addEventListener('click', () => editModal.classList.remove('show'));
+
+        // Filter Triggers
+        document.getElementById('applyFiltersBtn').addEventListener('click', renderTable);
+        document.getElementById('resetFiltersBtn').addEventListener('click', resetFiltersAndRender);
+
+        // Select All Checkbox
+        document.getElementById('selectAllCheckbox').addEventListener('change', e => {
+            document.querySelectorAll('#recordTableBody .record-checkbox').forEach(cb => cb.checked = e.target.checked);
         });
-    </script>
+    });
+</script>
+
 </body>
 </html>
