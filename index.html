@@ -145,32 +145,49 @@
         #popupMessage.error { background-color: var(--danger-color); }
 
         /* --- UPDATED PRINT STYLES --- */
+               /* --- FINAL UPDATED PRINT STYLES --- */
         @media print {
             body { background: #fff !important; }
             body * { visibility: hidden; }
             .print-section, .print-section * { visibility: visible; }
-            .print-section { position: absolute; left: 0; top: 0; width: 100%; }
+            
+            /* --- MODIFIED RULES FOR RIGHT-HALF LAYOUT --- */
+            .print-section {
+                position: absolute;
+                top: 0;
+                right: 0; /* Align to the right edge of the page */
+                width: 50%; /* Occupy only the right half */
+            }
+
             @page {
                 size: A4 portrait;
-                margin: 0.5in;
+                margin: 0.5in; /* Standard margin around the entire page */
             }
+
             .transfer-order {
-                width: 100%; /* Use full width for better layout */
-                margin: 0 auto 30px auto; /* Center and add space between slips */
-                padding: 15px; border: 1px solid #000; border-radius: 10px;
-                font-family: Arial, sans-serif; color: #000;
-                box-sizing: border-box; page-break-inside: avoid;
+                width: 100%; /* Take up the full width of its new 50% container */
+                margin: 0 auto 30px auto;
+                padding: 15px;
+                border: 1px solid #000;
+                border-radius: 10px;
+                font-family: Arial, sans-serif;
+                color: #000;
+                box-sizing: border-box;
+                page-break-inside: avoid;
             }
+            
+            /* The rest of the styles remain the same */
             .transfer-order h2 { font-size: 1.2em; text-align: center; margin-bottom: 12px; color: #000; border-bottom: 1px solid #ddd; padding-bottom: 8px; }
             .order-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
             .order-item { border: 1px solid #ddd; padding: 8px; border-radius: 4px; font-size: .9em; word-wrap: break-word; }
-            .order-item.full-width { grid-column: 1 / -1; } /* Span across both columns */
+            .order-item.full-width { grid-column: 1 / -1; }
             .branches-list { padding-left: 20px; margin-top: 5px; }
             .branches-list li { margin-bottom: 3px; }
             .signature-area { display: flex; justify-content: space-around; margin-top: 25px; padding-top: 15px; border-top: 1px solid #ccc; }
             .signature-box p { margin: 0; font-weight: bold; }
             .signature-line { border-bottom: 1px dashed #777; height: 40px; margin-top: 5px; }
             .version-number { text-align: right; font-size: .8em; color: #555; margin-top: 10px; }
+        }
         }
     </style>
 </head>
