@@ -15,45 +15,30 @@
     
     <!-- Flatpickr (Date Picker) -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-    <!-- Dark theme for Flatpickr -->
     <link rel="stylesheet" href="https://npmcdn.com/flatpickr/dist/themes/dark.css">
 
-
     <style>
-        /* --- AURORA THEME: ROOT VARIABLES (UNCHANGED) --- */
+        /* --- AURORA THEME: ROOT VARIABLES --- */
         :root {
-            --bg-color: #11101d;
-            --sidebar-bg: #1d1b31;
-            --glass-bg: rgba(255, 255, 255, 0.07);
-            --glass-border: rgba(255, 255, 255, 0.1);
-            --text-primary: #e4e4e4;
-            --text-secondary: #a0a0b0;
-            --accent-color: #00d9ff;
-            --accent-rgb: 0, 217, 255;
-            --danger-color: #ff4d4d;
-            --success-color: #42f5a3;
-            --font-family: 'Be Vietnam Pro', sans-serif;
-            --radius: 12px;
-            --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-            --transition-fast: all 0.2s ease;
-            --transition-smooth: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            --bg-color: #11101d; --sidebar-bg: #1d1b31; --glass-bg: rgba(255, 255, 255, 0.07);
+            --glass-border: rgba(255, 255, 255, 0.1); --text-primary: #e4e4e4; --text-secondary: #a0a0b0;
+            --accent-color: #00d9ff; --accent-rgb: 0, 217, 255; --danger-color: #ff4d4d;
+            --success-color: #42f5a3; --font-family: 'Be Vietnam Pro', sans-serif; --radius: 12px;
+            --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37); --transition-smooth: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
-
-        /* --- KEYFRAME ANIMATIONS (UNCHANGED) --- */
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(25px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes pulseGlow { 0%, 100% { box-shadow: 0 0 15px rgba(var(--accent-rgb), 0.4); } 50% { box-shadow: 0 0 30px rgba(var(--accent-rgb), 0.8); } }
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* --- GENERAL & LAYOUT (UNCHANGED) --- */
+        /* --- GENERAL & LAYOUT --- */
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         html { height: 100%; }
         body {
             font-family: var(--font-family); background-color: var(--bg-color);
             background-image: radial-gradient(circle at 100% 0%, rgba(var(--accent-rgb), 0.15) 0%, transparent 40%), radial-gradient(circle at 0% 100%, rgba(120, 80, 220, 0.15) 0%, transparent 40%);
-            color: var(--text-primary); line-height: 1.6; font-size: 15px;
-            -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
-            overflow: hidden;
+            color: var(--text-primary); line-height: 1.6; font-size: 15px; -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale; overflow: hidden;
         }
         .page-container { display: flex; height: 100vh; }
         .sidebar { width: 260px; flex-shrink: 0; background: var(--sidebar-bg); padding: 2.5rem 1.5rem; display: flex; flex-direction: column; border-right: 1px solid var(--glass-border); }
@@ -62,18 +47,12 @@
         .sidebar-header h1 { font-size: 1.5rem; font-weight: 600; color: var(--text-primary); }
         .sidebar p { font-size: 0.9rem; color: var(--text-secondary); text-align: center; margin-top: auto; animation: fadeInUp 0.5s 0.2s ease backwards; }
         .main-content { flex-grow: 1; padding: 2.5rem; overflow-y: auto; }
-
-        /* --- GLASS CARDS (UNCHANGED) --- */
-        .glass-card {
-            background: var(--glass-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-            border-radius: var(--radius); border: 1px solid var(--glass-border); box-shadow: var(--shadow);
-            padding: 2.5rem; margin-bottom: 2.5rem; animation: fadeInUp 0.6s ease-out forwards;
-        }
+        .glass-card { background: var(--glass-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-radius: var(--radius); border: 1px solid var(--glass-border); box-shadow: var(--shadow); padding: 2.5rem; margin-bottom: 2.5rem; animation: fadeInUp 0.6s ease-out forwards; }
         .card-header { margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; }
         .card-header h2 { font-size: 1.5rem; font-weight: 600; color: var(--text-primary); display: flex; align-items: center; gap: 1rem; }
         .card-header .fa-solid { color: var(--accent-color); }
 
-        /* --- FORM ELEMENTS (UNCHANGED) --- */
+        /* --- FORM ELEMENTS --- */
         .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.75rem; margin-bottom: 1.75rem; }
         .form-group label { display: block; margin-bottom: 0.6rem; color: var(--text-secondary); font-weight: 500; font-size: 0.9em; }
         input[type="text"], input[type="date"], textarea, select { width: 100%; padding: 0.9rem 1rem; border: 1px solid var(--glass-border); border-radius: 8px; font-size: 1rem; font-family: inherit; color: var(--text-primary); background-color: rgba(0,0,0,0.2); transition: var(--transition-smooth); }
@@ -85,49 +64,30 @@
         .checkbox-label:hover { color: var(--accent-color); }
         .checkbox-label input { margin-right: 12px; height: 1.2em; width: 1.2em; accent-color: var(--accent-color); background-color: transparent; }
 
-        /* --- BUTTONS (UNCHANGED) --- */
+        /* --- BUTTONS --- */
         .button-group { display: flex; justify-content: flex-end; margin-top: 2rem; gap: 1rem; flex-wrap: wrap; }
         .btn { display: inline-flex; align-items: center; gap: 0.75rem; padding: 0.8rem 1.75rem; border: 1px solid transparent; border-radius: 8px; cursor: pointer; font-size: 0.95rem; font-weight: 600; font-family: inherit; transition: var(--transition-smooth); text-decoration: none; transform: scale(1); }
-        .btn:hover { transform: scale(1.05); }
-        .btn:active { transform: scale(0.98); }
+        .btn:hover { transform: scale(1.05); } .btn:active { transform: scale(0.98); }
         .btn-primary { background: var(--accent-color); color: var(--bg-color); box-shadow: 0 0 15px rgba(var(--accent-rgb), 0.3); }
         .btn-primary:hover { background: var(--accent-color); box-shadow: 0 0 25px rgba(var(--accent-rgb), 0.6); }
         .btn-secondary { background-color: transparent; color: var(--text-secondary); border-color: var(--glass-border); }
         .btn-secondary:hover { border-color: var(--accent-color); color: var(--accent-color); }
         
-        /* --- NEW: MODAL STYLES --- */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(17, 16, 29, 0.7); backdrop-filter: blur(8px);
-            z-index: 1000; display: none; justify-content: center; align-items: center;
-            padding: 2rem; animation: fadeIn 0.4s ease;
-        }
+        /* --- MODAL STYLES --- */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(17, 16, 29, 0.7); backdrop-filter: blur(8px); z-index: 1000; display: none; justify-content: center; align-items: center; padding: 2rem; animation: fadeIn 0.4s ease; }
         .modal-overlay.show { display: flex; }
-        .modal-content {
-            width: 100%; max-width: 90vw; max-height: 90vh;
-            display: flex; flex-direction: column;
-        }
-        .modal-content .glass-card {
-            width: 100%; height: 100%; display: flex; flex-direction: column;
-            margin-bottom: 0; /* Override margin for modal context */
-        }
+        .modal-content { width: 100%; max-width: 90vw; max-height: 90vh; display: flex; flex-direction: column; }
+        .modal-content .glass-card { width: 100%; height: 100%; display: flex; flex-direction: column; margin-bottom: 0; }
         #recordsContainer { flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; }
         .table-responsive { flex-grow: 1; overflow-y: auto; overflow-x: auto; }
-        .modal-close-btn {
-            position: absolute; top: 20px; right: 20px;
-            background: var(--glass-bg); border: 1px solid var(--glass-border); color: var(--text-secondary);
-            width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 1.2rem;
-            display: flex; justify-content: center; align-items: center; transition: var(--transition-fast);
-        }
+        .modal-close-btn { position: absolute; top: 20px; right: 20px; background: var(--glass-bg); border: 1px solid var(--glass-border); color: var(--text-secondary); width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 1.2rem; display: flex; justify-content: center; align-items: center; transition: var(--transition-fast); }
         .modal-close-btn:hover { color: var(--accent-color); border-color: var(--accent-color); transform: rotate(90deg); }
 
-        /* --- TABLE & FILTER STYLES (UNCHANGED) --- */
+        /* --- TABLE & FILTER STYLES --- */
         #recordTable { width: 100%; border-collapse: separate; border-spacing: 0; }
         #recordTable th, #recordTable td { padding: 1rem 1.25rem; text-align: left; white-space: nowrap; border-bottom: 1px solid var(--glass-border); }
         #recordTable th { color: var(--text-secondary); font-weight: 500; text-transform: uppercase; font-size: 0.8em; letter-spacing: 0.05em; }
-        #recordTable tbody tr { transition: background-color 0.3s ease; }
         #recordTable tbody tr:hover { background-color: var(--glass-bg); }
-        #recordTable tbody tr.animate-in { animation: fadeInUp 0.5s ease-out backwards; }
         .action-buttons button { background: transparent; border: none; color: var(--text-secondary); font-size: 1.1rem; cursor: pointer; padding: 0.5rem; transition: var(--transition-fast); }
         .action-buttons button:hover { color: var(--accent-color); transform: scale(1.2); }
         .action-buttons button[title="Delete"]:hover { color: var(--danger-color); }
@@ -136,7 +96,7 @@
         #filterSearch { display: flex; flex-grow: 1; gap: 1.5rem; align-items: center; flex-wrap: wrap; margin-bottom: 2rem; }
         #filterSearch .filter-group, #filterSearch .date-filter-group { flex-grow: 1; min-width: 250px; }
 
-        /* --- LOADER & POPUP (UNCHANGED) --- */
+        /* --- LOADER & POPUP --- */
         #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(17, 16, 29, 0.8); backdrop-filter: blur(5px); z-index: 9999; display: flex; justify-content: center; align-items: center; flex-direction: column; gap: 1rem; color: var(--text-primary); font-size: 1.2rem; }
         #loader::before { content: ''; width: 60px; height: 60px; border-radius: 50%; border: 4px solid var(--glass-border); border-top-color: var(--accent-color); animation: spin 1s linear infinite, pulseGlow 2s infinite ease-in-out; }
         #popupMessage { display: none; position: fixed; bottom: 30px; right: 30px; color: #111; padding: 1rem 1.75rem; border-radius: 8px; box-shadow: var(--shadow); z-index: 10001; opacity: 0; transform: translateY(20px); transition: all .4s cubic-bezier(0.25, 0.8, 0.25, 1); font-weight: 600; }
@@ -144,39 +104,14 @@
         #popupMessage.success { background-color: var(--success-color); }
         #popupMessage.error { background-color: var(--danger-color); }
 
-        /* --- UPDATED PRINT STYLES --- */
-               /* --- FINAL UPDATED PRINT STYLES --- */
+        /* --- FINAL PRINT STYLES --- */
         @media print {
             body { background: #fff !important; }
             body * { visibility: hidden; }
             .print-section, .print-section * { visibility: visible; }
-            
-            /* --- MODIFIED RULES FOR RIGHT-HALF LAYOUT --- */
-            .print-section {
-                position: absolute;
-                top: 0;
-                right: 0; /* Align to the right edge of the page */
-                width: 50%; /* Occupy only the right half */
-            }
-
-            @page {
-                size: A4 portrait;
-                margin: 0.5in; /* Standard margin around the entire page */
-            }
-
-            .transfer-order {
-                width: 100%; /* Take up the full width of its new 50% container */
-                margin: 0 auto 30px auto;
-                padding: 15px;
-                border: 1px solid #000;
-                border-radius: 10px;
-                font-family: Arial, sans-serif;
-                color: #000;
-                box-sizing: border-box;
-                page-break-inside: avoid;
-            }
-            
-            /* The rest of the styles remain the same */
+            .print-section { position: absolute; top: 0; right: 0; width: 50%; }
+            @page { size: A4 portrait; margin: 0.5in; }
+            .transfer-order { width: 100%; margin: 0 auto 30px auto; padding: 15px; border: 1px solid #000; border-radius: 10px; font-family: Arial, sans-serif; color: #000; box-sizing: border-box; page-break-inside: avoid; }
             .transfer-order h2 { font-size: 1.2em; text-align: center; margin-bottom: 12px; color: #000; border-bottom: 1px solid #ddd; padding-bottom: 8px; }
             .order-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
             .order-item { border: 1px solid #ddd; padding: 8px; border-radius: 4px; font-size: .9em; word-wrap: break-word; }
@@ -187,7 +122,6 @@
             .signature-box p { margin: 0; font-weight: bold; }
             .signature-line { border-bottom: 1px dashed #777; height: 40px; margin-top: 5px; }
             .version-number { text-align: right; font-size: .8em; color: #555; margin-top: 10px; }
-        }
         }
     </style>
 </head>
@@ -201,7 +135,7 @@
             <div class="logo"><i class="fa-solid fa-rocket"></i></div>
             <h1> Tracker</h1>
         </div>
-        <p>Aurora Edition &copy; 2024</p>
+        <p>Aurora Edition © 2024</p>
     </aside>
 
     <main class="main-content">
@@ -248,7 +182,7 @@
     </main>
 </div>
 
-<!-- NEW: RECORDS MODAL -->
+<!-- RECORDS MODAL -->
 <div class="modal-overlay" id="recordsModal">
     <div class="modal-content">
         <div class="glass-card" id="recordsContainer">
@@ -299,7 +233,7 @@
     <button class="modal-close-btn" id="closeRecordsModalBtn" title="Close"><i class="fa-solid fa-times"></i></button>
 </div>
 
-<!-- NEW: EDIT RECORD MODAL -->
+<!-- EDIT RECORD MODAL -->
 <div class="modal-overlay" id="editModal">
     <div class="modal-content" style="max-width: 800px;">
         <div class="glass-card">
@@ -329,157 +263,263 @@
     </div>
 </div>
 
-
 <div class="print-section" id="printSection"></div>
 <div id="popupMessage"></div>
 
-// The sheet where your data is stored.
-const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+    // --- CONFIGURATION ---
+    const SCRIPT_URL = "PASTE_YOUR_DEPLOYED_URL_HERE"; // <--- IMPORTANT!
+    const branchOptions = [ "نادى هليوبوليس", "تلال السخنه", "جاردنز السخنه", "لازوردی بای", "الدبلوماسيين", "ستيلا", "كاسكادا", "تلال الساحل", "لافيستا بای", "سوان ليك", "لافيستا رأس الحكمة", "دبلوماسيين - خضار", "هاسيندا ريد - خضار", "فوكا باي", "القطامية", "بالم هيلز رايد" ];
+    const statusOptions = ["Pending", "In Transit", "Delivered", "Problem"];
+    let allRecords = [];
 
-/**
- * Handles ALL requests to the web app.
- */
-function doPost(e) {
-  try {
-    const request = JSON.parse(e.postData.contents);
-    const action = request.action;
+    // --- UI & HELPER FUNCTIONS ---
+    const loader = document.getElementById('loader');
+    const recordsModal = document.getElementById('recordsModal');
+    const editModal = document.getElementById('editModal');
 
-    switch (action) {
-      // REPLACED 'createBatch' with 'create' to handle a single record
-      case 'create':
-        return createRecord(request.record);
-      
-      case 'updateRecord':
-        return updateRecordDetails(request.recordData);
-
-      case 'fetchAll':
-        return fetchAllRecords();
-      case 'updateStatus':
-        return updateRecordStatus(request.id, request.status);
-      case 'delete':
-        return deleteRecord(request.id);
-      default:
-        return createResponse({ success: false, message: 'Invalid action' });
+    function showLoader(text = "Loading...") { loader.textContent = text; loader.style.display = 'flex'; }
+    function hideLoader() { loader.style.display = 'none'; }
+    function showPopupMessage(message, isError = false) {
+        const popup = document.getElementById("popupMessage");
+        popup.textContent = message;
+        popup.className = `popup-message ${isError ? "error" : "success"}`;
+        popup.classList.add("show");
+        setTimeout(() => popup.classList.remove("show"), 4000);
     }
-  } catch (err) {
-    return createResponse({ success: false, message: 'Error: ' + err.message });
-  }
-}
-
-// ===================================================================
-// UPDATED & NEW FUNCTIONS
-// ===================================================================
-
-/**
- * Creates a single new record.
- * This is called by the main form now.
- */
-function createRecord(record) {
-  // Generate a unique ID for the new record
-  const newId = new Date().getTime().toString() + Math.random().toString(36).substring(2, 8);
-  record.id = newId;
-
-  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
-  
-  // Build the new row in the exact order of the headers.
-  const newRow = headers.map(header => record[header] || ""); 
-  
-  sheet.appendRow(newRow);
-  
-  return createResponse({ success: true, message: 'Record created', record: record });
-}
-
-
-/**
- * Dynamically updates a record's details based on the "Edit" modal.
- */
-function updateRecordDetails(recordData) {
-  const idToFind = recordData.id;
-  const idColumn = 1; 
-
-  if (sheet.getLastRow() < 2) {
-      return createResponse({ success: false, message: 'Record not found in empty sheet' });
-  }
-  
-  const ids = sheet.getRange(2, idColumn, sheet.getLastRow() - 1, 1).getValues().flat();
-  const rowIndex = ids.findIndex(rowId => rowId == idToFind);
-  
-  if (rowIndex === -1) {
-    return createResponse({ success: false, message: 'Record ID not found' });
-  }
-
-  const rowNum = rowIndex + 2;
-  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
-
-  for (const key in recordData) {
-    if (key === 'id') continue;
-    const colIndex = headers.indexOf(key);
-    if (colIndex !== -1) {
-      sheet.getRange(rowNum, colIndex + 1).setValue(recordData[key]);
+    function populateBranchCheckboxes(){document.getElementById("branch-checkboxes").innerHTML=branchOptions.map(t=>`<label class="checkbox-label"><input type="checkbox" value="${t}" name="branch"> ${t}</label>`).join("")}
+    function generateTrackingNumber(){return`TRACK-${Date.now().toString(36)}-${Math.random().toString(36).substring(2,7)}`.toUpperCase()}
+    function resetFiltersAndRender() {
+        document.getElementById('searchTerms').value = '';
+        document.getElementById('categoryFilter').value = '';
+        const datePicker = document.querySelector("#dateFilter")._flatpickr;
+        if (datePicker) datePicker.clear();
+        renderTable();
     }
-  }
-  return createResponse({ success: true, message: 'Record updated' });
-}
+    
+    // --- API COMMUNICATION ---
+    async function apiRequest(action, data = {}) {
+        if (SCRIPT_URL === "PASTE_YOUR_DEPLOYED_URL_HERE" || !SCRIPT_URL.startsWith("https://script.google.com/")) {
+            showPopupMessage("ERROR: Please update the SCRIPT_URL constant in the HTML code.", true);
+            return null;
+        }
+        showLoader(`Processing ${action}...`);
+        try {
+            const res = await fetch(SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify({ action, ...data }),
+                headers: { "Content-Type": "text/plain;charset=utf-8" }
+            });
+            if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+            return await res.json();
+        } catch (error) {
+            console.error('API Request Failed:', error);
+            showPopupMessage('An error occurred. Check the console.', true);
+            return null;
+        } finally {
+            hideLoader();
+        }
+    }
 
+    // --- CORE LOGIC (Each branch is a separate record) ---
+    async function processBatch(shouldPrint = false) {
+        const driverName = document.getElementById('driverName').value;
+        const date = document.getElementById('date').value;
+        const description = document.getElementById('description').value;
+        const status = document.getElementById('status').value;
+        const selectedBranches = Array.from(document.querySelectorAll('#branch-checkboxes input:checked')).map(cb => cb.value);
 
-// ===================================================================
-// ORIGINAL FUNCTIONS (UNCHANGED)
-// ===================================================================
+        if (!description || !driverName || !date || selectedBranches.length === 0) {
+            return showPopupMessage('Please fill all fields and select at least one branch.', true);
+        }
+        
+        let recordsToProcess = [];
+        const creationTimestamp = new Date().toLocaleString("en-US", { timeZone: "Africa/Cairo" });
+        const trackingNumber = generateTrackingNumber(); // One tracking number for the whole batch
+        
+        for (const branch of selectedBranches) {
+            recordsToProcess.push({ trackingNumber, creationTimestamp, driverName, branch, date, description, status });
+        }
 
-function fetchAllRecords() {
-  if (sheet.getLastRow() < 2) return createResponse([]); 
-  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
-  const dataRange = sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn());
-  const data = dataRange.getValues();
-  const dateColumnIndex = headers.indexOf('date');
-  const records = data.map(row => {
-    let record = {};
-    headers.forEach((header, i) => {
-      let value = row[i] || ""; 
-      if (i === dateColumnIndex && value instanceof Date) {
-        value = Utilities.formatDate(value, Session.getScriptTimeZone(), "yyyy-MM-dd");
-      }
-      record[header] = value;
+        const result = await apiRequest("createBatch", { records: recordsToProcess });
+        
+        if (result && result.success) {
+            showPopupMessage(`${selectedBranches.length} records processed successfully.`);
+            if (shouldPrint) {
+                printConsolidated([{ key: trackingNumber, records: recordsToProcess }]);
+            }
+            resetForm();
+            fetchAndRenderRecords();
+        } else {
+             showPopupMessage('Failed to save batch. Please check console.', true);
+        }
+    }
+    
+    async function fetchAndRenderRecords() {
+        const result = await apiRequest('fetchAll');
+        if (!result || !Array.isArray(result)) {
+            showPopupMessage('Could not load data. Response was invalid.', true);
+            allRecords = [];
+        } else {
+            allRecords = result;
+        }
+        allRecords.sort((a, b) => (new Date(b.creationTimestamp) - new Date(a.creationTimestamp)));
+        renderTable();
+    }
+
+    function renderTable() {
+        const recordTableBody = document.getElementById('recordTableBody');
+        const searchTerm = document.getElementById('searchTerms').value.toUpperCase();
+        const category = document.getElementById('categoryFilter').value;
+        const datePicker = document.querySelector("#dateFilter")._flatpickr;
+        const selectedDates = datePicker ? datePicker.selectedDates : [];
+
+        const filteredRecords = allRecords.filter(record => {
+            if (typeof record !== 'object' || record === null) return false;
+            const textMatch = !searchTerm || !category || String(record[category] || '').toUpperCase().includes(searchTerm);
+            let dateMatch = true; 
+            if (selectedDates.length > 0 && record.creationTimestamp) {
+                const recordDate = new Date(new Date(record.creationTimestamp).toDateString());
+                const startDate = new Date(selectedDates[0].toDateString());
+                const endDate = selectedDates.length > 1 ? new Date(selectedDates[1].toDateString()) : startDate;
+                dateMatch = recordDate >= startDate && recordDate <= endDate;
+            }
+            return textMatch && dateMatch;
+        });
+
+        if (filteredRecords.length === 0) {
+            recordTableBody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 3rem; color: var(--text-secondary);">No records found.</td></tr>`;
+            return;
+        }
+
+        recordTableBody.innerHTML = filteredRecords.map((t, index) => {
+            const statusDropdown = `<select class="status-select" onchange="updateStatus('${t.id}', this.value)">
+                ${statusOptions.map(e => `<option value="${e}" ${t.status === e ? 'selected' : ''}>${e}</option>`).join('')}
+            </select>`;
+            const recordDataString = JSON.stringify(t);
+
+            return `<tr style="animation: fadeInUp 0.5s ease-out ${index * 0.05}s backwards;">
+                <td class="checkbox-col"><input type="checkbox" class="record-checkbox" data-record='${recordDataString}'></td>
+                <td>${t.trackingNumber || ''}</td>
+                <td>${t.driverName || ''}</td>
+                <td>${t.branch || ''}</td>
+                <td>${t.date || ''}</td>
+                <td>${statusDropdown}</td>
+                <td style="text-align:center;"><div class="action-buttons">
+                    <button title="Edit" onclick='openEditModal(${recordDataString})'><i class="fa-solid fa-pencil-alt"></i></button>
+                    <button title="Delete" onclick="deleteRecord('${t.id}')"><i class="fa-solid fa-trash-can"></i></button>
+                </div></td>
+            </tr>`;
+        }).join('');
+    }
+
+    async function updateStatus(recordId, newStatus) {
+        const result = await apiRequest("updateStatus", {id: recordId, status: newStatus});
+        if (result && result.success) {
+            showPopupMessage("Status updated!");
+            const record = allRecords.find(r => String(r.id) === String(recordId));
+            if (record) record.status = newStatus;
+        }
+    }
+    
+    async function deleteRecord(recordId) {
+        if (confirm("Are you sure you want to permanently delete this record?")) {
+            const result = await apiRequest("delete", {id: recordId});
+            if (result && result.success) {
+                showPopupMessage("Record deleted.");
+                allRecords = allRecords.filter(r => String(r.id) !== String(recordId));
+                renderTable();
+            }
+        }
+    }
+    
+    function resetForm(){document.getElementById("driverName").value="",document.getElementById("description").value="",document.querySelectorAll("#branch-checkboxes input:checked").forEach(t=>t.checked=!1),flatpickr("#date",{}).setDate(new Date)}
+    
+    function openEditModal(record) {
+        document.getElementById('editRecordId').value = record.id;
+        document.getElementById('editDriverName').value = record.driverName;
+        document.getElementById('editDate').value = record.date;
+        document.getElementById('editDescription').value = record.description;
+        flatpickr("#editDate", { dateFormat: "Y-m-d" }).setDate(record.date);
+        editModal.classList.add('show');
+    }
+
+    async function saveRecordChanges() {
+        const recordData = {
+            id: document.getElementById('editRecordId').value,
+            driverName: document.getElementById('editDriverName').value,
+            date: document.getElementById('editDate').value,
+            description: document.getElementById('editDescription').value
+        };
+        if (!recordData.driverName || !recordData.date || !recordData.description) { return showPopupMessage('Please fill all fields.', true); }
+        const result = await apiRequest("updateRecord", { recordData });
+        if (result && result.success) {
+            showPopupMessage("Record updated successfully!");
+            editModal.classList.remove('show');
+            fetchAndRenderRecords();
+        }
+    }
+
+    // --- CONSOLIDATED PRINTING LOGIC ---
+    function printConsolidated(recordGroups) {
+        let printHTML = '';
+        recordGroups.forEach(group => {
+            const firstRecord = group.records[0];
+            const branchesHTML = group.records.map(r => `<li>${r.branch}</li>`).join('');
+            printHTML += `
+                <div class="transfer-order">
+                    <h2>Document Transfer Order</h2>
+                    <div class="order-grid">
+                        <div class="order-item"><strong>Driver:</strong> ${firstRecord.driverName || ""}</div>
+                        <div class="order-item"><strong>Date:</strong> ${firstRecord.date || ""}</div>
+                        <div class="order-item full-width"><strong>Tracking #:</strong> ${firstRecord.trackingNumber || ""}</div>
+                        <div class="order-item full-width"><strong>Description:</strong> ${firstRecord.description || ""}</div>
+                        <div class="order-item full-width">
+                            <strong>Destination Branches:</strong>
+                            <ul class="branches-list">${branchesHTML}</ul>
+                        </div>
+                    </div>
+                    <div class="signature-area">
+                        <div class="signature-box"><p>Driver Signature</p><div class="signature-line"></div></div>
+                        <div class="signature-box"><p>Receiver Signature</p><div class="signature-line"></div></div>
+                    </div>
+                    <p class="version-number">v3.0 Consolidated</p>
+                </div>`;
+        });
+        document.getElementById("printSection").innerHTML = printHTML;
+        window.print();
+    }
+
+    function printSelectedRecords() {
+        const selectedCheckboxes = document.querySelectorAll(".record-checkbox:checked");
+        if (selectedCheckboxes.length === 0) { return showPopupMessage("Please select at least one record to print.", true); }
+        const recordsToPrint = Array.from(selectedCheckboxes).map(cb => JSON.parse(cb.dataset.record));
+        const groupedByTracking = recordsToPrint.reduce((acc, record) => {
+            const key = record.trackingNumber;
+            if (!acc[key]) { acc[key] = { key: key, records: [] }; }
+            acc[key].records.push(record);
+            return acc;
+        }, {});
+        printConsolidated(Object.values(groupedByTracking));
+    }
+
+    // --- INITIALIZATION ---
+    document.addEventListener('DOMContentLoaded', () => {
+        flatpickr("#date", { dateFormat: "Y-m-d", defaultDate: "today" });
+        flatpickr("#dateFilter", { mode: "range", dateFormat: "Y-m-d", altInput: true, altFormat: "M j, Y" });
+        populateBranchCheckboxes();
+        fetchAndRenderRecords();
+        document.getElementById('viewRecordsBtn').addEventListener('click', () => recordsModal.classList.add('show'));
+        document.getElementById('closeRecordsModalBtn').addEventListener('click', () => recordsModal.classList.remove('show'));
+        document.getElementById('closeEditModalBtn').addEventListener('click', () => editModal.classList.remove('show'));
+        document.getElementById('applyFiltersBtn').addEventListener('click', renderTable);
+        document.getElementById('resetFiltersBtn').addEventListener('click', resetFiltersAndRender);
+        document.getElementById('selectAllCheckbox').addEventListener('change', e => {
+            document.querySelectorAll('#recordTableBody .record-checkbox').forEach(cb => cb.checked = e.target.checked);
+        });
     });
-    return record;
-  });
-  return createResponse(records);
-}
-
-function updateRecordStatus(id, status) {
-  const idColumn = 1; 
-  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
-  const statusColumn = headers.indexOf('status') + 1;
-
-  if (sheet.getLastRow() < 2) return createResponse({ success: false, message: 'Record not found' });
-
-  const ids = sheet.getRange(2, idColumn, sheet.getLastRow() - 1, 1).getValues().flat();
-  const rowIndex = ids.findIndex(rowId => rowId == id);
-  
-  if (rowIndex !== -1) {
-    sheet.getRange(rowIndex + 2, statusColumn).setValue(status);
-    return createResponse({ success: true, message: 'Status updated' });
-  }
-  return createResponse({ success: false, message: 'Record not found' });
-}
-
-function deleteRecord(id) {
-  const idColumn = 1;
-  if (sheet.getLastRow() < 2) return createResponse({ success: false, message: 'Record not found' });
-
-  const ids = sheet.getRange(2, idColumn, sheet.getLastRow() - 1, 1).getValues().flat();
-  const rowIndex = ids.findIndex(rowId => rowId == id);
-
-  if (rowIndex !== -1) {
-    sheet.deleteRow(rowIndex + 2);
-    return createResponse({ success: true, message: 'Record deleted' });
-  }
-  return createResponse({ success: false, message: 'Record not found' });
-}
-
-function createResponse(data) {
-  return ContentService.createTextOutput(JSON.stringify(data)).setMimeType(ContentService.MimeType.JSON);
-}
+</script>
 
 </body>
 </html>
