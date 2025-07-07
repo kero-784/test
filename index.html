@@ -219,29 +219,48 @@
 <div class="print-section" id="printSection"></div>
 <div id="popupMessage"></div>
 
+<!-- CORRECTED SCRIPT SECTION - ONLY ONE SCRIPT TAG -->
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script>
-    // --- CONFIGURATION ---
-    const SCRIPT_URL = "PASTE_YOUR_DEPLOYED_URL_HERE"; // <--- IMPORTANT!
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzJUpDo8qkxX6UYrnrQJYjtGFfmgsTFEB-euCK5Ay6evB2gsT2AfU53z0BKXCG42iz8/exec";
     const branchOptions = [ "نادى هليوبوليس", "تلال السخنه", "جاردنز السخنه", "لازوردی بای", "الدبلوماسيين", "ستيلا", "كاسكادا", "تلال الساحل", "لافيستا بای", "سوان ليك", "لافيستا رأس الحكمة", "دبلوماسيين - خضار", "هاسيندا ريد - خضار", "فوكا باي", "القطامية", "بالم هيلز رايد" ];
     const statusOptions = ["Pending", "In Transit", "Delivered", "Problem"];
     let allRecords = [];
 
-    // --- UI & HELPER FUNCTIONS ---
     const loader = document.getElementById('loader');
     const recordsModal = document.getElementById('recordsModal');
     const editModal = document.getElementById('editModal');
+
     function showLoader(text = "Loading...") { loader.textContent = text; loader.style.display = 'flex'; }
     function hideLoader() { loader.style.display = 'none'; }
-    function showPopupMessage(message, isError = false) { /* ... same as before ... */ }
+    function showPopupMessage(message, isError = false) { const popup = document.getElementById("popupMessage"); popup.textContent = message; popup.className = `popup-message ${isError ? "error" : "success"}`; popup.classList.add("show"); setTimeout(() => popup.classList.remove("show"), 4000); }
     function populateBranchCheckboxes(){document.getElementById("branch-checkboxes").innerHTML=branchOptions.map(t=>`<label class="checkbox-label"><input type="checkbox" value="${t}" name="branch"> ${t}</label>`).join("")}
     function generateTrackingNumber(){return`TRACK-${Date.now().toString(36)}-${Math.random().toString(36).substring(2,7)}`.toUpperCase()}
-    function resetFiltersAndRender() { /* ... same as before ... */ }
+    function resetFiltersAndRender() { document.getElementById('searchTerms').value = ''; document.getElementById('categoryFilter').value = ''; document.querySelector("#dateFilter")._flatpickr.clear(); renderTable(); }
     
-    // --- API COMMUNICATION ---
-    async function apiRequest(action, data = {}) { /* ... same as before ... */ }
+    async function apiRequest(action, data = {}) {
+        if (SCRIPT_URL === "PASTE_YOUR_DEPLOYED_URL_HERE" || !SCRIPT_URL.startsWith("https://script.google.com/")) {
+            showPopupMessage("ERROR: Please update the SCRIPT_URL constant in the HTML code.", true);
+            return null;
+        }
+        showLoader(`Processing ${action}...`);
+        try {
+            const res = await fetch(SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify({ action, ...data }),
+                headers: { "Content-Type": "text/plain;charset=utf-8" }
+            });
+            if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+            return await res.json();
+        } catch (error) {
+            console.error('API Request Failed:', error);
+            showPopupMessage('An error occurred. Check the console.', true);
+            return null;
+        } finally {
+            hideLoader();
+        }
+    }
 
-    // --- REVERTED CORE LOGIC (Each branch is a separate record) ---
     async function processBatch(shouldPrint = false) {
         const driverName = document.getElementById('driverName').value;
         const date = document.getElementById('date').value;
@@ -252,109 +271,193 @@
         if (!description || !driverName || !date || selectedBranches.length === 0) {
             return showPopupMessage('Please fill all fields and select at least one branch.', true);
         }
-        
+
         let recordsToProcess = [];
         const creationTimestamp = new Date().toLocaleString("en-US", { timeZone: "Africa/Cairo" });
         const trackingNumber = generateTrackingNumber();
-        
+
         for (const branch of selectedBranches) {
             recordsToProcess.push({ trackingNumber, creationTimestamp, driverName, branch, date, description, status });
         }
-        
-        // This now sends a BATCH of records to the server
+
         const result = await apiRequest("createBatch", { records: recordsToProcess });
-        
+
         if (result && result.success) {
             showPopupMessage(`${selectedBranches.length} records processed successfully.`);
             if (shouldPrint) {
-                // This calls the individual printing function
                 printMultipleRecords(recordsToProcess);
             }
             resetForm();
             fetchAndRenderRecords();
         } else {
-             showPopupMessage('Failed to save batch. Please check console.', true);
+            showPopupMessage('Failed to save batch. Please check console.', true);
         }
     }
-    
-    // --- UNCHANGED FUNCTIONS from here down... ---
-    async function fetchAndRenderRecords() { /* ... same ... */ }
-    function renderTable() { /* ... same ... */ }
-    async function updateStatus(recordId, newStatus) { /* ... same ... */ }
-    async function deleteRecord(recordId) { /* ... same ... */ }
-    function openEditModal(record) { /* ... same ... */ }
-    async function saveRecordChanges() { /* ... same ... */ }
-    function filterBranches() { /* ... same ... */ }
 
-    // --- REVERTED PRINTING LOGIC ---
+    async function fetchAndRenderRecords() {
+        const result = await apiRequest('fetchAll');
+        if (!result || !Array.isArray(result)) {
+            showPopupMessage('Could not load data. The response was invalid.', true);
+            allRecords = [];
+        } else {
+            allRecords = result;
+        }
+        allRecords.sort((a, b) => (new Date(b.creationTimestamp) - new Date(a.creationTimestamp)));
+        renderTable();
+    }
+
+    function renderTable() {
+        const recordTableBody = document.getElementById('recordTableBody');
+        const searchTerm = document.getElementById('searchTerms').value.toUpperCase();
+        const category = document.getElementById('categoryFilter').value;
+        const selectedDates = document.querySelector("#dateFilter")._flatpickr.selectedDates;
+
+        const filteredRecords = allRecords.filter(record => {
+            if (typeof record !== 'object' || record === null) return false;
+            const textMatch = !searchTerm || !category || String(record[category] || '').toUpperCase().includes(searchTerm);
+            let dateMatch = true;
+            if (selectedDates.length > 0 && record.creationTimestamp) {
+                const recordDate = new Date(new Date(record.creationTimestamp).toDateString());
+                const startDate = new Date(selectedDates[0].toDateString());
+                const endDate = selectedDates.length > 1 ? new Date(selectedDates[1].toDateString()) : startDate;
+                dateMatch = recordDate >= startDate && recordDate <= endDate;
+            }
+            return textMatch && dateMatch;
+        });
+
+        if (filteredRecords.length === 0) {
+            recordTableBody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 3rem; color: var(--text-secondary);">No records found.</td></tr>`;
+            return;
+        }
+
+        recordTableBody.innerHTML = filteredRecords.map((t, index) => {
+            const statusDropdown = `<select class="status-select" onchange="updateStatus('${t.id}', this.value)">${statusOptions.map(e => `<option value="${e}" ${t.status === e ? 'selected' : ''}>${e}</option>`).join('')}</select>`;
+            const recordDataString = JSON.stringify(t);
+            return `<tr style="animation: fadeInUp 0.5s ease-out ${index * 0.05}s backwards;">
+                <td class="checkbox-col"><input type="checkbox" class="record-checkbox" data-record='${recordDataString}'></td>
+                <td>${t.trackingNumber || ''}</td><td>${t.driverName || ''}</td><td>${t.branch || ''}</td>
+                <td>${t.date || ''}</td><td>${statusDropdown}</td>
+                <td style="text-align:center;"><div class="action-buttons">
+                    <button title="Edit" onclick='openEditModal(${recordDataString})'><i class="fa-solid fa-pencil-alt"></i></button>
+                    <button title="Delete" onclick="deleteRecord('${t.id}')"><i class="fa-solid fa-trash-can"></i></button>
+                </div></td></tr>`;
+        }).join('');
+    }
+
+    async function updateStatus(recordId, newStatus) {
+        const result = await apiRequest("updateStatus", {id: recordId, status: newStatus});
+        if (result && result.success) {
+            showPopupMessage("Status updated!");
+            const record = allRecords.find(r => String(r.id) === String(recordId));
+            if (record) record.status = newStatus;
+        }
+    }
+
+    async function deleteRecord(recordId) {
+        if (confirm("Are you sure you want to permanently delete this record?")) {
+            const result = await apiRequest("delete", {id: recordId});
+            if (result && result.success) {
+                showPopupMessage("Record deleted.");
+                allRecords = allRecords.filter(r => String(r.id) !== String(recordId));
+                renderTable();
+            }
+        }
+    }
+
+    function resetForm(){
+        document.getElementById("driverName").value="";
+        document.getElementById("description").value="";
+        document.querySelectorAll("#branch-checkboxes input:checked").forEach(t=>t.checked=false);
+        document.getElementById("branchSearch").value="";
+        filterBranches();
+        flatpickr("#date",{}).setDate(new Date);
+    }
+
+    function openEditModal(record) {
+        document.getElementById('editRecordId').value = record.id;
+        document.getElementById('editDriverName').value = record.driverName;
+        document.getElementById('editDate').value = record.date;
+        document.getElementById('editDescription').value = record.description;
+        flatpickr("#editDate", { dateFormat: "Y-m-d" }).setDate(record.date);
+        editModal.classList.add('show');
+    }
+
+    async function saveRecordChanges() {
+        const recordData = { id: document.getElementById('editRecordId').value, driverName: document.getElementById('editDriverName').value, date: document.getElementById('editDate').value, description: document.getElementById('editDescription').value };
+        if (!recordData.driverName || !recordData.date || !recordData.description) {
+            return showPopupMessage('Please fill all fields.', true);
+        }
+        const result = await apiRequest("updateRecord", { recordData });
+        if (result && result.success) {
+            showPopupMessage("Record updated successfully!");
+            editModal.classList.remove('show');
+            fetchAndRenderRecords();
+        }
+    }
+
     function printMultipleRecords(recordsToPrint) {
-        let printHTML = '<div class="version-number">v5.0 Individual</div>';
+        let printHTML = '<div class="version-number">v5.1 Individual</div>';
         recordsToPrint.forEach(record => {
             const copies = ['User', 'Driver'];
             copies.forEach(copyName => {
-                printHTML += `
-                    <div class="transfer-order">
-                        <h2>Document Transfer Order</h2>
-                        <div class="transfer-order-item"><strong>Tracking #:</strong> ${record.trackingNumber || ""}</div>
-                        <div class="transfer-order-item"><strong>Created:</strong> ${record.creationTimestamp || new Date().toLocaleString("en-US", { timeZone: "Africa/Cairo" })}</div>
-                        <div class="transfer-order-item"><strong>Driver:</strong> ${record.driverName || ""}</div>
-                        <div class="transfer-order-item"><strong>Branch:</strong> ${record.branch || ""}</div>
-                        <div class="transfer-order-item"><strong>Date:</strong> ${record.date || ""}</div>
-                        <div class="transfer-order-item"><strong>Desc:</strong> ${record.description || ""}</div>
-                        <div class="transfer-order-item"><strong>Status:</strong> ${record.status || ""}</div>
-                        <div class="transfer-order-item"><strong>Copy:</strong> ${copyName}</div>
-                        <div style="margin-top: auto;">
-                            <p><strong>Driver Sig:</strong><span class="signature-line"></span></p>
-                            <p><strong>Receiver Sig:</strong><span class="signature-line"></span></p>
-                        </div>
-                    </div>`;
+                printHTML += `<div class="transfer-order">
+                    <h2>Document Transfer Order</h2>
+                    <div class="transfer-order-item"><strong>Tracking #:</strong> ${record.trackingNumber || ""}</div>
+                    <div class="transfer-order-item"><strong>Created:</strong> ${record.creationTimestamp || new Date().toLocaleString("en-US", { timeZone: "Africa/Cairo" })}</div>
+                    <div class="transfer-order-item"><strong>Driver:</strong> ${record.driverName || ""}</div>
+                    <div class="transfer-order-item"><strong>Branch:</strong> ${record.branch || ""}</div>
+                    <div class="transfer-order-item"><strong>Date:</strong> ${record.date || ""}</div>
+                    <div class="transfer-order-item"><strong>Desc:</strong> ${record.description || ""}</div>
+                    <div class="transfer-order-item"><strong>Status:</strong> ${record.status || ""}</div>
+                    <div class="transfer-order-item"><strong>Copy:</strong> ${copyName}</div>
+                    <div style="margin-top: auto;">
+                        <p><strong>Driver Sig:</strong><span class="signature-line"></span></p>
+                        <p><strong>Receiver Sig:</strong><span class="signature-line"></span></p>
+                    </div>
+                </div>`;
             });
         });
         document.getElementById("printSection").innerHTML = printHTML;
         window.print();
     }
-    
+
     function printSelectedRecords() {
         const selectedCheckboxes = document.querySelectorAll(".record-checkbox:checked");
-        if (selectedCheckboxes.length === 0) { return showPopupMessage("Please select at least one record to print.", true); }
+        if (selectedCheckboxes.length === 0) {
+            return showPopupMessage("Please select at least one record to print.", true);
+        }
         const recordsToPrint = Array.from(selectedCheckboxes).map(cb => JSON.parse(cb.dataset.record));
         printMultipleRecords(recordsToPrint);
     }
-    
-    // --- INITIALIZATION ---
-    document.addEventListener('DOMContentLoaded', () => { /* ... same, with branchSearch listener ... */ });
 
-    // To save space, the full script is below, just copy the whole thing
-</script>
+    function filterBranches() {
+        const searchTerm = document.getElementById('branchSearch').value.toUpperCase();
+        const labels = document.querySelectorAll('#branch-checkboxes .checkbox-label');
+        labels.forEach(label => {
+            const branchName = label.innerText.toUpperCase();
+            if (branchName.includes(searchTerm)) {
+                label.style.display = 'flex';
+            } else {
+                label.style.display = 'none';
+            }
+        });
+    }
 
-<!-- FULL SCRIPT FOR COPY/PASTE -->
-<script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxHEsbmkQQOuKYHnXQYlrnKs6agDS2XY4eYB8uIvJCysSOViohqjLIi6CBFXdeuVXfO/exec";
-    const branchOptions = [ "نادى هليوبوليس", "تلال السخنه", "جاردنز السخنه", "لازوردی بای", "الدبلوماسيين", "ستيلا", "كاسكادا", "تلال الساحل", "لافيستا بای", "سوان ليك", "لافيستا رأس الحكمة", "دبلوماسيين - خضار", "هاسيندا ريد - خضار", "فوكا باي", "القطامية", "بالم هيلز رايد" ];
-    const statusOptions = ["Pending", "In Transit", "Delivered", "Problem"];
-    let allRecords = [];
-    const loader = document.getElementById('loader');
-    const recordsModal = document.getElementById('recordsModal');
-    const editModal = document.getElementById('editModal');
-    function showLoader(text = "Loading...") { loader.textContent = text; loader.style.display = 'flex'; }
-    function hideLoader() { loader.style.display = 'none'; }
-    function showPopupMessage(message, isError = false) { const popup = document.getElementById("popupMessage"); popup.textContent = message; popup.className = `popup-message ${isError ? "error" : "success"}`; popup.classList.add("show"); setTimeout(() => popup.classList.remove("show"), 4000); }
-    function populateBranchCheckboxes(){document.getElementById("branch-checkboxes").innerHTML=branchOptions.map(t=>`<label class="checkbox-label"><input type="checkbox" value="${t}" name="branch"> ${t}</label>`).join("")}
-    function generateTrackingNumber(){return`TRACK-${Date.now().toString(36)}-${Math.random().toString(36).substring(2,7)}`.toUpperCase()}
-    function resetFiltersAndRender() { document.getElementById('searchTerms').value = ''; document.getElementById('categoryFilter').value = ''; document.querySelector("#dateFilter")._flatpickr.clear(); renderTable(); }
-    async function apiRequest(action, data = {}) { if (SCRIPT_URL === "PASTE_YOUR_DEPLOYED_URL_HERE" || !SCRIPT_URL.startsWith("https://script.google.com/")) { showPopupMessage("ERROR: Please update the SCRIPT_URL constant in the HTML code.", true); return null; } showLoader(`Processing ${action}...`); try { const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action, ...data }), headers: { "Content-Type": "text/plain;charset=utf-8" } }); if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`); return await res.json(); } catch (error) { console.error('API Request Failed:', error); showPopupMessage('An error occurred. Check the console.', true); return null; } finally { hideLoader(); } }
-    async function processBatch(shouldPrint = false) { const driverName = document.getElementById('driverName').value; const date = document.getElementById('date').value; const description = document.getElementById('description').value; const status = document.getElementById('status').value; const selectedBranches = Array.from(document.querySelectorAll('#branch-checkboxes input:checked')).map(cb => cb.value); if (!description || !driverName || !date || selectedBranches.length === 0) { return showPopupMessage('Please fill all fields and select at least one branch.', true); } let recordsToProcess = []; const creationTimestamp = new Date().toLocaleString("en-US", { timeZone: "Africa/Cairo" }); const trackingNumber = generateTrackingNumber(); for (const branch of selectedBranches) { recordsToProcess.push({ trackingNumber, creationTimestamp, driverName, branch, date, description, status }); } const result = await apiRequest("createBatch", { records: recordsToProcess }); if (result && result.success) { showPopupMessage(`${selectedBranches.length} records processed successfully.`); if (shouldPrint) { printMultipleRecords(recordsToProcess); } resetForm(); fetchAndRenderRecords(); } else { showPopupMessage('Failed to save batch. Please check console.', true); } }
-    async function fetchAndRenderRecords() { const result = await apiRequest('fetchAll'); if (!result || !Array.isArray(result)) { showPopupMessage('Could not load data. The response was invalid.', true); allRecords = []; } else { allRecords = result; } allRecords.sort((a, b) => (new Date(b.creationTimestamp) - new Date(a.creationTimestamp))); renderTable(); }
-    function renderTable() { const recordTableBody = document.getElementById('recordTableBody'); const searchTerm = document.getElementById('searchTerms').value.toUpperCase(); const category = document.getElementById('categoryFilter').value; const selectedDates = document.querySelector("#dateFilter")._flatpickr.selectedDates; const filteredRecords = allRecords.filter(record => { if (typeof record !== 'object' || record === null) return false; const textMatch = !searchTerm || !category || String(record[category] || '').toUpperCase().includes(searchTerm); let dateMatch = true; if (selectedDates.length > 0 && record.creationTimestamp) { const recordDate = new Date(new Date(record.creationTimestamp).toDateString()); const startDate = new Date(selectedDates[0].toDateString()); const endDate = selectedDates.length > 1 ? new Date(selectedDates[1].toDateString()) : startDate; dateMatch = recordDate >= startDate && recordDate <= endDate; } return textMatch && dateMatch; }); if (filteredRecords.length === 0) { recordTableBody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 3rem; color: var(--text-secondary);">No records found.</td></tr>`; return; } recordTableBody.innerHTML = filteredRecords.map((t, index) => { const statusDropdown = `<select class="status-select" onchange="updateStatus('${t.id}', this.value)">${statusOptions.map(e => `<option value="${e}" ${t.status === e ? 'selected' : ''}>${e}</option>`).join('')}</select>`; const recordDataString = JSON.stringify(t); return `<tr style="animation: fadeInUp 0.5s ease-out ${index * 0.05}s backwards;"> <td class="checkbox-col"><input type="checkbox" class="record-checkbox" data-record='${recordDataString}'></td> <td>${t.trackingNumber || ''}</td><td>${t.driverName || ''}</td><td>${t.branch || ''}</td> <td>${t.date || ''}</td><td>${statusDropdown}</td> <td style="text-align:center;"><div class="action-buttons"> <button title="Edit" onclick='openEditModal(${recordDataString})'><i class="fa-solid fa-pencil-alt"></i></button> <button title="Delete" onclick="deleteRecord('${t.id}')"><i class="fa-solid fa-trash-can"></i></button> </div></td></tr>`; }).join(''); }
-    async function updateStatus(recordId, newStatus) { const result = await apiRequest("updateStatus", {id: recordId, status: newStatus}); if (result && result.success) { showPopupMessage("Status updated!"); const record = allRecords.find(r => String(r.id) === String(recordId)); if (record) record.status = newStatus; } }
-    async function deleteRecord(recordId) { if (confirm("Are you sure you want to permanently delete this record?")) { const result = await apiRequest("delete", {id: recordId}); if (result && result.success) { showPopupMessage("Record deleted."); allRecords = allRecords.filter(r => String(r.id) !== String(recordId)); renderTable(); } } }
-    function resetForm(){ document.getElementById("driverName").value=""; document.getElementById("description").value=""; document.querySelectorAll("#branch-checkboxes input:checked").forEach(t=>t.checked=false); document.getElementById("branchSearch").value=""; filterBranches(); flatpickr("#date",{}).setDate(new Date); }
-    function openEditModal(record) { document.getElementById('editRecordId').value = record.id; document.getElementById('editDriverName').value = record.driverName; document.getElementById('editDate').value = record.date; document.getElementById('editDescription').value = record.description; flatpickr("#editDate", { dateFormat: "Y-m-d" }).setDate(record.date); editModal.classList.add('show'); }
-    async function saveRecordChanges() { const recordData = { id: document.getElementById('editRecordId').value, driverName: document.getElementById('editDriverName').value, date: document.getElementById('editDate').value, description: document.getElementById('editDescription').value }; if (!recordData.driverName || !recordData.date || !recordData.description) { return showPopupMessage('Please fill all fields.', true); } const result = await apiRequest("updateRecord", { recordData }); if (result && result.success) { showPopupMessage("Record updated successfully!"); editModal.classList.remove('show'); fetchAndRenderRecords(); } }
-    function printMultipleRecords(recordsToPrint) { let printHTML = '<div class="version-number">v5.0 Individual</div>'; recordsToPrint.forEach(record => { const copies = ['User', 'Driver']; copies.forEach(copyName => { printHTML += `<div class="transfer-order"><h2>Document Transfer Order</h2><div class="transfer-order-item"><strong>Tracking #:</strong> ${record.trackingNumber || ""}</div><div class="transfer-order-item"><strong>Created:</strong> ${record.creationTimestamp || new Date().toLocaleString("en-US", { timeZone: "Africa/Cairo" })}</div><div class="transfer-order-item"><strong>Driver:</strong> ${record.driverName || ""}</div><div class="transfer-order-item"><strong>Branch:</strong> ${record.branch || ""}</div><div class="transfer-order-item"><strong>Date:</strong> ${record.date || ""}</div><div class="transfer-order-item"><strong>Desc:</strong> ${record.description || ""}</div><div class="transfer-order-item"><strong>Status:</strong> ${record.status || ""}</div><div class="transfer-order-item"><strong>Copy:</strong> ${copyName}</div><div style="margin-top: auto;"><p><strong>Driver Sig:</strong><span class="signature-line"></span></p><p><strong>Receiver Sig:</strong><span class="signature-line"></span></p></div></div>`; }); }); document.getElementById("printSection").innerHTML = printHTML; window.print(); }
-    function printSelectedRecords() { const selectedCheckboxes = document.querySelectorAll(".record-checkbox:checked"); if (selectedCheckboxes.length === 0) { return showPopupMessage("Please select at least one record to print.", true); } const recordsToPrint = Array.from(selectedCheckboxes).map(cb => JSON.parse(cb.dataset.record)); printMultipleRecords(recordsToPrint); }
-    function filterBranches() { const searchTerm = document.getElementById('branchSearch').value.toUpperCase(); const labels = document.querySelectorAll('#branch-checkboxes .checkbox-label'); labels.forEach(label => { const branchName = label.innerText.toUpperCase(); if (branchName.includes(searchTerm)) { label.style.display = 'flex'; } else { label.style.display = 'none'; } }); }
-    document.addEventListener('DOMContentLoaded', () => { flatpickr("#date", { dateFormat: "Y-m-d", defaultDate: "today" }); flatpickr("#dateFilter", { mode: "range", dateFormat: "Y-m-d", altInput: true, altFormat: "M j, Y" }); populateBranchCheckboxes(); fetchAndRenderRecords(); document.getElementById('viewRecordsBtn').addEventListener('click', () => recordsModal.classList.add('show')); document.getElementById('closeRecordsModalBtn').addEventListener('click', () => recordsModal.classList.remove('show')); document.getElementById('closeEditModalBtn').addEventListener('click', () => editModal.classList.remove('show')); document.getElementById('applyFiltersBtn').addEventListener('click', renderTable); document.getElementById('resetFiltersBtn').addEventListener('click', resetFiltersAndRender); document.getElementById('selectAllCheckbox').addEventListener('change', e => { document.querySelectorAll('#recordTableBody .record-checkbox').forEach(cb => cb.checked = e.target.checked); }); document.getElementById('branchSearch').addEventListener('keyup', filterBranches); });
+    document.addEventListener('DOMContentLoaded', () => {
+        flatpickr("#date", { dateFormat: "Y-m-d", defaultDate: "today" });
+        flatpickr("#dateFilter", { mode: "range", dateFormat: "Y-m-d", altInput: true, altFormat: "M j, Y" });
+        populateBranchCheckboxes();
+        fetchAndRenderRecords();
+        document.getElementById('viewRecordsBtn').addEventListener('click', () => recordsModal.classList.add('show'));
+        document.getElementById('closeRecordsModalBtn').addEventListener('click', () => recordsModal.classList.remove('show'));
+        document.getElementById('closeEditModalBtn').addEventListener('click', () => editModal.classList.remove('show'));
+        document.getElementById('applyFiltersBtn').addEventListener('click', renderTable);
+        document.getElementById('resetFiltersBtn').addEventListener('click', resetFiltersAndRender);
+        document.getElementById('selectAllCheckbox').addEventListener('change', e => {
+            document.querySelectorAll('#recordTableBody .record-checkbox').forEach(cb => cb.checked = e.target.checked);
+        });
+        document.getElementById('branchSearch').addEventListener('keyup', filterBranches);
+    });
 </script>
 
 </body>
