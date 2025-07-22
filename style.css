@@ -214,12 +214,12 @@ tbody tr:hover { background-color: #f7faff; }
 }
 
 /* --- Component-Specific Styles --- */
-#table-receive-list input, #table-transfer-list input, #table-issue-list input { padding: 8px; font-size: 14px; max-width: 120px; background-color: white; }
+#table-receive-list input, #table-transfer-list input, #table-issue-list input, #table-payment-list input { padding: 8px; font-size: 14px; max-width: 120px; background-color: white; }
 .kpi-card { background-color: var(--card-bg-color); padding: 20px; border-radius: var(--border-radius); box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); }
 .kpi-label { font-size: 14px; color: var(--text-light-color); margin-bottom: 8px; font-weight: 500; }
 .kpi-value { font-size: 28px; font-weight: 700; color: var(--text-color); }
 .kpi-value.danger { color: var(--danger-color); }
-.status-tag { padding: 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.status-tag { padding: 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; display: inline-block; }
 .status-paid { background-color: #E6F8F3; color: #008761; }
 .status-unpaid { background-color: #FDEDE9; color: var(--danger-color); }
 .status-partial { background-color: #FFF6E0; color: #E89500; }
@@ -228,10 +228,11 @@ tbody tr:hover { background-color: #f7faff; }
 .report-area { overflow-x: auto; }
 #item-centric-stock-container table { table-layout: auto; }
 #item-centric-stock-container table td, #item-centric-stock-container table th { white-space: normal; }
-/* FIX: Make Activity Log description straight */
-#table-activity-log td:nth-child(3) {
-    white-space: nowrap;
-}
+#table-activity-log td:nth-child(3) { white-space: normal; }
+.printable-area { padding: 10px; }
+.printable-document { padding: 20px; border: 1px solid var(--border-color); border-radius: 8px; background: white; }
+.printable-header { display: flex; justify-content: space-between; align-items: flex-start; }
+#table-transaction-history td:nth-child(4), #table-transaction-history td:nth-child(3) { white-space: normal; }
 
 
 /* --- Print & Responsive --- */
@@ -240,8 +241,6 @@ tbody tr:hover { background-color: #f7faff; }
     .app-container, .no-print { display: none !important; }
     #print-area { display: block !important; }
     .printable-document { display: block !important; box-shadow: none; border: none; }
-    
-    /* FIX: Ensure table data is fully visible on print */
     #print-area table { table-layout: auto; }
     #print-area th, #print-area td { 
         white-space: normal !important;
