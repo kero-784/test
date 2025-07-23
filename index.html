@@ -38,7 +38,6 @@
 
             <div id="view-dashboard" class="view active"><div class="kpi-grid"><div class="card"><div class="kpi-label">Total Items</div><div id="dashboard-total-items" class="kpi-value">0</div></div><div class="card"><div class="kpi-label">Total Stock Value</div><div id="dashboard-total-value" class="kpi-value">0.00 EGP</div></div><div class="card"><div class="kpi-label">Total Suppliers</div><div id="dashboard-total-suppliers" class="kpi-value">0</div></div><div class="card"><div class="kpi-label">Total Branches</div><div id="dashboard-total-branches" class="kpi-value">0</div></div></div></div>
             
-            <!-- NEW VIEW FOR ADDING DATA -->
             <div id="view-setup" class="view">
                 <div class="grid">
                     <div class="card"><h2 class="card-title">Add New Item</h2><form id="form-add-item"><div class="form-grid"><div class="form-group"><label for="item-code">Item Code (Unique ID)</label><input type="text" id="item-code" required></div><div class="form-group"><label for="item-barcode">Barcode</label><input type="text" id="item-barcode"></div><div class="form-group"><label for="item-name">Item Name</label><input type="text" id="item-name" required></div><div class="form-group"><label for="item-unit">Unit (e.g., PCS, KG)</label><input type="text" id="item-unit" required></div><div class="form-group"><label for="item-supplier">Default Supplier</label><select id="item-supplier"></select></div><div class="form-group"><label for="item-cost">Default Cost</label><input type="number" id="item-cost" step="0.01" min="0" required></div></div><button type="submit" class="primary" style="margin-top: 20px;">Add Item</button></form></div>
@@ -48,7 +47,6 @@
                 </div>
             </div>
 
-            <!-- NEW VIEW FOR MANAGING LISTS -->
             <div id="view-master-data" class="view">
                 <div class="card"><div class="toolbar"><h2>Item List</h2><div class="search-bar"><input type="search" id="search-items" class="search-bar-input" placeholder="Search by name or code..."></div><button id="btn-export-items" class="secondary">Export to Excel</button></div><div class="report-area"><table id="table-items"><thead><tr><th>Code</th><th>Name</th><th>Unit</th><th>Default Cost</th><th>Actions</th></tr></thead><tbody></tbody></table></div></div>
                 <div class="card"><div class="toolbar"><h2>Supplier List</h2><div class="search-bar"><input type="search" id="search-suppliers" class="search-bar-input" placeholder="Search by name or code..."></div><button id="btn-export-suppliers" class="secondary">Export to Excel</button></div><div class="report-area"><table id="table-suppliers"><thead><tr><th>Code</th><th>Name</th><th>Contact</th><th>Balance (Owed)</th><th>Actions</th></tr></thead><tbody></tbody></table></div></div>
@@ -56,73 +54,31 @@
                 <div class="card"><div class="toolbar"><h2>Section List</h2><div class="search-bar"><input type="search" id="search-sections" class="search-bar-input" placeholder="Search by name or code..."></div><button id="btn-export-sections" class="secondary">Export to Excel</button></div><div class="report-area"><table id="table-sections"><thead><tr><th>Code</th><th>Name</th><th>Actions</th></tr></thead><tbody></tbody></table></div></div>
             </div>
             
-            <!-- NEW VIEW FOR PAYMENTS -->
             <div id="view-payments" class="view">
-                 <div class="card">
-                    <h2>Record a Payment</h2>
-                    <form id="form-record-payment">
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label for="payment-supplier-select">1. Select Supplier</label>
-                                <select id="payment-supplier-select" required></select>
-                            </div>
-                            <div class="form-group">
-                                <label>2. Select Invoices to Pay</label>
-                                <button type="button" id="btn-select-invoices" class="secondary" style="width: 100%;" disabled>Select Invoices...</button>
-                            </div>
-                            <div class="form-group">
-                                <label for="payment-method">3. Enter Payment Method</label>
-                                <input type="text" id="payment-method" placeholder="e.g., Cash, Bank Transfer" required>
-                            </div>
-                        </div>
-                        <div id="payment-invoice-list-container" class="report-area" style="display:none; margin-top:24px;">
-                            <h3>4. Confirm Amounts</h3>
-                            <table id="table-payment-list">
-                                <thead><tr><th>Invoice #</th><th>Balance Due</th><th>Amount to Pay</th></tr></thead>
-                                <tbody></tbody>
-                                <tfoot><tr style="font-weight:bold;"><td colspan="2" style="text-align:right;">Total Payment:</td><td id="payment-total-amount">0.00 EGP</td></tr></tfoot>
-                            </table>
-                        </div>
-                        <button type="submit" class="primary" style="margin-top: 24px; width:100%;">Submit Payment</button>
-                    </form>
-                </div>
+                 <div class="card"><h2>Record a Payment</h2><form id="form-record-payment"><div class="form-grid"><div class="form-group"><label for="payment-supplier-select">1. Select Supplier</label><select id="payment-supplier-select" required></select></div><div class="form-group"><label>2. Select Invoices to Pay</label><button type="button" id="btn-select-invoices" class="secondary" style="width: 100%;" disabled>Select Invoices...</button></div><div class="form-group"><label for="payment-method">3. Enter Payment Method</label><input type="text" id="payment-method" placeholder="e.g., Cash, Bank Transfer" required></div></div><div id="payment-invoice-list-container" class="report-area" style="display:none; margin-top:24px;"><h3>4. Confirm Amounts</h3><table id="table-payment-list"><thead><tr><th>Invoice #</th><th>Balance Due</th><th>Amount to Pay</th></tr></thead><tbody></tbody><tfoot><tr style="font-weight:bold;"><td colspan="2" style="text-align:right;">Total Payment:</td><td id="payment-total-amount">0.00 EGP</td></tr></tfoot></table></div><button type="submit" class="primary" style="margin-top: 24px; width:100%;">Submit Payment</button></form></div>
             </div>
 
-            <!-- NEW VIEW FOR FINANCIALS / REPORTS -->
+            <!-- FINANCIALS VIEW WITH SUB-TABS -->
             <div id="view-financials" class="view">
-                <div class="card">
-                    <h2>Supplier Statement</h2>
-                    <div class="report-generator-controls">
-                        <select id="supplier-statement-select"></select>
-                        <input type="date" id="statement-start-date">
-                        <input type="date" id="statement-end-date">
-                        <button id="btn-generate-supplier-statement" class="primary small">Generate</button>
-                    </div>
-                    <div id="supplier-statement-results" class="printable-area" style="display: none; margin-top:20px;"></div>
+                <div class="sub-nav">
+                    <button class="sub-nav-item active" data-subview="supplier-statement">Supplier Statement</button>
+                    <button class="sub-nav-item" data-subview="branch-statement">Branch Activity</button>
+                    <button class="sub-nav-item" data-subview="section-statement">Section Usage</button>
                 </div>
-                <div class="card">
-                    <h2>Branch Activity Report</h2>
-                     <div class="report-generator-controls">
-                        <select id="branch-statement-select"></select>
-                        <input type="date" id="branch-statement-start-date">
-                        <input type="date" id="branch-statement-end-date">
-                        <button id="btn-generate-branch-statement" class="primary small">Generate</button>
-                    </div>
-                    <div id="branch-statement-results" class="printable-area" style="display: none; margin-top:20px;"></div>
+                
+                <div id="subview-supplier-statement" class="sub-view active">
+                    <div class="card"><div class="report-generator-controls"><select id="supplier-statement-select"></select><input type="date" id="statement-start-date"><input type="date" id="statement-end-date"><button id="btn-generate-supplier-statement" class="primary small">Generate</button><button id="btn-export-supplier-statement" class="secondary small">Export to Excel</button></div><div id="supplier-statement-results" class="printable-area" style="display: none; margin-top:20px;"></div></div>
                 </div>
-                 <div class="card">
-                    <h2>Section Usage Report</h2>
-                     <div class="report-generator-controls">
-                        <select id="section-statement-select"></select>
-                        <input type="date" id="section-statement-start-date">
-                        <input type="date" id="section-statement-end-date">
-                        <button id="btn-generate-section-statement" class="primary small">Generate</button>
-                    </div>
-                    <div id="section-statement-results" class="printable-area" style="display: none; margin-top:20px;"></div>
+
+                <div id="subview-branch-statement" class="sub-view">
+                     <div class="card"><div class="report-generator-controls"><select id="branch-statement-select"></select><input type="date" id="branch-statement-start-date"><input type="date" id="branch-statement-end-date"><button id="btn-generate-branch-statement" class="primary small">Generate</button><button id="btn-export-branch-statement" class="secondary small">Export to Excel</button></div><div id="branch-statement-results" class="printable-area" style="display: none; margin-top:20px;"></div></div>
+                </div>
+                 
+                <div id="subview-section-statement" class="sub-view">
+                    <div class="card"><div class="report-generator-controls"><select id="section-statement-select"></select><input type="date" id="section-statement-start-date"><input type="date" id="section-statement-end-date"><button id="btn-generate-section-statement" class="primary small">Generate</button><button id="btn-export-section-statement" class="secondary small">Export to Excel</button></div><div id="section-statement-results" class="printable-area" style="display: none; margin-top:20px;"></div></div>
                 </div>
             </div>
 
-            <!-- Transactional Views (Remain largely the same) -->
             <div id="view-receive" class="view"><div class="card"><h2>Goods Received Note (GRN) Details</h2><form id="form-receive-details" class="form-grid" onsubmit="return false;"><div class="form-group"><label for="receive-supplier">Supplier</label><select id="receive-supplier" required></select></div><div class="form-group"><label for="receive-branch">To Branch</label><select id="receive-branch" required></select></div><div class="form-group"><label for="receive-invoice">Invoice Number</label><input type="text" id="receive-invoice" required></div><div class="form-group span-full"><label for="receive-notes">Notes (Optional)</label><textarea id="receive-notes" rows="2"></textarea></div></form></div><div class="card" id="receive-list-card"><h2>Items to be Received</h2><table id="table-receive-list"><thead><tr><th>Code</th><th>Item Name</th><th>Quantity</th><th>Cost/Unit</th><th>Total</th><th>Action</th></tr></thead><tbody></tbody><tfoot><tr style="font-weight: bold; background-color: var(--bg-color);"><td colspan="4" style="text-align: right;">Grand Total:</td><td id="receive-grand-total" colspan="2">0.00 EGP</td></tr></tfoot></table><div style="margin-top: 20px; display: flex; gap: 10px;"><button type="button" id="btn-show-receive-modal" class="secondary">Select Items</button><button id="btn-submit-receive-batch" class="primary">Confirm & Receive All Items</button></div></div></div>
             <div id="view-issue" class="view"><div class="card"><h2>Issue Note Details</h2><form id="form-issue-details" class="form-grid" onsubmit="return false;"><div class="form-group"><label for="issue-from-branch">From Branch</label><select id="issue-from-branch" required></select></div><div class="form-group"><label for="issue-to-section">To Section</label><select id="issue-to-section" required></select></div><div class="form-group"><label for="issue-ref">Issue Ref #</label><input type="text" id="issue-ref" required></div><div class="form-group span-full"><label for="issue-notes">Notes (Optional)</label><textarea id="issue-notes" rows="2"></textarea></div></form></div><div class="card" id="issue-list-card"><h2>Items to be Issued</h2><table id="table-issue-list"><thead><tr><th>Code</th><th>Item Name</th><th>Available</th><th>Quantity to Issue</th><th>Action</th></tr></thead><tbody></tbody><tfoot><tr style="font-weight: bold; background-color: var(--bg-color);"><td colspan="3" style="text-align: right;">Total Items to Issue:</td><td id="issue-grand-total" colspan="2">0.00</td></tr></tfoot></table><div style="margin-top: 20px; display: flex; gap: 10px;"><button type="button" id="btn-show-issue-modal" class="secondary">Select Items</button><button id="btn-submit-issue-batch" class="primary">Confirm & Issue All Items</button></div></div></div>
             <div id="view-transfer" class="view"><div class="card"><h2>Transfer Details</h2><form id="form-transfer-details" class="form-grid" onsubmit="return false;"><div class="form-group"><label for="transfer-from-branch">From Branch</label><select id="transfer-from-branch" required></select></div><div class="form-group"><label for="transfer-to-branch">To Branch</label><select id="transfer-to-branch" required></select></div><div class="form-group span-full"><label for="transfer-notes">Notes (Optional)</label><textarea id="transfer-notes" rows="2"></textarea></div></form></div><div class="card" id="transfer-list-card"><h2>Items to be Transferred</h2><table id="table-transfer-list"><thead><tr><th>Code</th><th>Item Name</th><th>Available</th><th>Quantity to Transfer</th><th>Action</th></tr></thead><tbody></tbody><tfoot><tr style="font-weight: bold; background-color: var(--bg-color);"><td colspan="3" style="text-align: right;">Total Items to Transfer:</td><td id="transfer-grand-total" colspan="2">0.00</td></tr></tfoot></table><div style="margin-top: 20px; display: flex; gap: 10px;"><button type="button" id="btn-show-transfer-modal" class="secondary">Select Items</button><button id="btn-submit-transfer-batch" class="primary">Confirm & Transfer All Items</button></div></div></div>
