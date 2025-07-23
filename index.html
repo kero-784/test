@@ -17,10 +17,9 @@
                 <!-- Main Operations -->
                 <li class="nav-item"><a href="#" data-view="dashboard" class="active"><svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M13 3V9H21V3M13 21H21V11H13M3 21H11V15H3M3 13H11V3H3V13Z"></path></svg><span>Dashboard</span></a></li>
                 <li class="nav-item"><a href="#" data-view="operations"><svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24"><path d="M3,4H21V6H3V4M3,11H15V13H3V11M3,18H18V20H3V18Z" /></svg><span>Stock Operations</span></a></li>
-                <li class="nav-item"><a href="#" data-view="payments"><svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24"><path d="M20,8H4V6H20M20,18H4V12H20M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,4 20,4Z" /></svg><span>Payments</span></a></li>
-
+                
                 <!-- Reporting & Analysis -->
-                <li class="nav-item"><a href="#" data-view="financials"><svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24"><path d="M3,22V8H7V22H3M10,22V2H14V22H10M17,22V14H21V22H17Z" /></svg><span>Financials</span></a></li>
+                <li class="nav-item"><a href="#" data-view="financials"><svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24"><path d="M20,8H4V6H20M20,18H4V12H20M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,4 20,4Z" /></svg><span>Financials</span></a></li>
                 <li class="nav-item"><a href="#" data-view="stock-levels"><svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M7,5H21V7H7V5M7,11H21V13H7V11M7,17H21V19H7V17M4,4.5A1.5,1.5 0 0,1 5.5,6A1.5,1.5 0 0,1 4,7.5A1.5,1.5 0 0,1 2.5,6A1.5,1.5 0 0,1 4,4.5M4,10.5A1.5,1.5 0 0,1 5.5,12A1.5,1.5 0 0,1 4,13.5A1.5,1.5 0 0,1 2.5,12A1.5,1.5 0 0,1 4,10.5M4,16.5A1.5,1.5 0 0,1 5.5,18A1.5,1.5 0 0,1 4,19.5A1.5,1.5 0 0,1 2.5,18A1.5,1.5 0 0,1 4,16.5Z"></path></svg><span>Stock Levels</span></a></li>
                 <li class="nav-item"><a href="#" data-view="transaction-history"><svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M13.5,8H12V13L16.28,15.54L17,14.33L13.5,12.25V8M13,3A9,9 0 0,0 4,12H1L4.96,16.03L9,12H6A7,7 0 0,1 13,5A7,7 0 0,1 20,12A7,7 0 0,1 13,19C11.07,19 9.32,18.21 8.06,16.94L6.64,18.36C8.27,20 10.5,21 13,21A9,9 0 0,0 22,12A9,9 0 0,0 13,3Z"></path></svg><span>Transaction History</span></a></li>
                 
@@ -45,7 +44,6 @@
                 </div>
             </div>
 
-            <!-- TABBED MASTER DATA VIEW -->
             <div id="view-master-data" class="view">
                 <div class="sub-nav">
                     <button class="sub-nav-item active" data-subview="items">Items</button>
@@ -60,30 +58,31 @@
                 <div id="subview-sections" class="sub-view"><div class="card"><div class="toolbar"><h2>Section List</h2><div class="search-bar"><input type="search" id="search-sections" class="search-bar-input" placeholder="Search by name or code..."></div><button id="btn-export-sections" class="secondary">Export to Excel</button></div><div class="report-area"><table id="table-sections"><thead><tr><th>Code</th><th>Name</th><th>Actions</th></tr></thead><tbody></tbody></table></div></div></div>
             </div>
             
-            <div id="view-payments" class="view">
-                 <div class="card"><h2>Record a Payment</h2><form id="form-record-payment"><div class="form-grid"><div class="form-group"><label for="payment-supplier-select">1. Select Supplier</label><select id="payment-supplier-select" required></select></div><div class="form-group"><label>2. Select Invoices to Pay</label><button type="button" id="btn-select-invoices" class="secondary" style="width: 100%;" disabled>Select Invoices...</button></div><div class="form-group"><label for="payment-method">3. Enter Payment Method</label><input type="text" id="payment-method" placeholder="e.g., Cash, Bank Transfer" required></div></div><div id="payment-invoice-list-container" class="report-area" style="display:none; margin-top:24px;"><h3>4. Confirm Amounts</h3><table id="table-payment-list"><thead><tr><th>Invoice #</th><th>Balance Due</th><th>Amount to Pay</th></tr></thead><tbody></tbody><tfoot><tr style="font-weight:bold;"><td colspan="2" style="text-align:right;">Total Payment:</td><td id="payment-total-amount">0.00 EGP</td></tr></tfoot></table></div><button type="submit" class="primary" style="margin-top: 24px; width:100%;">Submit Payment</button></form></div>
-            </div>
-
-            <!-- TABBED FINANCIALS VIEW -->
             <div id="view-financials" class="view">
                 <div class="sub-nav">
-                    <button class="sub-nav-item active" data-subview="supplier-statement">Supplier Statement</button>
+                    <button class="sub-nav-item active" data-subview="record-payment">Record Payment</button>
+                    <button class="sub-nav-item" data-subview="supplier-statement">Supplier Statement</button>
                     <button class="sub-nav-item" data-subview="branch-statement">Branch Activity</button>
                     <button class="sub-nav-item" data-subview="section-statement">Section Usage</button>
                 </div>
-                
-                <div id="subview-supplier-statement" class="sub-view active">
+
+                <div id="subview-record-payment" class="sub-view active">
+                    <div class="card"><form id="form-record-payment"><div class="form-grid"><div class="form-group"><label for="payment-supplier-select">1. Select Supplier</label><select id="payment-supplier-select" required></select></div><div class="form-group"><label>2. Select Invoices to Pay</label><button type="button" id="btn-select-invoices" class="secondary" style="width: 100%;" disabled>Select Invoices...</button></div><div class="form-group"><label for="payment-method">3. Enter Payment Method</label><input type="text" id="payment-method" placeholder="e.g., Cash, Bank Transfer" required></div></div><div id="payment-invoice-list-container" class="report-area" style="display:none; margin-top:24px;"><h3>4. Confirm Amounts</h3><table id="table-payment-list"><thead><tr><th>Invoice #</th><th>Balance Due</th><th>Amount to Pay</th></tr></thead><tbody></tbody><tfoot><tr style="font-weight:bold;"><td colspan="2" style="text-align:right;">Total Payment:</td><td id="payment-total-amount">0.00 EGP</td></tr></tfoot></table></div><button type="submit" class="primary" style="margin-top: 24px; width:100%;">Submit Payment</button></form></div>
+                </div>
+
+                <div id="subview-supplier-statement" class="sub-view">
                     <div class="card"><div class="report-generator-controls"><select id="supplier-statement-select"></select><input type="date" id="statement-start-date"><input type="date" id="statement-end-date"><button id="btn-generate-supplier-statement" class="primary small">Generate</button><button id="btn-export-supplier-statement" class="secondary small" disabled>Export to Excel</button></div><div id="supplier-statement-results" class="printable-area" style="display: none; margin-top:20px;"></div></div>
                 </div>
+
                 <div id="subview-branch-statement" class="sub-view">
                      <div class="card"><div class="report-generator-controls"><select id="branch-statement-select"></select><input type="date" id="branch-statement-start-date"><input type="date" id="branch-statement-end-date"><button id="btn-generate-branch-statement" class="primary small">Generate</button><button id="btn-export-branch-statement" class="secondary small" disabled>Export to Excel</button></div><div id="branch-statement-results" class="printable-area" style="display: none; margin-top:20px;"></div></div>
                 </div>
+                 
                 <div id="subview-section-statement" class="sub-view">
                     <div class="card"><div class="report-generator-controls"><select id="section-statement-select"></select><input type="date" id="section-statement-start-date"><input type="date" id="section-statement-end-date"><button id="btn-generate-section-statement" class="primary small">Generate</button><button id="btn-export-section-statement" class="secondary small" disabled>Export to Excel</button></div><div id="section-statement-results" class="printable-area" style="display: none; margin-top:20px;"></div></div>
                 </div>
             </div>
 
-            <!-- TABBED STOCK OPERATIONS VIEW -->
             <div id="view-operations" class="view">
                  <div class="sub-nav">
                     <button class="sub-nav-item active" data-subview="receive">Receive Stock</button>
