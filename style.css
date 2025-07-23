@@ -108,7 +108,8 @@ body {
 
 .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; gap: 20px; }
 .toolbar .search-bar { flex-grow: 1; margin-bottom: 0; }
-.toolbar h2 { margin: 0; padding: 0; border: none; }
+.toolbar h2 { margin: 0; padding: 0; border: none; font-size: 20px; font-weight: 600;}
+
 
 /* --- Form Elements --- */
 .form-group label { display: block; font-weight: 500; font-size: 14px; margin-bottom: 8px; color: var(--text-light-color); }
@@ -228,9 +229,9 @@ tbody tr:hover { background-color: #f7faff; }
 .report-area { overflow-x: auto; }
 #item-centric-stock-container table { table-layout: auto; }
 #item-centric-stock-container table td, #item-centric-stock-container table th { white-space: normal; }
-/* FIX: Make Activity Log description straight */
 #table-activity-log td:nth-child(3) {
-    white-space: nowrap;
+    white-space: normal;
+    word-break: break-word;
 }
 
 
@@ -241,7 +242,6 @@ tbody tr:hover { background-color: #f7faff; }
     #print-area { display: block !important; }
     .printable-document { display: block !important; box-shadow: none; border: none; }
     
-    /* FIX: Ensure table data is fully visible on print */
     #print-area table { table-layout: auto; }
     #print-area th, #print-area td { 
         white-space: normal !important;
