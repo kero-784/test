@@ -103,6 +103,7 @@ body {
 .sub-view { display: none; }
 .sub-view.active { display: block; animation: fadeIn 0.4s; }
 
+
 /* --- Card & Container Styles --- */
 .card {
     background-color: var(--card-bg-color); padding: 24px; border-radius: var(--border-radius);
