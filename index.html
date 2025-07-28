@@ -11,20 +11,10 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
-            --bg-color: #f0f4f8; 
-            --primary-text: #2c3e50; 
-            --secondary-text: #8492a6;
-            --card-bg: #ffffff; 
-            --border-color: #e2e8f0; 
-            --shadow: 0 10px 30px -15px rgba(0, 0, 0, 0.1);
-            --green: #10B981; 
-            --red: #EF4444; 
-            --gray: #6B7280; 
-            --blue: #3B82F6; 
-            --orange: #F97316;
-            --orange-light: #FEF3C7;
-            --font-family: 'Tajawal', sans-serif; 
-            --border-radius: 16px;
+            --bg-color: #f0f4f8; --primary-text: #2c3e50; --secondary-text: #8492a6;
+            --card-bg: #ffffff; --border-color: #e2e8f0; --shadow: 0 10px 30px -15px rgba(0, 0, 0, 0.1);
+            --green: #10B981; --red: #EF4444; --gray: #6B7280; --blue: #3B82F6; --orange: #F97316;
+            --orange-light: #FEF3C7; --font-family: 'Tajawal', sans-serif; --border-radius: 16px;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: var(--font-family); background-color: var(--bg-color); color: var(--primary-text); line-height: 1.7; }
@@ -34,6 +24,7 @@
         .btn-primary { background: linear-gradient(45deg, var(--blue), #60A5FA); color: white; box-shadow: 0 4px 15px -5px var(--blue); }
         .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 7px 20px -5px var(--blue); }
         .btn-secondary { background-color: var(--card-bg); color: var(--blue); border: 1px solid var(--border-color); }
+        .btn-secondary:hover { background-color: #f8fafc; border-color: var(--blue); }
         .btn:disabled { background-color: var(--gray); color: white; cursor: not-allowed; box-shadow: none; }
         .header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1.5rem; margin-bottom: 2.5rem; }
         .view-toggle { display: flex; background: #e9eef3; border-radius: 12px; padding: 5px; }
@@ -42,8 +33,6 @@
         .grid-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 1.5rem; animation: fadeIn 0.5s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes fadeOut { to { opacity: 0; transform: scale(0.9); height: 0; padding: 0; margin: 0; border: none; } }
-        
-        /* Task Item & Branch Item Styles */
         .task-item { background: var(--card-bg); border-radius: var(--border-radius); box-shadow: var(--shadow); transition: all 0.3s ease; border-left: 6px solid; overflow: hidden; display: flex; flex-direction: column; }
         .task-item:hover { transform: translateY(-5px); box-shadow: 0 15px 35px -10px rgba(0,0,0,0.1); }
         .task-item-actions { padding: 0.5rem 1rem 0; text-align: left; }
@@ -112,8 +101,8 @@
         .report-table tbody tr:nth-child(even) { background-color: #f8fafc; }
         .report-table .status-badge { padding: 5px 12px; border-radius: 20px; font-weight: 700; font-size: 0.8rem; color: white; display: inline-block; }
         .status-badge-done { background-color: var(--green); } .status-badge-pending { background-color: var(--red); } .status-badge-not-required { background-color: var(--gray); }
+        .report-list { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 20px; padding-top: 20px; }
         .report-footer { padding: 20px 40px; text-align: center; background-color: #f8fafc; border-top: 1px solid var(--border-color); font-size: 12px; color: var(--secondary-text); }
-        .report-list { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 20px; border-top: 1px solid var(--border-color); padding-top: 20px; }
     </style>
 </head>
 <body>
@@ -121,7 +110,11 @@
         <header class="header">
             <div><h1>لوحة التحكم</h1><p style="color: var(--secondary-text);">أهلاً بك, قم باختيار طريقة العرض المناسبة لك.</p></div>
             <div class="view-toggle" id="viewToggle"><button class="active" data-view="tasks">عرض حسب المهمة</button><button data-view="branches">عرض حسب الفرع</button></div>
-            <div><button class="btn btn-primary" id="addTaskBtn"><i class="fas fa-plus"></i> إضافة مهمة</button><button class="btn btn-secondary hidden" id="downloadReportBtn"><i class="fas fa-download"></i> تحميل تقرير</button></div>
+            <div>
+                <button class="btn btn-secondary hidden" id="backToHomeBtn"><i class="fas fa-arrow-right"></i> العودة للرئيسية</button>
+                <button class="btn btn-primary" id="addTaskBtn"><i class="fas fa-plus"></i> إضافة مهمة</button>
+                <button class="btn btn-secondary hidden" id="downloadReportBtn"><i class="fas fa-download"></i> تحميل تقرير</button>
+            </div>
         </header>
         <div id="contentArea" class="grid-container"></div>
     </div>
@@ -139,6 +132,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const viewToggle = document.getElementById('viewToggle');
     const addTaskBtn = document.getElementById('addTaskBtn');
     const downloadReportBtn = document.getElementById('downloadReportBtn');
+    const backToHomeBtn = document.getElementById('backToHomeBtn');
     const addTaskModal = document.getElementById('addTaskModal');
     const confirmAddTaskBtn = document.getElementById('confirmAddTaskBtn');
     const cancelAddTaskBtn = document.getElementById('cancelAddTaskBtn');
@@ -254,6 +248,10 @@ document.addEventListener('DOMContentLoaded', () => {
     function showTaskDetailView(data) {
         logToConsole('Rendering Task Detail View', 'EVENT', data);
         currentTaskData = data;
+        document.getElementById('viewToggle').classList.add('hidden');
+        addTaskBtn.classList.add('hidden');
+        downloadReportBtn.classList.remove('hidden');
+        backToHomeBtn.classList.remove('hidden');
         contentArea.classList.remove('grid-container');
         contentArea.innerHTML = `<div id="taskDetailView" class="view"><h2 style="margin-bottom: 1.5rem;">تفاصيل مهمة: ${data.task.name}</h2><div class="grid-container" id="branchGrid"></div></div>`;
         const branchGrid = document.getElementById('branchGrid');
@@ -263,13 +261,14 @@ document.addEventListener('DOMContentLoaded', () => {
             card.innerHTML = `<div class="branch-name">${branch.name}</div><div class="status-radio-group" data-branch-id="${branch.id}"><input type="radio" id="pending-${branch.id}" name="status-${branch.id}" value="pending" ${branch.status === 'pending' ? 'checked' : ''}><label for="pending-${branch.id}">لم يتم</label><input type="radio" id="done-${branch.id}" name="status-${branch.id}" value="done" ${branch.status === 'done' ? 'checked' : ''}><label for="done-${branch.id}">تم</label><input type="radio" id="not-required-${branch.id}" name="status-${branch.id}" value="not-required" ${branch.status === 'not-required' ? 'checked' : ''}><label for="not-required-${branch.id}">غير مطلوب</label></div>`;
             branchGrid.appendChild(card);
         });
-        document.getElementById('downloadReportBtn').classList.remove('hidden');
     }
 
     async function handleLoadDashboard() {
         logToConsole(`Loading dashboard for view: ${currentView}`, 'EVENT');
         showLoader();
-        document.getElementById('downloadReportBtn').classList.add('hidden');
+        downloadReportBtn.classList.add('hidden');
+        backToHomeBtn.classList.add('hidden');
+        document.getElementById('viewToggle').classList.remove('hidden');
         contentArea.classList.add('grid-container');
         try {
             if (currentView === 'tasks') {
@@ -486,6 +485,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 generateAndDownloadReport(currentTaskData, 'task');
             }
         });
+
+        backToHomeBtn.addEventListener('click', handleLoadDashboard);
 
         handleLoadDashboard();
     }
