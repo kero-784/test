@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Branch Task Tracker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
+
+    <style>
+        :root {
+            --bg-color: #f4f7fa;
+            --primary-text: #1a202c;
+            --secondary-text: #718096;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --green: #48bb78;
+            --red: #f56565;
+            --gray: #a0aec0;
+            --blue: #4299e1;
+            --font-family: 'Cairo', sans-serif;
+        }
+        body { font-family: var(--font-family); background-color: var(--bg-color); color: var(--primary-text); line-height: 1.6; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 2rem 1.5rem; }
+        .hidden { display: none !important; }
+        h1, h2 { font-weight: 700; }
+        
+        /* --- General UI --- */
+        .btn { padding: 0.75rem 1.5rem; border: none; border-radius: 8px; font-family: var(--font-family); font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .btn-primary { background-color: var(--blue); color: white; }
+        .btn-primary:hover { background-color: #3182ce; }
+        .btn-secondary { background-color: var(--secondary-text); color: white; }
+        .btn-secondary:hover { background-color: #5a687c; }
+
+        /* --- Header --- */
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+        
+        /* --- Views (Dashboard / Task Details) --- */
+        .view { animation: fadeIn 0.5s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- Dashboard View --- */
+        #dashboardView .task-list { display: grid; gap: 1rem; }
+        #dashboardView .task-item { background: var(--card-bg); padding: 1.25rem; border-radius: 12px; box-shadow: var(--shadow); display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; border-right: 5px solid var(--blue); }
+        #dashboardView .task-item:hover { transform: translateY(-4px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+        #dashboardView .task-item-name { font-size: 1.2rem; font-weight: 600; }
+        #dashboardView .task-item-date { font-size: 0.9rem; color: var(--secondary-text); }
+        
+        /* --- Task Detail View --- */
+        #taskDetailView .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2.5rem; }
+        #taskDetailView .kpi-card { background: var(--card-bg); padding: 1.5rem; border-radius: 12px; box-shadow: var(--shadow); }
+        #taskDetailView .kpi-card .value { font-size: 2rem; font-weight: 700; }
+        #taskDetailView .kpi-card .label { color: var(--secondary-text); }
+        #taskDetailView #branchGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
+        #taskDetailView .branch-card { background: var(--card-bg); border-radius: 12px; box-shadow: var(--shadow); padding: 1.5rem; display: flex; justify-content: space-between; align-items: center; border-right: 5px solid var(--border-color); }
+        #taskDetailView .branch-card.done { border-right-color: var(--green); }
+        #taskDetailView .branch-card.pending { border-right-color: var(--red); }
+        #taskDetailView .branch-card.not-required { border-right-color: var(--gray); }
+        .status-badge { padding: 0.4rem 1rem; border-radius: 20px; font-weight: 600; font-size: 0.9rem; color: #fff; cursor: pointer; user-select: none; }
+        .status-badge.done { background-color: var(--green); }
+        .status-badge.pending { background-color: var(--red); }
+        .status-badge.not-required { background-color: var(--gray); }
+
+        /* --- Modal for Adding Task --- */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background: white; padding: 2rem; border-radius: 12px; width: 90%; max-width: 500px; }
+        .modal-content h2 { margin-bottom: 1rem; }
+        .modal-content input { width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border-color); font-size: 1rem; margin-bottom: 1rem; }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 1rem; }
+
+        /* --- Loader --- */
+        .loader { text-align: center; padding: 4rem; font-size: 1.5rem; color: var(--secondary-text); }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- === MAIN HEADER === -->
+        <header class="header">
+            <h1 id="mainTitle">لوحة التحكم الرئيسية</h1>
+            <div>
+                <button class="btn btn-secondary hidden" id="backToDashboardBtn"><i class="fa-solid fa-arrow-right"></i> العودة</button>
+                <button class="btn btn-primary" id="addTaskBtn"><i class="fa-solid fa-plus"></i> إضافة مهمة جديدة</button>
+                <button class="btn btn-primary hidden" id="downloadReportBtn"><i class="fa-solid fa-download"></i> تحميل التقرير</button>
+            </div>
+        </header>
+
+        <!-- === VIEW: DASHBOARD (List of all tasks) === -->
+        <div id="dashboardView" class="view">
+            <div id="taskList" class="task-list">
+                <!-- Task items will be dynamically inserted here -->
+            </div>
+        </div>
+
+        <!-- === VIEW: TASK DETAILS (Breakdown of a single task) === -->
+        <div id="taskDetailView" class="view hidden">
+            <section id="kpi-grid" class="kpi-grid"></section>
+            <main id="branchGrid"></main>
+        </div>
+
+        <!-- === MODAL: ADD NEW TASK === -->
+        <div id="addTaskModal" class="modal-overlay hidden">
+            <div class="modal-content">
+                <h2>إضافة مهمة جديدة</h2>
+                <input type="text" id="newTaskNameInput" placeholder="اكتب اسم المهمة هنا (مثال: تفعيل عرض الصيف)">
+                <div class="modal-actions">
+                    <button id="cancelAddTaskBtn" class="btn btn-secondary">إلغاء</button>
+                    <button id="confirmAddTaskBtn" class="btn btn-primary">إضافة</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- === LOADER === -->
+        <div id="loader" class="loader">
+            <i class="fas fa-spinner fa-spin"></i> جاري التحميل...
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // !!! IMPORTANT: PASTE YOUR GOOGLE APPS SCRIPT URL HERE !!!
+        const SCRIPT_URL = 'YOUR_WEB_APP_URL_HERE'; 
+
+        // --- DOM Elements ---
+        const mainTitle = document.getElementById('mainTitle');
+        const loader = document.getElementById('loader');
+        const dashboardView = document.getElementById('dashboardView');
+        const taskDetailView = document.getElementById('taskDetailView');
+        const taskList = document.getElementById('taskList');
+        const backToDashboardBtn = document.getElementById('backToDashboardBtn');
+        const addTaskBtn = document.getElementById('addTaskBtn');
+        const downloadReportBtn = document.getElementById('downloadReportBtn');
+        
+        // Modal elements
+        const addTaskModal = document.getElementById('addTaskModal');
+        const newTaskNameInput = document.getElementById('newTaskNameInput');
+        const confirmAddTaskBtn = document.getElementById('confirmAddTaskBtn');
+        const cancelAddTaskBtn = document.getElementById('cancelAddTaskBtn');
+
+        // --- State ---
+        let currentTaskData = null;
+
+        // --- API Functions ---
+        async function apiCall(action, method = 'GET', body = null) {
+            const url = new URL(SCRIPT_URL);
+            url.searchParams.append('action', action);
+            
+            const options = {
+                method: method,
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            };
+
+            if (method === 'POST') {
+                options.body = JSON.stringify(body);
+            } else if (body) {
+                // For GET requests with params in body (not standard but can be used)
+                Object.keys(body).forEach(key => url.searchParams.append(key, body[key]));
+            }
+
+            try {
+                const response = await fetch(url, options);
+                if (!response.ok) throw new Error(`Network response was not ok: ${response.statusText}`);
+                const data = await response.json();
+                if (!data.success) throw new Error(data.message || 'API call failed');
+                return data;
+            } catch (error) {
+                console.error('API Error:', error);
+                alert(`Error: ${error.message}`);
+                throw error;
+            }
+        }
+
+        // --- View Switching ---
+        function showView(viewName) {
+            dashboardView.classList.add('hidden');
+            taskDetailView.classList.add('hidden');
+            loader.classList.add('hidden');
+
+            if (viewName === 'dashboard') {
+                dashboardView.classList.remove('hidden');
+                mainTitle.textContent = 'لوحة التحكم الرئيسية';
+                backToDashboardBtn.classList.add('hidden');
+                addTaskBtn.classList.remove('hidden');
+                downloadReportBtn.classList.add('hidden');
+            } else if (viewName === 'details') {
+                taskDetailView.classList.remove('hidden');
+                backToDashboardBtn.classList.remove('hidden');
+                addTaskBtn.classList.add('hidden');
+                downloadReportBtn.classList.remove('hidden');
+            } else if (viewName === 'loading') {
+                loader.classList.remove('hidden');
+            }
+        }
+
+        // --- Rendering Functions ---
+        function renderDashboard(tasks) {
+            taskList.innerHTML = '';
+            if (tasks.length === 0) {
+                taskList.innerHTML = `<p>لا توجد مهام حالياً. قم بإضافة مهمة جديدة.</p>`;
+                return;
+            }
+            tasks.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)).forEach(task => {
+                const item = document.createElement('div');
+                item.className = 'task-item';
+                item.dataset.taskId = task.id;
+                item.innerHTML = `
+                    <div>
+                        <div class="task-item-name">${task.name}</div>
+                        <div class="task-item-date">أُنشئت في: ${new Date(task.createdAt).toLocaleDateString('ar-EG')}</div>
+                    </div>
+                    <i class="fa-solid fa-chevron-left"></i>
+                `;
+                taskList.appendChild(item);
+            });
+        }
+        
+        function renderTaskDetails(data) {
+            currentTaskData = data;
+            mainTitle.textContent = data.task.name;
+            const kpiGrid = document.getElementById('kpi-grid');
+            const branchGrid = document.getElementById('branchGrid');
+            kpiGrid.innerHTML = '';
+            branchGrid.innerHTML = '';
+
+            const stats = {
+                total: data.branches.length,
+                done: data.branches.filter(b => b.status === 'done').length,
+                pending: data.branches.filter(b => b.status === 'pending').length,
+                notRequired: data.branches.filter(b => b.status === 'not-required').length
+            };
+
+            kpiGrid.innerHTML = `
+                <div class="kpi-card"><div class="value">${stats.total}</div><div class="label">إجمالي الفروع</div></div>
+                <div class="kpi-card"><div class="value">${stats.done}</div><div class="label">تم</div></div>
+                <div class="kpi-card"><div class="value">${stats.pending}</div><div class="label">لم يتم</div></div>
+                <div class="kpi-card"><div class="value">${stats.notRequired}</div><div class="label">غير مطلوب</div></div>
+            `;
+            
+            const statusMap = {
+                'done': { text: 'تم', class: 'done' },
+                'pending': { text: 'لم يتم', class: 'pending' },
+                'not-required': { text: 'غير مطلوب', class: 'not-required' }
+            };
+
+            data.branches.forEach(branch => {
+                const statusInfo = statusMap[branch.status];
+                const card = document.createElement('div');
+                card.className = `branch-card ${branch.status}`;
+                card.dataset.branchId = branch.id;
+                card.innerHTML = `
+                    <div class="branch-name">${branch.name}</div>
+                    <div class="status-badge ${statusInfo.class}">${statusInfo.text}</div>
+                `;
+                branchGrid.appendChild(card);
+            });
+        }
+
+        // --- Event Handlers ---
+        async function handleLoadDashboard() {
+            showView('loading');
+            try {
+                const data = await apiCall('getTasks');
+                renderDashboard(data.tasks);
+                showView('dashboard');
+            } catch (error) {
+                showView('dashboard'); // Show empty dashboard on error
+            }
+        }
+
+        async function handleSelectTask(e) {
+            const taskItem = e.target.closest('.task-item');
+            if (!taskItem) return;
+            
+            const taskID = taskItem.dataset.taskId;
+            showView('loading');
+            try {
+                const data = await apiCall('getTaskDetails', 'GET', { taskID });
+                renderTaskDetails(data);
+                showView('details');
+            } catch (error) {
+                showView('dashboard');
+            }
+        }
+        
+        async function handleStatusChange(e) {
+            if (!e.target.classList.contains('status-badge')) return;
+
+            const card = e.target.closest('.branch-card');
+            const branchID = card.dataset.branchId;
+            const taskID = currentTaskData.task.id;
+
+            const currentStatus = Array.from(card.classList).find(c => ['done', 'pending', 'not-required'].includes(c));
+            const statusCycle = ['pending', 'done', 'not-required'];
+            const nextStatus = statusCycle[(statusCycle.indexOf(currentStatus) + 1) % statusCycle.length];
+            
+            e.target.textContent = 'Updating...'; // visual feedback
+            try {
+                await apiCall('updateStatus', 'POST', { taskID, branchID, newStatus: nextStatus });
+                // Optimistic UI update
+                const branch = currentTaskData.branches.find(b => b.id == branchID);
+                branch.status = nextStatus;
+                renderTaskDetails(currentTaskData);
+            } catch (error) {
+                // Revert on failure
+                renderTaskDetails(currentTaskData);
+            }
+        }
+
+        async function handleCreateTask() {
+            const taskName = newTaskNameInput.value.trim();
+            if (!taskName) {
+                alert('الرجاء إدخال اسم للمهمة.');
+                return;
+            }
+            confirmAddTaskBtn.disabled = true;
+            confirmAddTaskBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            try {
+                await apiCall('createTask', 'POST', { taskName });
+                addTaskModal.classList.add('hidden');
+                newTaskNameInput.value = '';
+                await handleLoadDashboard(); // Refresh dashboard
+            } finally {
+                confirmAddTaskBtn.disabled = false;
+                confirmAddTaskBtn.innerHTML = 'إضافة';
+            }
+        }
+        
+        function handleDownloadReport() {
+            if (!currentTaskData) return;
+            
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "الفرع,الحالة\n"; // Headers in Arabic
+            
+            currentTaskData.branches.forEach(branch => {
+                const statusText = {
+                    'done': 'تم', 'pending': 'لم يتم', 'not-required': 'غير مطلوب'
+                }[branch.status];
+                csvContent += `${branch.name},${statusText}\n`;
+            });
+            
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `report_${currentTaskData.task.name.replace(/\s/g, '_')}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // --- Initializer & Event Listeners ---
+        taskList.addEventListener('click', handleSelectTask);
+        backToDashboardBtn.addEventListener('click', handleLoadDashboard);
+        document.getElementById('branchGrid').addEventListener('click', handleStatusChange);
+        
+        // Modal Listeners
+        addTaskBtn.addEventListener('click', () => addTaskModal.classList.remove('hidden'));
+        cancelAddTaskBtn.addEventListener('click', () => addTaskModal.classList.add('hidden'));
+        confirmAddTaskBtn.addEventListener('click', handleCreateTask);
+        downloadReportBtn.addEventListener('click', handleDownloadReport);
+
+        // Initial Load
+        handleLoadDashboard();
+    });
+    </script>
+</body>
+</html>
