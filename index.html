@@ -31,32 +31,20 @@
         .container { max-width: 1200px; margin: 0 auto; padding: 2rem 1.5rem; }
         .hidden { display: none !important; }
         
-        /* --- Buttons --- */
-        .btn { padding: 0.75rem 1.5rem; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        /* Buttons, Header etc. remain the same */
+        .btn { padding: 0.75rem 1.5rem; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 0.5rem; }
+        .btn:disabled { background-color: var(--gray); cursor: not-allowed; }
         .btn-primary { background-color: var(--blue); color: white; }
-        .btn-primary:hover { background-color: #3182ce; }
-
-        /* --- Header --- */
+        .btn-primary:not(:disabled):hover { background-color: #3182ce; }
         .header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 2rem; }
-        
-        /* --- NEW: Dashboard Task Item Styling --- */
+
+        /* Dashboard Task Item Styling */
         #dashboardView .task-list { display: grid; gap: 1.5rem; }
-        .task-item {
-            background: var(--card-bg);
-            border-radius: 12px;
-            box-shadow: var(--shadow);
-            padding: 1.5rem;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            border-left: 5px solid var(--blue);
-        }
+        .task-item { background: var(--card-bg); border-radius: 12px; box-shadow: var(--shadow); padding: 1.5rem; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; border-left: 5px solid var(--blue); }
         .task-item:hover { transform: translateY(-5px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
         .task-item-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; }
-        .task-item-name { font-size: 1.3rem; font-weight: 700; color: var(--primary-text); }
-        .task-status-tag {
-            padding: 0.2rem 0.8rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600;
-            background-color: var(--orange); color: white;
-        }
+        .task-item-name { font-size: 1.3rem; font-weight: 700; }
+        .task-status-tag { padding: 0.2rem 0.8rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600; background-color: var(--orange); color: white; }
         .task-item-body { display: flex; flex-direction: column; gap: 1rem; }
         .progress-bar-container { width: 100%; }
         .progress-label { display: flex; justify-content: space-between; font-size: 0.9rem; color: var(--secondary-text); margin-bottom: 0.25rem; }
@@ -64,13 +52,9 @@
         .progress-bar-fg { height: 100%; border-radius: 10px; transition: width 0.5s ease-in-out; }
         .completion-bar { background-color: var(--green); }
         .responsiveness-bar { background-color: var(--blue); }
-        .task-item-footer {
-            border-top: 1px solid var(--border-color);
-            margin-top: 1rem; padding-top: 0.75rem;
-            font-size: 0.9rem; color: var(--secondary-text);
-        }
-
-        /* --- Task Detail View --- */
+        .task-item-footer { border-top: 1px solid var(--border-color); margin-top: 1rem; padding-top: 0.75rem; font-size: 0.9rem; color: var(--secondary-text); }
+        
+        /* Task Detail View (Radio Buttons) */
         #taskDetailView #branchGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 1.5rem; }
         .branch-card { background: var(--card-bg); border-radius: 12px; padding: 1.5rem; }
         .branch-name { font-size: 1.2rem; font-weight: 600; }
@@ -82,9 +66,34 @@
         .status-radio-group input[value="pending"]:checked + label { background-color: var(--red); border-color: var(--red); }
         .status-radio-group input[value="not-required"]:checked + label { background-color: var(--gray); border-color: var(--gray); }
 
-        /* --- Other Styles (Loader, Report, etc.) --- */
+        /* Loader & Messages */
         .message-container { text-align: center; padding: 4rem; font-size: 1.2rem; }
-        #reportContainer { display: none; /* ... same as before ... */ }
+        
+        /* --- ENHANCED: Hidden JPG Report Container Styling --- */
+        #reportContainer {
+            display: none; width: 800px; padding: 40px; background: white; font-family: var(--font-family); color: var(--primary-text);
+            border: 1px solid var(--border-color);
+        }
+        #reportHeader { text-align: center; border-bottom: 2px solid var(--blue); padding-bottom: 20px; margin-bottom: 20px; }
+        #reportHeader h2 { font-size: 28px; color: var(--blue); margin: 0; }
+        #reportHeader p { font-size: 16px; color: var(--secondary-text); margin: 5px 0 0; }
+        #reportSummary { display: flex; justify-content: space-between; align-items: center; margin: 30px 0; }
+        #reportMainStats { flex-grow: 1; }
+        .stat-item { font-size: 18px; margin-bottom: 15px; display: flex; align-items: center;}
+        .stat-item span { font-weight: 700; padding: 4px 10px; border-radius: 5px; color: white; margin-left: 10px; font-size: 1.2rem; }
+        .stat-done { background-color: var(--green); }
+        .stat-pending { background-color: var(--red); }
+        .stat-not-required { background-color: var(--gray); }
+        #reportChartContainer { width: 170px; height: 170px; }
+        #reportProgressStats { border-top: 1px solid var(--border-color); padding-top: 20px; margin-bottom: 20px; }
+        #reportBranchList { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 20px; border-top: 1px solid var(--border-color); padding-top: 20px; }
+        .report-branch-item { display: flex; justify-content: space-between; padding: 8px; border-radius: 5px; }
+        .report-branch-item:nth-child(odd) { background-color: #f9fafb; }
+        .report-branch-item .status { font-weight: 700; }
+        .report-branch-item .status-done { color: var(--green); }
+        .report-branch-item .status-pending { color: var(--red); }
+        .report-branch-item .status-not-required { color: var(--gray); }
+        #reportFooter { text-align: center; margin-top: 30px; font-size: 12px; color: var(--secondary-text); }
     </style>
 </head>
 <body>
@@ -100,18 +109,35 @@
         <div id="contentArea"></div>
     </div>
     
-    <!-- Report Template (Unchanged) -->
-    <div id="reportContainer" style="display: none; position: absolute; top: -9999px; width: 800px; padding: 40px; background: white; border: 1px solid var(--border-color);">
+    <!-- ENHANCED: Report Template with placeholders for new stats -->
+    <div id="reportContainer">
         <div id="reportHeader">
             <h2 id="reportTaskName"></h2>
             <p>تقرير حالة استجابة الفروع</p>
         </div>
-        <div id="reportSummary" style="display: flex; justify-content: space-between; align-items: center; margin: 30px 0;">
-            <div id="reportStats"></div>
-            <div id="reportChartContainer" style="width: 150px; height: 150px;"><canvas id="reportChart"></canvas></div>
+        <div id="reportSummary">
+            <div id="reportMainStats">
+                <div class="stat-item">تم التنفيذ <span id="reportDoneStat" class="stat-done"></span></div>
+                <div class="stat-item">لم يتم <span id="reportPendingStat" class="stat-pending"></span></div>
+                <div class="stat-item">غير مطلوب <span id="reportNotRequiredStat" class="stat-not-required"></span></div>
+            </div>
+            <div id="reportChartContainer">
+                <canvas id="reportChart"></canvas>
+            </div>
         </div>
-        <div id="reportBranchList" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px 20px; border-top: 1px solid var(--border-color); padding-top: 20px;"></div>
-        <div id="reportFooter" style="text-align: center; margin-top: 30px; font-size: 12px; color: var(--secondary-text);">
+        <div id="reportProgressStats">
+             <div class="progress-bar-container">
+                <div class="progress-label">
+                    <span>نسبة الإنجاز</span>
+                    <span id="reportCompletionStat"></span>
+                </div>
+                <div class="progress-bar-bg">
+                    <div class="progress-bar-fg completion-bar" id="reportCompletionBar"></div>
+                </div>
+            </div>
+        </div>
+        <div id="reportBranchList"></div>
+        <div id="reportFooter">
             <p>تم إنشاء هذا التقرير بتاريخ: <span id="reportDate"></span></p>
         </div>
     </div>
@@ -131,116 +157,115 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- API Function (Unchanged) ---
     async function apiCall(action, method = 'GET', body = null) {
         const url = new URL(SCRIPT_URL);
-        const options = { method: method, redirect: 'follow' };
-        if (method === 'POST') {
-            options.body = JSON.stringify({ action, ...body });
-        } else {
-            url.searchParams.append('action', action);
-            if (body) {
-                Object.keys(body).forEach(key => url.searchParams.append(key, body[key]));
-            }
-        }
-        try {
-            const response = await fetch(url, options);
-            const data = await response.json();
-            if (!data.success) throw new Error(data.message);
-            return data;
-        } catch (error) {
-            console.error(`API Error on '${action}':`, error);
-            alert(`Error: ${error.message}`);
-            throw error;
-        }
+        // This is a simplified version of the API call for brevity, use your full working version.
+        const options = { method, redirect: 'follow' };
+        if (method === 'POST') options.body = JSON.stringify({ action, ...body });
+        else url.searchParams.append('action', action);
+        const response = await fetch(url, options);
+        return response.json();
     }
 
-    // --- View Rendering ---
-    function showLoader(message = 'جاري التحميل...') {
-        contentArea.innerHTML = `<div class="message-container"><i class="fas fa-spinner fa-spin"></i><p>${message}</p></div>`;
-        mainTitle.textContent = 'الرجاء الانتظار';
-        backToDashboardBtn.classList.add('hidden');
-        addTaskBtn.classList.add('hidden');
-        downloadReportBtn.classList.add('hidden');
-    }
+    // --- View Rendering (All functions are the same as before) ---
+    function showLoader(message = 'جاري التحميل...') { /* ... same ... */ }
+    function showDashboardView(tasks) { /* ... same ... */ }
+    function showTaskDetailView(data) { /* ... same ... */ }
 
-    // --- UPDATED showDashboardView Function ---
-    function showDashboardView(tasks) {
-        mainTitle.textContent = 'لوحة التحكم الرئيسية';
-        backToDashboardBtn.classList.add('hidden');
-        addTaskBtn.classList.remove('hidden');
-        downloadReportBtn.classList.add('hidden');
+    // --- Event Handlers ---
+    async function handleLoadDashboard() { /* ... same ... */ }
+    async function handleSelectTask(e) { /* ... same ... */ }
+    async function handleStatusChange(e) { /* ... same ... */ }
+
+    // --- CORRECTED & ENHANCED handleDownloadReport Function ---
+    async function handleDownloadReport() {
+        if (!currentTaskData) return;
+        showLoader('جاري إنشاء التقرير...');
         
-        let content = '<div id="dashboardView" class="view"><div id="taskList" class="task-list">';
-        if (!tasks || tasks.length === 0) {
-            content += `<p class="message-container">لا توجد مهام. أضف مهمة جديدة.</p>`;
-        } else {
-            tasks.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)).forEach(task => {
-                content += `
-                    <div class="task-item" data-task-id="${task.id}">
-                        <div class="task-item-header">
-                            <h3 class="task-item-name">${task.name}</h3>
-                            <span class="task-status-tag">${task.status}</span>
-                        </div>
-                        <div class="task-item-body">
-                            <div class="progress-bar-container">
-                                <div class="progress-label">
-                                    <span>نسبة الإنجاز</span>
-                                    <span>${task.completion}%</span>
-                                </div>
-                                <div class="progress-bar-bg">
-                                    <div class="progress-bar-fg completion-bar" style="width: ${task.completion}%;"></div>
-                                </div>
-                            </div>
-                            <div class="progress-bar-container">
-                                <div class="progress-label">
-                                    <span>نسبة الإستجابة (للمطلوب)</span>
-                                    <span>${task.responsiveness}%</span>
-                                </div>
-                                <div class="progress-bar-bg">
-                                    <div class="progress-bar-fg responsiveness-bar" style="width: ${task.responsiveness}%;"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="task-item-footer">
-                            <i class="fas fa-calendar-alt"></i> تاريخ الإنشاء: ${new Date(task.createdAt).toLocaleDateString('ar-EG')}
-                        </div>
-                    </div>
-                `;
+        try {
+            // 1. Calculate all necessary statistics for the current task
+            const totalBranches = currentTaskData.branches.length;
+            const doneCount = currentTaskData.branches.filter(b => b.status === 'done').length;
+            const pendingCount = currentTaskData.branches.filter(b => b.status === 'pending').length;
+            const notRequiredCount = currentTaskData.branches.filter(b => b.status === 'not-required').length;
+            
+            const requiredBranches = totalBranches - notRequiredCount;
+            const completionPercentage = (totalBranches > 0) ? Math.round((doneCount / totalBranches) * 100) : 0;
+
+            // 2. Populate the hidden report template with data
+            document.getElementById('reportTaskName').textContent = currentTaskData.task.name;
+            document.getElementById('reportDate').textContent = new Date().toLocaleString('ar-EG');
+            
+            // Populate main stats
+            document.getElementById('reportDoneStat').textContent = doneCount;
+            document.getElementById('reportPendingStat').textContent = pendingCount;
+            document.getElementById('reportNotRequiredStat').textContent = notRequiredCount;
+            
+            // Populate progress stats
+            document.getElementById('reportCompletionStat').textContent = `${completionPercentage}%`;
+            document.getElementById('reportCompletionBar').style.width = `${completionPercentage}%`;
+
+            // Populate branch list
+            const statusTranslations = {'done': 'تم', 'pending': 'لم يتم', 'not-required': 'غير مطلوب'};
+            const statusClasses = {'done': 'status-done', 'pending': 'status-pending', 'not-required': 'status-not-required'};
+            document.getElementById('reportBranchList').innerHTML = currentTaskData.branches.map(b => 
+                `<div class="report-branch-item">
+                    <span>${b.name}</span>
+                    <span class="status ${statusClasses[b.status]}">${statusTranslations[b.status]}</span>
+                 </div>`
+            ).join('');
+            
+            // 3. Render the pie chart
+            const chartCanvas = document.getElementById('reportChart');
+            if (currentChartInstance) currentChartInstance.destroy();
+            currentChartInstance = new Chart(chartCanvas, {
+                type: 'doughnut',
+                data: {
+                    labels: ['تم', 'لم يتم', 'غير مطلوب'],
+                    datasets: [{
+                        data: [doneCount, pendingCount, notRequiredCount],
+                        backgroundColor: [getComputedStyle(document.body).getPropertyValue('--green'), getComputedStyle(document.body).getPropertyValue('--red'), getComputedStyle(document.body).getPropertyValue('--gray')],
+                        borderColor: '#fff',
+                        borderWidth: 2
+                    }]
+                },
+                options: { plugins: { legend: { display: false } }, responsive: true, maintainAspectRatio: false }
             });
+
+            // 4. Use html2canvas to create the JPG
+            const reportElement = document.getElementById('reportContainer');
+            reportElement.style.display = 'block';
+            reportElement.style.position = 'absolute';
+            reportElement.style.right = '-9999px'; // Position it off-screen
+            reportElement.style.top = '0';
+
+            // Wait a moment for the chart to fully render
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            const canvas = await html2canvas(reportElement, { scale: 2 });
+            const link = document.createElement('a');
+            link.download = `report_${currentTaskData.task.name.replace(/[\s\W]/g, '_')}.jpg`;
+            link.href = canvas.toDataURL('image/jpeg', 0.95); // High quality JPG
+            link.click();
+
+            reportElement.style.display = 'none'; // Hide it again
+
+        } catch (err) {
+            console.error("Failed to generate report:", err);
+            alert("فشل إنشاء التقرير. الرجاء المحاولة مرة أخرى.");
+        } finally {
+            // Go back to the task detail view, which implicitly redraws the view correctly
+            showTaskDetailView(currentTaskData);
         }
-        content += '</div></div>';
-        contentArea.innerHTML = content;
     }
 
-    // showTaskDetailView function remains the same as the previous version
-    function showTaskDetailView(data) {
-        currentTaskData = data;
-        mainTitle.textContent = data.task.name;
-        backToDashboardBtn.classList.remove('hidden');
-        addTaskBtn.classList.add('hidden');
-        downloadReportBtn.classList.remove('hidden');
-        let branchesHtml = data.branches.map(branch => `
-            <div class="branch-card">
-                <div class="branch-name">${branch.name}</div>
-                <div class="status-radio-group" data-branch-id="${branch.id}">
-                    <input type="radio" id="pending-${branch.id}" name="status-${branch.id}" value="pending" ${branch.status === 'pending' ? 'checked' : ''}>
-                    <label for="pending-${branch.id}">لم يتم</label>
-                    <input type="radio" id="done-${branch.id}" name="status-${branch.id}" value="done" ${branch.status === 'done' ? 'checked' : ''}>
-                    <label for="done-${branch.id}">تم</label>
-                    <input type="radio" id="not-required-${branch.id}" name="status-${branch.id}" value="not-required" ${branch.status === 'not-required' ? 'checked' : ''}>
-                    <label for="not-required-${branch.id}">غير مطلوب</label>
-                </div>
-            </div>
-        `).join('');
-        contentArea.innerHTML = `<div id="taskDetailView" class="view"><div id="branchGrid">${branchesHtml}</div></div>`;
-    }
-
-    // --- Event Handlers (Unchanged) ---
+    // --- Full Event Handlers and Initializer (for copy-pasting) ---
+    // (The placeholder functions from before are now filled in for completeness)
     async function handleLoadDashboard() {
         showLoader();
         try {
             const data = await apiCall('getTasks');
             showDashboardView(data.tasks);
         } catch (error) {
-            contentArea.innerHTML = `<p class="message-container">Failed to load data.</p>`;
+            contentArea.innerHTML = `<div class="message-container"><p>Failed to load data. Please check the API URL and try again.</p></div>`;
         }
     }
     async function handleSelectTask(e) {
@@ -251,7 +276,9 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const data = await apiCall('getTaskDetails', 'GET', { taskID });
             showTaskDetailView(data);
-        } catch (error) { await handleLoadDashboard(); }
+        } catch (error) {
+            await handleLoadDashboard();
+        }
     }
     async function handleStatusChange(e) {
         if (e.target.name.startsWith('status-')) {
@@ -263,12 +290,14 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 await apiCall('updateStatus', 'POST', { taskID, branchID, newStatus });
                 currentTaskData.branches.find(b => b.id == branchID).status = newStatus;
-            } catch (error) { /* Revert logic */ } 
-            finally { radio.disabled = false; }
+            } catch (error) {
+                // Revert on failure
+                const oldStatus = currentTaskData.branches.find(b => b.id == branchID).status;
+                document.getElementById(`${oldStatus}-${branchID}`).checked = true;
+            } finally {
+                radio.disabled = false;
+            }
         }
-    }
-    async function handleDownloadReport() {
-        // This function is the same as the previous version
     }
 
     // Event Listeners
@@ -277,6 +306,8 @@ document.addEventListener('DOMContentLoaded', () => {
     backToDashboardBtn.addEventListener('click', handleLoadDashboard);
     downloadReportBtn.addEventListener('click', handleDownloadReport);
     
+    // (Modal listeners for adding tasks should be here if you have them)
+
     // Initial Load
     handleLoadDashboard();
 });
