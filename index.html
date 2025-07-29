@@ -3,150 +3,206 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shelf Price - Enhanced</title>
-    <link rel="icon" type="image/png" href="favicon.png">
+    <title>Shelf Price Pro</title>
+    <!-- The link to favicon.png is removed to prevent 404 errors if the file doesn't exist. -->
+    <!-- You can add it back if you have the file: <link rel="icon" type="image/png" href="favicon.png"> -->
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap');
-        
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap');
+
         :root {
-            --bg-color: #f4f7fa; --preview-bg: #e2e8f0; --text-color: #334155;
-            --primary-color: #3b82f6; --primary-hover: #2563eb; --card-bg: #ffffff;
-            --border-color: #e2e8f0; --muted-text: #64748b;
+            /* Color Palette */
+            --bg-color: #f8fafc;
+            --preview-bg: #e2e8f0;
+            --card-bg: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --primary-color: #3b82f6;
+            --primary-hover: #2563eb;
+            --success-color: #16a34a;
+            --error-color: #dc2626;
+
+            /* Sizing & Spacing */
+            --spacing-1: 4px; --spacing-2: 8px; --spacing-3: 12px; --spacing-4: 16px;
+            --spacing-5: 20px; --spacing-6: 24px; --spacing-8: 32px;
+
+            /* Borders & Shadows */
+            --radius-md: 8px;
+            --radius-lg: 12px;
             --shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -2px rgba(0,0,0,0.05);
             --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.07), 0 4px 6px -4px rgba(0,0,0,0.07);
-            --radius-md: 8px; --radius-lg: 12px; --transition: all 0.2s ease-in-out;
-            
-            /* Dynamic Label Properties */
-            --label-price-color: #ef4444; --label-border-width: 1px; --label-border-style: dashed; --label-border-color: #cbd5e1;
-            --label-padding: 5px; --label-border-radius: 8px; --price-box-bg: rgba(255, 255, 255, 0.85);
-            --price-box-border-color: var(--label-price-color); --label-item-font-size: 16px;
-            --label-item-font-weight: 700; --label-item-text-transform: none; --label-price-font-size: 24px;
+            --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+            /* Dynamic Label Properties (Controlled by JS) */
+            --label-price-color: #dc2626;
+            --label-border-width: 1px;
+            --label-border-style: dashed;
+            --label-border-color: #cbd5e1;
+            --label-padding: 5px;
+            --label-border-radius: 8px;
+            --price-box-bg: rgba(255, 255, 255, 0.85);
+            --price-box-border-color: var(--label-price-color);
+            --label-item-font-size: 16px;
+            --label-item-font-weight: 700;
+            --label-item-text-transform: none;
+            --label-price-font-size: 24px;
         }
 
+        /* --- Base & Reset --- */
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
-            font-family: 'Cairo', sans-serif; background-color: var(--bg-color); color: var(--text-color);
-            display: flex; height: 100vh; overflow: hidden; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+            font-family: 'Cairo', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            display: flex; height: 100vh;
+            overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
-        .app-container { display: flex; width: 100%; height: 100%; flex-direction: row-reverse; }
 
+        /* --- Main Layout --- */
+        .app-container { display: flex; width: 100%; height: 100%; flex-direction: row-reverse; }
         .control-panel {
-            width: 450px; min-width: 420px; background-color: var(--bg-color);
-            padding: 30px; height: 100vh; overflow-y: auto; border-left: 1px solid var(--border-color);
+            width: 550px; /* Increased dashboard size */
+            min-width: 550px;
+            background-color: var(--bg-color);
+            padding: var(--spacing-6) var(--spacing-8);
+            height: 100vh;
+            overflow-y: auto;
+            border-left: 1px solid var(--border-color);
         }
         .preview-panel {
-            flex-grow: 1; display: flex; flex-direction: column; align-items: center;
-            justify-content: center; padding: 30px; height: 100vh; background-color: var(--preview-bg);
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: var(--spacing-8);
+            height: 100vh;
+            background: var(--preview-bg);
+            position: relative;
         }
 
-        h1 { font-size: 2rem; font-weight: 700; color: var(--text-color); margin-bottom: 25px; }
-        h2 { font-size: 1.25rem; font-weight: 600; color: var(--text-color); margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); }
-        h3 { font-size: 1.5rem; font-weight: 700; color: var(--primary-color); margin: 40px 0 25px 0; border-bottom: 2px solid; padding-bottom: 15px;}
-
-        button {
-            background-color: var(--primary-color);
-            color: white; border: none; padding: 12px 25px; border-radius: var(--radius-md); font-family: 'Cairo', sans-serif;
-            font-size: 1rem; font-weight: 600; cursor: pointer; transition: var(--transition); box-shadow: var(--shadow);
-            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+        /* --- Typography & Global Elements --- */
+        h1 { font-size: 2.25rem; font-weight: 700; color: var(--text-primary); margin-bottom: var(--spacing-2); }
+        .app-tagline { font-size: 1rem; color: var(--text-secondary); margin-bottom: var(--spacing-8); }
+        h2 {
+            font-size: 1.125rem; font-weight: 600; color: var(--text-primary); margin-bottom: var(--spacing-4);
+            display: flex; align-items: center; justify-content: space-between;
         }
-        button:hover { background-color: var(--primary-hover); transform: translateY(-2px); box-shadow: var(--shadow-lg); }
-        button:disabled { background-color: #94a3b8; cursor: not-allowed; transform: none; box-shadow: none; }
-        .btn-icon svg { width:18px; height:18px; }
+        fieldset { border: none; padding: 0; margin: 0; }
+        legend { font-weight: 600; font-size: 1rem; color: var(--text-primary); padding: 0; margin-bottom: var(--spacing-3); }
+
+        /* --- Components --- */
+        .card { background: var(--card-bg); padding: var(--spacing-6); border-radius: var(--radius-lg); box-shadow: var(--shadow); margin-bottom: var(--spacing-6); }
         
+        button {
+            background-color: var(--primary-color); color: white; border: none; padding: var(--spacing-3) var(--spacing-5);
+            border-radius: var(--radius-md); font-family: 'Cairo', sans-serif; font-size: 0.95rem; font-weight: 600;
+            cursor: pointer; transition: var(--transition); box-shadow: var(--shadow);
+            display: inline-flex; align-items: center; justify-content: center; gap: var(--spacing-2);
+        }
+        button:hover:not(:disabled) { background-color: var(--primary-hover); transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+        button:disabled { background-color: #94a3b8; cursor: not-allowed; transform: none; box-shadow: none; }
+        button.secondary { background-color: #e2e8f0; color: var(--text-secondary); }
+        button.secondary:hover:not(:disabled) { background-color: #cbd5e1; color: var(--text-primary); }
+        .btn-icon svg { width: 16px; height: 16px; }
+
         input, select {
-            width: 100%; padding: 10px 12px; border-radius: var(--radius-md); border: 1px solid var(--border-color);
-            font-family: 'Cairo', sans-serif; background-color: #f8fafc; transition: var(--transition);
+            width: 100%; padding: var(--spacing-3); border-radius: var(--radius-md);
+            border: 1px solid var(--border-color); font-family: 'Cairo', sans-serif;
+            background-color: #f8fafc; transition: var(--transition); font-size: 0.95rem;
         }
         input:focus, select:focus { border-color: var(--primary-color); background-color: white; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); outline: none; }
-        input[type="color"] { padding: 4px; height: 42px; }
+        input[type="color"] { padding: 4px; height: 44px; }
         input[type="checkbox"] { width: auto; }
-        
-        .section-card { background: var(--card-bg); padding: 25px; border-radius: var(--radius-lg); box-shadow: var(--shadow); margin-bottom: 30px; }
-        .loader { border: 4px solid #e2e8f0; border-top: 4px solid var(--primary-color); border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; display: none; margin: 0 auto; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
-        .app-status { padding: 15px 20px; margin-bottom: 20px; border-radius: var(--radius-md); color: #fff; text-align: center; font-weight: 600; box-shadow: var(--shadow); display: none; align-items: center; justify-content: center; gap: 10px; }
-        .app-status.error { background: #ef4444; }
-        .app-status.success { background: #22c55e; }
-        .app-status .icon svg { width: 20px; height: 20px; fill: white; }
-        
-        #search-controls { display: flex; gap: 10px; margin-bottom: 15px; }
+
+        /* --- Specific Component Styling --- */
+        #app-status { padding: var(--spacing-3) var(--spacing-4); margin-bottom: var(--spacing-5); border-radius: var(--radius-md); color: #fff; text-align: center; font-weight: 600; box-shadow: var(--shadow); display: none; align-items: center; justify-content: center; gap: var(--spacing-3); }
+        #app-status.error { background: var(--error-color); }
+        #app-status.success { background: var(--success-color); }
+        #app-status .icon svg { width: 20px; height: 20px; fill: white; }
+
+        #search-controls { display: flex; gap: var(--spacing-3); margin-bottom: var(--spacing-4); }
         #search-field { flex: 0 0 120px; }
-        #search-container { 
-            border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 5px; 
-            display: flex; align-items: center; background-color: #f8fafc; 
-            transition: var(--transition); flex-grow: 1; 
-        }
-        #search-container:focus-within { border-color: var(--primary-color); background-color: white; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); }
-        #search-input { border: none; flex-grow: 1; padding: 5px; outline: none; background: transparent; }
+        #search-input { flex-grow: 1; }
         
-        .item-list { max-height: 30vh; overflow-y: auto; border: 1px solid var(--border-color); border-radius: var(--radius-lg); background: white; }
-        .item-card { display: flex; align-items: center; padding: 12px 15px; border-bottom: 1px solid var(--border-color); transition: var(--transition); cursor: pointer; position: relative; }
+        #item-list { max-height: 28vh; overflow-y: auto; border: 1px solid var(--border-color); border-radius: var(--radius-md); background: white; }
+        .item-card { display: flex; align-items: center; padding: var(--spacing-3); border-bottom: 1px solid var(--border-color); transition: var(--transition); cursor: pointer; position: relative; }
         .item-card:last-child { border-bottom: none; }
         .item-card:hover { background-color: #f8fafc; }
         .item-card.selected { background-color: #eff6ff; color: #1e40af; font-weight: 600; }
         .item-card.selected::before { content: ''; position: absolute; right: 0; top: 0; bottom: 0; width: 4px; background-color: var(--primary-color); }
-        .item-card input[type="checkbox"] { margin-left: 15px; transform: scale(1.3); accent-color: var(--primary-color); }
+        .item-card input[type="checkbox"] { margin-left: var(--spacing-4); transform: scale(1.2); accent-color: var(--primary-color); }
         .item-card .details { display: flex; flex-direction: column; }
-        .item-card .item-meta { font-size: 12px; color: var(--muted-text); }
+        .item-card .item-meta { font-size: 0.8rem; color: var(--text-secondary); }
         .item-card.selected .item-meta { color: #60a5fa; }
-
-        #a4-sheet {
-            background: white; width: 21cm; height: 29.7cm; box-shadow: var(--shadow-lg); padding: 1cm;
-            transform-origin: center center; transform: scale(0.65); display: grid; align-content: start;
-            transition: var(--transition); /* Added transition for smoother scaling */
-        }
-        #print-button { margin-top: 25px; }
         
-        .price-label {
-            display: flex; flex-direction: row; align-items: center;
-            overflow: hidden; background-color: white; color: var(--text-color); font-family: 'Cairo', sans-serif;
-            border: var(--label-border-width) var(--label-border-style) var(--label-border-color); border-radius: var(--label-border-radius); padding: var(--label-padding);
-            transition: all 0.1s ease-in-out; /* Added transition for smoother style changes */
-        }
-        .label-logo-area { flex: 0 0 25%; text-align: center; padding: 5px; height: 100%; display:flex; align-items:center; justify-content:center; }
-        .label-logo-area img { max-width: 100%; max-height: 100%; object-fit: contain; }
-        .label-info-area { flex: 1 1 auto; text-align: center; padding: 0 10px; font-size: var(--label-item-font-size); font-weight: var(--label-item-font-weight); text-transform: var(--label-item-text-transform); }
-        .label-price-area { flex: 0 0 30%; text-align: center; padding: 0 5px; }
-        .label-price-container { border: 2px solid var(--price-box-border-color); border-radius: 8px; text-align: center; background: var(--price-box-bg); padding: 5px 10px; display: inline-block; }
-        .label-price { font-size: var(--label-price-font-size); font-weight: 700; color: var(--label-price-color); white-space: nowrap; }
+        .loader { border: 4px solid #e2e8f0; border-top: 4px solid var(--primary-color); border-radius: 50%; width: 28px; height: 28px; animation: spin 1s linear infinite; margin: var(--spacing-8) auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
+        #print-queue-list { max-height: 25vh; overflow-y: auto; }
+        .queue-item { display: flex; justify-content: space-between; align-items: center; padding: var(--spacing-3); border-bottom: 1px solid var(--border-color); }
+        .queue-item:last-child { border-bottom: none; }
+        .queue-item-details { display: flex; flex-direction: column; gap: var(--spacing-1); }
+        .queue-item-name { font-weight: 600; color: var(--text-primary); }
+        .queue-item-meta { font-size: 0.9rem; color: var(--text-secondary); }
+        .queue-item-remove { background: #fee2e2; color: #b91c1c; border: none; width: 28px; height: 28px; border-radius: 50%; font-size: 20px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; line-height: 1; padding: 0; transition: var(--transition); }
+        .queue-item-remove:hover { background: var(--error-color); color: white; transform: scale(1.1); box-shadow: none; }
+        .empty-queue-message { text-align: center; padding: var(--spacing-8) 0; color: var(--text-secondary); }
+
+        #designer-accordion summary { font-size: 1.25rem; font-weight: 700; cursor: pointer; list-style: none; display: flex; align-items: center; padding: var(--spacing-2) 0; }
+        #designer-accordion summary::-webkit-details-marker { display: none; }
+        #designer-accordion summary::before { content: '▶'; margin-left: var(--spacing-3); font-size: 0.8em; transition: transform 0.2s; }
+        #designer-accordion[open] summary::before { transform: rotate(90deg); }
+        #designer-accordion .designer-content { padding-top: var(--spacing-4); }
+
+        .control-group { margin-bottom: var(--spacing-5); }
+        .control-group:last-child { margin-bottom: 0; }
+        .control-group label { display: block; margin-bottom: var(--spacing-2); font-weight: 500; color: var(--text-secondary); font-size: 0.9rem;}
         .slider-value { font-weight: 600; color: var(--primary-color); }
-        fieldset { border: none; border-radius: var(--radius-lg); padding: 20px; margin-bottom: 20px; background-color: #f8fafc; border: 1px solid var(--border-color); }
-        legend { font-weight: 700; color: var(--text-color); padding: 0 5px; font-size: 1.1rem; }
-        .control-group { margin-bottom: 20px; } .control-group:last-child { margin-bottom: 0; }
-        .control-group label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--muted-text); }
-        
-        .grid-2, .grid-3 { display: grid; gap: 15px; align-items: end; }
+
+        .grid-2, .grid-3 { display: grid; gap: var(--spacing-4); align-items: end; }
         .grid-2 { grid-template-columns: repeat(2, 1fr); }
         .grid-3 { grid-template-columns: repeat(3, 1fr); }
         
-        #layout-calculation-status { background-color: #eef2ff; padding: 10px; border-radius: var(--radius-md); text-align: center; font-weight: 600; color: #4338ca; margin-top: 15px; display:none; }
-
-        #print-queue-list { max-height: 25vh; overflow-y: auto; border: 1px solid var(--border-color); border-radius: var(--radius-lg); background: white; }
-        .queue-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; border-bottom: 1px solid var(--border-color); }
-        .queue-item:last-child { border-bottom: none; }
-        .queue-item-details { display: flex; flex-direction: column; gap: 4px; }
-        .queue-item-name { font-weight: 600; color: var(--text-color); }
-        .queue-item-meta { font-size: 14px; color: var(--muted-text); }
-        .queue-item-remove {
-            background-color: #fee2e2; color: #b91c1c; border: none; width: 28px; height: 28px;
-            border-radius: 50%; font-size: 20px; font-weight: bold; cursor: pointer;
-            display: flex; align-items: center; justify-content: center; line-height: 1;
-            padding: 0; transition: var(--transition);
+        /* --- Preview Panel --- */
+        #a4-sheet {
+            background: white; width: 21cm; height: 29.7cm; box-shadow: var(--shadow-lg); padding: 1cm;
+            transform-origin: center center; transform: scale(0.65); display: grid; align-content: start;
+            transition: var(--transition);
         }
-        .queue-item-remove:hover { background-color: #ef4444; color: white; transform: scale(1.1); box-shadow: none;}
-        #queue-summary { margin-top: 15px; text-align: center; font-weight: 600; color: var(--primary-color); background-color: #eef2ff; padding: 10px; border-radius: var(--radius-md); }
+        #preview-empty-state {
+            position: absolute; text-align: center; color: var(--text-secondary);
+            display: none; flex-direction: column; align-items: center; gap: var(--spacing-4);
+        }
+        #preview-empty-state svg { width: 64px; height: 64px; opacity: 0.5; }
+        #preview-empty-state h3 { font-size: 1.5rem; color: var(--text-primary); }
+        #print-button { margin-top: var(--spacing-6); }
 
+        /* --- Price Label (The final product) --- */
+        .price-label {
+            display: flex; flex-direction: row; align-items: stretch; /* Stretch for full height */
+            overflow: hidden; background-color: var(--card-bg); color: var(--text-primary); font-family: 'Cairo', sans-serif;
+            border: var(--label-border-width) var(--label-border-style) var(--label-border-color); border-radius: var(--label-border-radius); padding: var(--label-padding);
+        }
+        .label-logo-area { flex: 0 0 25%; display: flex; align-items: center; justify-content: center; padding: 5px; }
+        .label-logo-area img { max-width: 100%; max-height: 100%; object-fit: contain; }
+        .label-info-area { flex: 1 1 auto; display: flex; align-items: center; justify-content: center; text-align: center; padding: 0 10px; font-size: var(--label-item-font-size); font-weight: var(--label-item-font-weight); text-transform: var(--label-item-text-transform); }
+        .label-price-area { flex: 0 0 30%; display: flex; align-items: center; justify-content: center; padding: 0 5px; }
+        .label-price-container { border: 2px solid var(--price-box-border-color); border-radius: var(--radius-md); text-align: center; background: var(--price-box-bg); padding: 5px 10px; display: inline-block; }
+        .label-price { font-size: var(--label-price-font-size); font-weight: 700; color: var(--label-price-color); white-space: nowrap; }
+        
+        /* --- Utilities & Print --- */
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: var(--bg-color); }
         ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
 
         @media print {
-            .control-panel, #print-button, .app-status { display: none !important; }
+            .control-panel, #print-button, .app-status, #preview-empty-state { display: none !important; }
             body, .app-container, .preview-panel { display: block !important; width: 100% !important; height: auto !important; overflow: visible !important; background: #fff !important; padding: 0 !important; margin: 0 !important; }
-            #a4-sheet { transform: none !important; box-shadow: none !important; border: none !important; padding: 0 !important; margin: 0 !important; width: 100% !important; height: auto !important; /* Changed height to auto */ display: grid !important; page-break-after: always; }
+            #a4-sheet { transform: none !important; box-shadow: none !important; border: none !important; padding: 0 !important; margin: 0 !important; width: 100% !important; height: auto !important; display: grid !important; page-break-after: always; }
             .price-label { page-break-inside: avoid !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; border-color: #000 !important; }
             body.pre-printed-mode .price-label { border: none !important; background: transparent !important; }
             body.pre-printed-mode .label-logo-area { visibility: hidden !important; }
@@ -157,143 +213,152 @@
 <body>
     <div class="app-container">
         <div class="preview-panel">
+            <div id="preview-empty-state">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 5.25 6h.008a2.25 2.25 0 0 1 2.242 2.135l.004.017m.004.017a2.25 2.25 0 0 1-.242 1.243l-2.25 3.75c-.246.413.042.92.518.92h3.255a2.25 2.25 0 0 1 1.945 1.125l.93 1.638c.246.433.776.433 1.022 0l.93-1.638a2.25 2.25 0 0 1 1.945-1.125h3.255c.476 0 .764-.507.518-.92l-2.25-3.75a2.25 2.25 0 0 1-.242-1.243" /></svg>
+                <h3>اللوحة فارغة</h3>
+                <p>ابدأ بتحديد الأصناف وإضافتها إلى قائمة الطباعة.</p>
+            </div>
             <div id="a4-sheet"></div>
-            <button id="print-button" style="display:none;"><span class="btn-icon"></span> طباعة</button>
+            <button id="print-button" style="display:none;">
+                <span class="btn-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5 2.75C5 1.784 5.784 1 6.75 1h6.5c.966 0 1.75.784 1.75 1.75v3.552c.377.046.752.11 1.126.195.784.175 1.437.638 1.83 1.262.394.624.594 1.344.594 2.103v2.888c0 .76-.2 1.48-.594 2.104-.393.623-1.046 1.086-1.83 1.261-.374.086-.749.15-1.126.195v3.552C15 18.216 14.216 19 13.25 19h-6.5C5.784 19 5 18.216 5 17.25V2.75Zm.75 14.5v-2.888c0-.76.2-1.48.594-2.104.393-.623 1.046-1.086 1.83-1.261a23.99 23.99 0 0 1 2.652 0c.784.175 1.437.638 1.83 1.262.394.624.594 1.343.594 2.103v2.888a.75.75 0 0 1-.75.75h-8a.75.75 0 0 1-.75-.75Zm.75-9.75a.75.75 0 0 1 .75-.75h6.5a.75.75 0 0 1 0 1.5h-6.5a.75.75 0 0 1-.75-.75Zm0 3a.75.75 0 0 1 .75-.75h6.5a.75.75 0 0 1 0 1.5h-6.5a.75.75 0 0 1-.75-.75Z" clip-rule="evenodd" /></svg></span>
+                طباعة
+            </button>
         </div>
         
         <aside class="control-panel">
-            <h1>Shelf Price</h1>
-            <div id="app-status" class="app-status"></div>
+            <header>
+                <h1>Shelf Price Pro</h1>
+                <p class="app-tagline">أداة إنشاء بطاقات أسعار الأرفف بسهولة</p>
+            </header>
 
-            <section class="section-card">
-                <h2>1. تحميل البيانات</h2>
-                <div id="loader" class="loader"></div>
-            </section>
+            <div id="app-status"></div>
 
-            <section id="item-selection-section" class="section-card" style="display:none;">
-                <h2>2. بحث وتحديد الأصناف</h2>
-                <div id="search-controls">
-                    <select id="search-field"><option value="name">الاسم</option><option value="code">الكود</option></select>
-                    <div id="search-container">
-                        <input type="search" id="search-input" placeholder="اكتب هنا للبحث...">
+            <section id="selection-card" class="card">
+                <h2>1. تحديد الأصناف والتسعير</h2>
+                <div id="loader" class="loader" style="display: none;"></div>
+                <div id="data-controls" style="display: none;">
+                    <div id="search-controls">
+                        <select id="search-field"><option value="name">الاسم</option><option value="code">الكود</option></select>
+                        <input type="search" id="search-input" placeholder="اكتب للبحث عن صنف...">
                     </div>
-                </div>
-                <div id="item-list" class="item-list"></div>
-            </section>
-
-            <section id="generation-section" class="section-card" style="display:none;">
-                 <h2>3. إضافة بطاقات للقائمة</h2>
-                 <div class="control-group">
-                    <div class="grid-3">
+                    <div id="item-list"></div>
+                    <hr style="border:none; border-top: 1px solid var(--border-color); margin: var(--spacing-5) 0;">
+                    <div class="grid-3" style="gap: var(--spacing-3);">
                        <input type="number" id="price-input" placeholder="أدخل السعر" step="0.01" min="0">
                        <input type="number" id="quantity-input" placeholder="الكمية" value="1" min="1">
-                       <button id="add-to-queue-btn">إضافة للقائمة</button>
+                       <button id="add-to-queue-btn">
+                         <span class="btn-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z" /></svg></span>
+                         إضافة
+                       </button>
                     </div>
-                 </div>
+                </div>
             </section>
 
-            <section id="print-queue-section" class="section-card" style="display:none;">
-                <h2>4. قائمة الطباعة</h2>
+            <section id="print-queue-card" class="card" style="display: none;">
+                <h2 id="print-queue-header">قائمة الطباعة</h2>
                 <div id="print-queue-list"></div>
-                <div id="queue-summary" style="display: none;"></div>
             </section>
-
-
-            <h3>5. تخصيص التصميم</h3>
-            <fieldset>
-                <legend>إعدادات الطباعة</legend>
-                <div class="control-group">
-                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-weight: normal; color: var(--text-color);">
-                        <input type="checkbox" id="pre-printed-mode-checkbox" style="margin-left: 5px; transform: scale(1.1);">
-                        <span>الطباعة على نموذج مُعد مسبقاً<br><small style="color: var(--muted-text); font-weight: 400;">(إخفاء الشعار والإطارات عند الطباعة)</small></span>
-                    </label>
+            
+            <details id="designer-accordion">
+                <summary>إعدادات المصمم</summary>
+                <div class="designer-content card">
+                    <fieldset>
+                        <legend>إعدادات الطباعة العامة</legend>
+                        <div class="control-group">
+                            <label style="display: flex; align-items: center; gap: var(--spacing-3); cursor: pointer; font-weight: 500; color: var(--text-primary);">
+                                <input type="checkbox" id="pre-printed-mode-checkbox" style="transform: scale(1.1);">
+                                <span>الطباعة على نموذج مُعد مسبقاً</span>
+                            </label>
+                        </div>
+                    </fieldset>
+                    <hr style="border:none; border-top: 1px solid var(--border-color); margin: var(--spacing-5) 0;">
+                    <div class="grid-2">
+                        <fieldset>
+                            <legend>الإطار والحدود</legend>
+                            <div class="control-group"><label>الحشو (px): <span id="label-padding-value" class="slider-value">5</span></label><input type="range" id="label-padding" min="0" max="20" value="5"></div>
+                            <div class="control-group"><label>حواف دائرية (px): <span id="label-border-radius-value" class="slider-value">8</span></label><input type="range" id="label-border-radius" min="0" max="30" value="8"></div>
+                            <div class="control-group grid-3" style="gap: var(--spacing-3)">
+                                <div><label>عرض الإطار</label><input type="number" id="label-border-width" value="1" min="0"></div>
+                                <div><label>لون الإطار</label><input type="color" id="label-border-color" value="#cbd5e1"></div>
+                                <div><label>نمط الإطار</label><select id="label-border-style"><option value="dashed">متقطع</option><option value="solid">صلب</option><option value="dotted">منقط</option><option value="double">مزدوج</option></select></div>
+                            </div>
+                        </fieldset>
+                        <fieldset>
+                            <legend>الألوان</legend>
+                            <div class="control-group"><label>لون السعر</label><input type="color" id="label-price-color" value="#dc2626"></div>
+                            <div class="control-group"><label>إطار السعر</label><input type="color" id="price-box-border-color" value="#dc2626"></div>
+                            <div class="control-group"><label>خلفية السعر</label><input type="color" id="price-box-bg" value="#ffffff"></div>
+                        </fieldset>
+                    </div>
+                    <hr style="border:none; border-top: 1px solid var(--border-color); margin: var(--spacing-5) 0;">
+                    <fieldset>
+                        <legend>النصوص والخطوط</legend>
+                        <div class="grid-2">
+                             <div class="control-group"><label>خط الصنف (px): <span id="item-font-size-value" class="slider-value">16</span></label><input type="range" id="item-font-size" min="8" max="28" value="16"></div>
+                             <div class="control-group"><label>خط السعر (px): <span id="price-font-size-value" class="slider-value">24</span></label><input type="range" id="price-font-size" min="12" max="48" value="24"></div>
+                             <div class="control-group"><label>وزن الخط</label><select id="item-font-weight"><option value="400">عادي</option><option value="700" selected>عريض</option></select></div>
+                             <div class="control-group"><label>حالة الأحرف</label><select id="item-text-transform"><option value="none">عادي</option><option value="uppercase">أحرف كبيرة</option></select></div>
+                        </div>
+                    </fieldset>
                 </div>
-            </fieldset>
+            </details>
 
-            <fieldset>
-                <legend>تخطيط الصفحة</legend>
-                 <div id="layout-calculation-status"></div>
-            </fieldset>
-
-            <fieldset>
-                <legend>الإطار والحدود</legend>
-                <div class="control-group"><label>الحشو (px): <span id="label-padding-value" class="slider-value">5</span></label><input type="range" id="label-padding" min="0" max="20" value="5"></div>
-                <div class="control-group grid-3">
-                    <div><label>عرض الإطار (px)</label><input type="number" id="label-border-width" value="1" min="0"></div>
-                    <div><label>لون الإطار</label><input type="color" id="label-border-color" value="#cbd5e1"></div>
-                    <div><label>نمط الإطار</label><select id="label-border-style"><option value="dashed">متقطع (Dashed)</option><option value="solid">صلب (Solid)</option><option value="dotted">منقط (Dotted)</option><option value="double">مزدوج (Double)</option></select></div>
-                </div>
-                 <div class="control-group"><label>حواف دائرية (px): <span id="label-border-radius-value" class="slider-value">8</span></label><input type="range" id="label-border-radius" min="0" max="30" value="8"></div>
-            </fieldset>
-
-            <fieldset>
-                <legend>النصوص والخطوط</legend>
-                <div class="control-group grid-2">
-                     <div><label>خط الصنف (px): <span id="item-font-size-value" class="slider-value">16</span></label><input type="range" id="item-font-size" min="8" max="28" value="16"></div>
-                     <div><label>خط السعر (px): <span id="price-font-size-value" class="slider-value">24</span></label><input type="range" id="price-font-size" min="12" max="48" value="24"></div>
-                </div>
-                 <div class="control-group grid-2">
-                    <div><label>وزن الخط</label><select id="item-font-weight"><option value="400">عادي</option><option value="700" selected>عريض</option></select></div>
-                    <div><label>حالة الأحرف</label><select id="item-text-transform"><option value="none">عادي</option><option value="uppercase">أحرف كبيرة (Uppercase)</option></select></div>
-                 </div>
-            </fieldset>
-
-            <fieldset>
-                <legend>الألوان</legend>
-                <div class="control-group grid-3">
-                    <div><label>خلفية السعر</label><input type="color" id="price-box-bg" value="#ffffff"></div>
-                    <div><label>إطار السعر</label><input type="color" id="price-box-border-color" value="#ef4444"></div>
-                    <div><label>لون السعر</label><input type="color" id="label-price-color" value="#ef4444"></div>
-                </div>
-            </fieldset>
         </aside>
     </div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // --- Configuration ---
     const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyMvUxMBy7UyTWAqT7EMYlwkTdh1Zdc0BWupeMVOYyJSWxcivkSBnozStQSfJGacklAXQ/exec';
-    
-    const icons = {
-        print: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5 2.75C5 1.784 5.784 1 6.75 1h6.5c.966 0 1.75.784 1.75 1.75v3.552c.377.046.752.11 1.126.195.784.175 1.437.638 1.83 1.262.394.624.594 1.344.594 2.103v2.888c0 .76-.2 1.48-.594 2.104-.393.623-1.046 1.086-1.83 1.261-.374.086-.749.15-1.126.195v3.552C15 18.216 14.216 19 13.25 19h-6.5C5.784 19 5 18.216 5 17.25V2.75Zm.75 14.5v-2.888c0-.76.2-1.48.594-2.104.393-.623 1.046-1.086 1.83-1.261a23.99 23.99 0 0 1 2.652 0c.784.175 1.437.638 1.83 1.262.394.624.594 1.343.594 2.103v2.888a.75.75 0 0 1-.75.75h-8a.75.75 0 0 1-.75-.75Zm.75-9.75a.75.75 0 0 1 .75-.75h6.5a.75.75 0 0 1 0 1.5h-6.5a.75.75 0 0 1-.75-.75Zm0 3a.75.75 0 0 1 .75-.75h6.5a.75.75 0 0 1 0 1.5h-6.5a.75.75 0 0 1-.75-.75Z" clip-rule="evenodd" /></svg>`,
-        success: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm3.857-9.809a.75.75 0 0 0-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 1 0-1.06 1.061l2.5 2.5a.75.75 0 0 0 1.137-.089l4-5.5Z" clip-rule="evenodd" /></svg>`,
-        error: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" /></svg>`,
-    };
-    
-    const state = { allItems: [], selectedItemIds: new Set(), printQueue: [], currentLogoSrc: 'logo.png' };
-    
-    const dom = {
-        appStatus: document.getElementById('app-status'), loader: document.getElementById('loader'),
-        itemSelectionSection: document.getElementById('item-selection-section'),
-        generationSection: document.getElementById('generation-section'),
-        searchInput: document.getElementById('search-input'), searchField: document.getElementById('search-field'),
-        itemList: document.getElementById('item-list'),
-        priceInput: document.getElementById('price-input'), quantityInput: document.getElementById('quantity-input'),
-        addToQueueBtn: document.getElementById('add-to-queue-btn'),
-        printQueueSection: document.getElementById('print-queue-section'),
-        printQueueList: document.getElementById('print-queue-list'),
-        queueSummary: document.getElementById('queue-summary'),
-        a4Sheet: document.getElementById('a4-sheet'), printButton: document.getElementById('print-button'),
-        layoutStatus: document.getElementById('layout-calculation-status'),
-        prePrintedModeCheckbox: document.getElementById('pre-printed-mode-checkbox'),
-        controls: {}
-    };
+    const LOGO_SRC = 'logo.png'; // Make sure this file exists or change the path
 
+    // --- State Management ---
+    const state = { allItems: [], selectedItemIds: new Set(), printQueue: [] };
+
+    // --- DOM Element Cache ---
+    const dom = {
+        appStatus: document.getElementById('app-status'),
+        loader: document.getElementById('loader'),
+        dataControls: document.getElementById('data-controls'),
+        selection: {
+            searchInput: document.getElementById('search-input'),
+            searchField: document.getElementById('search-field'),
+            itemList: document.getElementById('item-list'),
+            priceInput: document.getElementById('price-input'),
+            quantityInput: document.getElementById('quantity-input'),
+            addToQueueBtn: document.getElementById('add-to-queue-btn'),
+        },
+        queue: {
+            card: document.getElementById('print-queue-card'),
+            header: document.getElementById('print-queue-header'),
+            list: document.getElementById('print-queue-list'),
+        },
+        preview: {
+            a4Sheet: document.getElementById('a4-sheet'),
+            printButton: document.getElementById('print-button'),
+            emptyState: document.getElementById('preview-empty-state'),
+        },
+        designerControls: {}
+    };
     const controlIds = [
         'label-padding', 'label-border-width', 'label-border-color', 'label-border-style', 'label-border-radius', 
         'item-font-size', 'price-font-size', 'item-font-weight', 'item-text-transform', 
-        'price-box-bg', 'price-box-border-color', 'label-price-color'
+        'price-box-bg', 'price-box-border-color', 'label-price-color', 'pre-printed-mode-checkbox'
     ];
-    controlIds.forEach(id => { dom.controls[id.replace(/-(\w)/g, (m, p1) => p1.toUpperCase())] = document.getElementById(id); });
+    controlIds.forEach(id => { dom.designerControls[id.replace(/-(\w)/g, (m, p1) => p1.toUpperCase())] = document.getElementById(id); });
 
-    const debounce = (func, delay) => { let timeoutId; return (...args) => { clearTimeout(timeoutId); timeoutId = setTimeout(() => { func.apply(this, args); }, delay); }; };
-
+    // --- Utility Functions ---
+    const debounce = (func, delay) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => func.apply(this, a), delay); }; };
     const showStatus = (message, type = 'error') => {
-        dom.appStatus.innerHTML = `<span class="icon">${type === 'success' ? icons.success : icons.error}</span> ${message}`;
+        const icons = {
+            success: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm3.857-9.809a.75.75 0 0 0-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 1 0-1.06 1.061l2.5 2.5a.75.75 0 0 0 1.137-.089l4-5.5Z" clip-rule="evenodd" /></svg>`,
+            error: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" /></svg>`
+        };
+        dom.appStatus.innerHTML = `<span class="icon">${icons[type]}</span> ${message}`;
         dom.appStatus.className = `app-status ${type}`;
         dom.appStatus.style.display = 'flex';
         setTimeout(() => { dom.appStatus.style.display = 'none'; }, type === 'error' ? 8000 : 4000);
     };
-
     const findCommon = (arr) => {
         if (!arr || arr.length === 0) return '';
         const wordsArr = arr.map(s => String(s).split(' '));
@@ -304,24 +369,19 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         return common.join(' ');
     };
-    
     const extractUnit = (name) => {
         const units = ['ملل', 'مل', 'جم', 'جرام', 'كجم', 'لتر', 'متر'];
         const regex = new RegExp(`(\\d*\\.?\\d+\\s?(${units.join('|')}))($|\\s)`);
         const match = name.match(regex);
         return match ? match[1].trim() : null;
     };
-
-    // --- Performance Enhanced Rendering Functions ---
-
-    /**
-     * Renders the list of searchable items efficiently using a DocumentFragment.
-     */
+    
+    // --- Core Rendering Functions (Performance Optimized) ---
     const renderItems = (items) => {
         const fragment = document.createDocumentFragment();
         if (items.length === 0) {
             const p = document.createElement('p');
-            p.style.cssText = 'text-align:center; padding: 20px; color: var(--muted-text);';
+            p.className = 'empty-queue-message';
             p.textContent = 'لا توجد نتائج مطابقة';
             fragment.appendChild(p);
         } else {
@@ -338,79 +398,79 @@ document.addEventListener('DOMContentLoaded', function() {
                 fragment.appendChild(card);
             });
         }
-        dom.itemList.innerHTML = '';
-        dom.itemList.appendChild(fragment);
+        dom.selection.itemList.innerHTML = '';
+        dom.selection.itemList.appendChild(fragment);
     };
-    
-    /**
-     * Renders the print queue list efficiently using a DocumentFragment.
-     */
+
     const renderPrintQueue = () => {
-        const totalLabels = state.printQueue.reduce((sum, job) => sum + parseInt(job.quantity), 0);
-
-        if (state.printQueue.length === 0) {
-            dom.printQueueList.innerHTML = '<p style="text-align:center; padding: 20px; color: var(--muted-text);">قائمة الطباعة فارغة.</p>';
-            dom.printQueueSection.style.display = 'none';
-            dom.queueSummary.style.display = 'none';
-        } else {
-            const fragment = document.createDocumentFragment();
-            state.printQueue.forEach(job => {
-                const itemEl = document.createElement('div');
-                itemEl.className = 'queue-item';
-                itemEl.innerHTML = `
-                    <div class="queue-item-details">
-                        <span class="queue-item-name">${job.name}</span>
-                        <span class="queue-item-meta">السعر: ${job.price.toFixed(2)} ج.م - الكمية: ${job.quantity}</span>
-                    </div>
-                    <button class="queue-item-remove" data-id="${job.id}" title="إزالة">×</button>
-                `;
-                fragment.appendChild(itemEl);
-            });
-            dom.printQueueList.innerHTML = '';
-            dom.printQueueList.appendChild(fragment);
-
-            dom.printQueueSection.style.display = 'block';
-            dom.queueSummary.textContent = `الإجمالي: ${totalLabels} بطاقة`;
-            dom.queueSummary.style.display = 'block';
+        const totalItems = state.printQueue.length;
+        if (totalItems === 0) {
+            dom.queue.card.style.display = 'none';
+            return;
         }
+
+        dom.queue.card.style.display = 'block';
+        const totalLabels = state.printQueue.reduce((sum, job) => sum + parseInt(job.quantity), 0);
+        
+        let headerHTML = `قائمة الطباعة (${totalItems} صنف / ${totalLabels} بطاقة)`;
+        headerHTML += ` <button id="clear-queue-btn" class="secondary" style="font-size: 0.8rem; padding: 4px 10px;">مسح الكل</button>`;
+        dom.queue.header.innerHTML = headerHTML;
+        
+        const fragment = document.createDocumentFragment();
+        state.printQueue.forEach(job => {
+            const itemEl = document.createElement('div');
+            itemEl.className = 'queue-item';
+            itemEl.innerHTML = `
+                <div class="queue-item-details">
+                    <span class="queue-item-name">${job.name}</span>
+                    <span class="queue-item-meta">السعر: ${job.price.toFixed(2)} ج.م - الكمية: ${job.quantity}</span>
+                </div>
+                <button class="queue-item-remove" data-id="${job.id}" title="إزالة">×</button>
+            `;
+            fragment.appendChild(itemEl);
+        });
+        dom.queue.list.innerHTML = '';
+        dom.queue.list.appendChild(fragment);
     };
 
-    /**
-     * Lightweight function to only update CSS variables for styling.
-     * This is very fast and doesn't require rebuilding the DOM.
-     */
     const updateStyles = () => {
         const root = document.documentElement.style;
-        root.setProperty('--label-padding', `${dom.controls.labelPadding.value}px`);
-        root.setProperty('--label-border-width', `${dom.controls.labelBorderWidth.value}px`);
-        root.setProperty('--label-border-style', dom.controls.labelBorderStyle.value);
-        root.setProperty('--label-border-color', dom.controls.labelBorderColor.value);
-        root.setProperty('--label-border-radius', `${dom.controls.labelBorderRadius.value}px`);
-        root.setProperty('--price-box-bg', dom.controls.priceBoxBg.value);
-        root.setProperty('--price-box-border-color', dom.controls.priceBoxBorderColor.value);
-        root.setProperty('--label-price-color', dom.controls.labelPriceColor.value);
-        root.setProperty('--label-item-font-size', `${dom.controls.itemFontSize.value}px`);
-        root.setProperty('--label-item-font-weight', dom.controls.itemFontWeight.value);
-        root.setProperty('--label-item-text-transform', dom.controls.itemTextTransform.value);
-        root.setProperty('--label-price-font-size', `${dom.controls.priceFontSize.value}px`);
+        const c = dom.designerControls;
+        root.setProperty('--label-padding', `${c.labelPadding.value}px`);
+        root.setProperty('--label-border-width', `${c.labelBorderWidth.value}px`);
+        root.setProperty('--label-border-style', c.labelBorderStyle.value);
+        root.setProperty('--label-border-color', c.labelBorderColor.value);
+        root.setProperty('--label-border-radius', `${c.labelBorderRadius.value}px`);
+        root.setProperty('--price-box-bg', c.priceBoxBg.value);
+        root.setProperty('--price-box-border-color', c.priceBoxBorderColor.value);
+        root.setProperty('--label-price-color', c.labelPriceColor.value);
+        root.setProperty('--label-item-font-size', `${c.itemFontSize.value}px`);
+        root.setProperty('--label-item-font-weight', c.itemFontWeight.value);
+        root.setProperty('--label-item-text-transform', c.itemTextTransform.value);
+        root.setProperty('--label-price-font-size', `${c.priceFontSize.value}px`);
+        document.body.classList.toggle('pre-printed-mode', c.prePrintedModeCheckbox.checked);
     };
 
-    /**
-     * Rebuilds the DOM for the A4 sheet preview. This is a heavier operation
-     * and should only be called when the print queue content changes.
-     */
     const renderPreviewDOM = () => {
+        const labelsToRender = state.printQueue.flatMap(job => Array(parseInt(job.quantity)).fill(job));
+        const isEmpty = labelsToRender.length === 0;
+
+        dom.preview.a4Sheet.style.display = isEmpty ? 'none' : 'grid';
+        dom.preview.emptyState.style.display = isEmpty ? 'flex' : 'none';
+        dom.preview.printButton.style.display = isEmpty ? 'none' : 'inline-flex';
+        
+        if (isEmpty) return;
+
         const PAGE_HEIGHT_MM = 297, MARGIN_MM = 10, PRINTABLE_HEIGHT = PAGE_HEIGHT_MM - (MARGIN_MM * 2);
         const labelHeight = 30, gap = 5;
         const labelsPerPage = Math.floor((PRINTABLE_HEIGHT + gap) / (labelHeight + gap));
         
         const fragment = document.createDocumentFragment();
-        dom.a4Sheet.style.gridTemplateColumns = `1fr`;
-        dom.a4Sheet.style.gap = `${gap}mm`;
-        dom.a4Sheet.style.gridTemplateRows = `repeat(${labelsPerPage}, ${labelHeight}mm)`;
+        dom.preview.a4Sheet.style.gridTemplateColumns = '1fr';
+        dom.preview.a4Sheet.style.gap = `${gap}mm`;
+        dom.preview.a4Sheet.style.gridTemplateRows = `repeat(${labelsPerPage}, ${labelHeight}mm)`;
         
-        const logoHtml = `<img src="${state.currentLogoSrc}" alt="Logo">`;
-        let labelsToRender = state.printQueue.flatMap(job => Array(parseInt(job.quantity)).fill(job));
+        const logoHtml = `<img src="${LOGO_SRC}" alt="Logo" onerror="this.style.display='none'">`;
         
         for (let i = 0; i < Math.min(labelsToRender.length, labelsPerPage); i++) {
             const job = labelsToRender[i];
@@ -423,31 +483,24 @@ document.addEventListener('DOMContentLoaded', function() {
             fragment.appendChild(label);
         }
         
-        dom.a4Sheet.innerHTML = '';
-        dom.a4Sheet.appendChild(fragment);
-
-        const totalInQueue = state.printQueue.reduce((sum, job) => sum + parseInt(job.quantity), 0);
-        dom.layoutStatus.textContent = `سعة الصفحة: ${labelsPerPage} بطاقة | القائمة تحتوي على ${totalInQueue} بطاقة.`;
-        dom.layoutStatus.style.display = 'block';
-        
-        dom.printButton.style.display = labelsToRender.length > 0 ? 'inline-flex' : 'none';
+        dom.preview.a4Sheet.innerHTML = '';
+        dom.preview.a4Sheet.appendChild(fragment);
     };
 
-    // --- Application Logic ---
-    
+    // --- Application Logic Functions ---
     const handleSearch = () => {
-        const query = dom.searchInput.value.toLowerCase().trim();
-        const field = dom.searchField.value;
+        const query = dom.selection.searchInput.value.toLowerCase().trim();
+        const field = dom.selection.searchField.value;
         const filtered = !query ? state.allItems : state.allItems.filter(item => String(item[field] || '').toLowerCase().includes(query));
         renderItems(filtered);
     };
 
     const handleAddToQueue = () => {
-        if (state.selectedItemIds.size === 0) return showStatus('خطأ: يرجى تحديد صنف واحد على الأقل.', 'error');
-        const price = parseFloat(dom.priceInput.value);
-        if (isNaN(price) || price <= 0) return showStatus('خطأ: يرجى إدخال سعر صحيح وموجب.', 'error');
-        const quantity = parseInt(dom.quantityInput.value);
-        if (isNaN(quantity) || quantity < 1) return showStatus('خطأ: يرجى إدخال كمية صحيحة (1 أو أكثر).', 'error');
+        if (state.selectedItemIds.size === 0) return showStatus('يرجى تحديد صنف واحد على الأقل.', 'error');
+        const price = parseFloat(dom.selection.priceInput.value);
+        if (isNaN(price) || price <= 0) return showStatus('يرجى إدخال سعر صحيح وموجب.', 'error');
+        const quantity = parseInt(dom.selection.quantityInput.value);
+        if (isNaN(quantity) || quantity < 1) return showStatus('يرجى إدخال كمية صحيحة.', 'error');
         
         const selectedItems = state.allItems.filter(item => state.selectedItemIds.has(item.id));
         let newName;
@@ -455,8 +508,18 @@ document.addEventListener('DOMContentLoaded', function() {
         if (selectedItems.length === 1) { newName = selectedItems[0].name; } 
         else {
             const allNames = selectedItems.map(item => item.name);
-            const allUnits = allNames.map(name => extractUnit(name)).filter(Boolean);
-            const commonUnit = allUnits.length > 0 ? Object.keys(allUnits.reduce((acc, unit) => { acc[unit] = (acc[unit] || 0) + 1; return acc; }, {})).reduce((a, b) => (acc[a] > acc[b] ? a : b)) : '';
+            const allUnits = allNames.map(extractUnit).filter(Boolean);
+            
+            // BUG FIX: Correctly find the most common unit
+            let commonUnit = '';
+            if (allUnits.length > 0) {
+                const unitCounts = allUnits.reduce((counts, unit) => {
+                    counts[unit] = (counts[unit] || 0) + 1;
+                    return counts;
+                }, {});
+                commonUnit = Object.keys(unitCounts).reduce((a, b) => unitCounts[a] > unitCounts[b] ? a : b);
+            }
+            
             const namesWithoutUnits = allNames.map(name => name.replace(extractUnit(name) || '', '').trim());
             const commonStart = findCommon(namesWithoutUnits);
             newName = [commonStart, "أنواع", commonUnit].filter(Boolean).join(' ').replace(/\s+/g, ' ');
@@ -464,89 +527,84 @@ document.addEventListener('DOMContentLoaded', function() {
         
         state.printQueue.push({ id: Date.now(), name: newName, price, quantity });
         state.selectedItemIds.clear();
-        dom.priceInput.value = '';
-        dom.quantityInput.value = '1';
-        dom.searchInput.value = '';
-        handleSearch(); // Re-render the item list
+        dom.selection.priceInput.value = '';
+        dom.selection.quantityInput.value = '1';
+        dom.selection.searchInput.value = '';
+        handleSearch(); // Rerender item list to uncheck all
         
         renderPrintQueue();
-        renderPreviewDOM(); // <- This is the key change. We only re-render the DOM now.
-        showStatus(`تمت إضافة "${newName}" للقائمة.`, 'success');
-        dom.priceInput.focus();
+        renderPreviewDOM();
+        showStatus(`تمت إضافة "${newName}" للقائمة بنجاح.`, 'success');
+        dom.selection.priceInput.focus();
     };
 
     const loadData = async () => {
-        if (!WEB_APP_URL || !WEB_APP_URL.includes('script.google.com')) return showStatus('خطأ فادح: لم يتم تحديد رابط API.', 'error');
         dom.loader.style.display = 'block';
+        dom.dataControls.style.display = 'none';
         try {
             const response = await fetch(WEB_APP_URL);
-            if (!response.ok) throw new Error(`فشل الاتصال بالخادم (Status: ${response.status})`);
+            if (!response.ok) throw new Error(`فشل الاتصال (Status: ${response.status})`);
             const data = await response.json();
             if (data.error) throw new Error(data.message);
             state.allItems = data.map((item, index) => ({ ...item, id: item.id != null ? item.id : index }));
             if (state.allItems.length > 0) {
-                showStatus(`تم تحميل ${state.allItems.length} صنف بنجاح.`, 'success');
-                dom.itemSelectionSection.style.display = 'block';
-                dom.generationSection.style.display = 'block';
                 renderItems(state.allItems);
-                renderPreviewDOM(); // Initial render
+                showStatus(`تم تحميل ${state.allItems.length} صنف بنجاح.`, 'success');
             } else {
-                showStatus('تم الاتصال بنجاح ولكن لم يتم العثور على بيانات.', 'info');
+                showStatus('تم الاتصال ولكن لم يتم العثور على بيانات.', 'error');
             }
         } catch (error) {
-            showStatus(`فشل تحميل البيانات: ${error.message}. تحقق من الرابط واتصالك بالانترنت.`, 'error');
+            showStatus(`فشل تحميل البيانات: ${error.message}`, 'error');
         } finally {
             dom.loader.style.display = 'none';
+            dom.dataControls.style.display = 'block';
         }
     };
-    
+
     // --- Event Listeners Initialization ---
-
     const debouncedSearch = debounce(handleSearch, 250);
-    const debouncedUpdateStyles = debounce(updateStyles, 50); // Fast debounce for smooth style updates
+    const debouncedUpdateStyles = debounce(updateStyles, 50);
 
-    dom.addToQueueBtn.addEventListener('click', handleAddToQueue);
-    dom.printButton.addEventListener('click', () => window.print());
+    dom.selection.addToQueueBtn.addEventListener('click', handleAddToQueue);
+    dom.preview.printButton.addEventListener('click', () => window.print());
+    dom.selection.searchInput.addEventListener('input', debouncedSearch);
+    dom.selection.searchField.addEventListener('change', handleSearch);
 
-    dom.printQueueList.addEventListener('click', e => {
+    dom.queue.header.addEventListener('click', e => {
+        if (e.target.id === 'clear-queue-btn') {
+            state.printQueue = [];
+            renderPrintQueue();
+            renderPreviewDOM();
+        }
+    });
+
+    dom.queue.list.addEventListener('click', e => {
         const removeButton = e.target.closest('.queue-item-remove');
         if (removeButton) {
             const jobId = parseInt(removeButton.dataset.id);
             state.printQueue = state.printQueue.filter(job => job.id !== jobId);
             renderPrintQueue();
-            renderPreviewDOM(); // Content changed, so re-render the DOM
+            renderPreviewDOM();
         }
     });
 
-    dom.searchInput.addEventListener('input', debouncedSearch);
-    dom.searchField.addEventListener('change', handleSearch);
-    
-    // Listeners for styling controls now call the lightweight, debounced style updater
-    Object.values(dom.controls).forEach(control => {
+    Object.values(dom.designerControls).forEach(control => {
         if (!control) return;
         const event = ['range', 'color', 'number'].includes(control.type) ? 'input' : 'change';
         control.addEventListener(event, debouncedUpdateStyles);
     });
     
-    // Update slider value displays
-    const sliderValueIds = ['label-padding', 'label-border-radius', 'item-font-size', 'price-font-size'];
-    sliderValueIds.forEach(id => {
-        const input = document.getElementById(id);
-        const valueSpan = document.getElementById(`${id}-value`);
-        if(input && valueSpan) {
-            valueSpan.textContent = input.value;
-            input.addEventListener('input', e => valueSpan.textContent = e.target.value);
+    document.querySelectorAll('input[type="range"]').forEach(slider => {
+        const valueSpan = document.getElementById(`${slider.id}-value`);
+        if (valueSpan) {
+            valueSpan.textContent = slider.value;
+            slider.addEventListener('input', e => valueSpan.textContent = e.target.value);
         }
     });
-
-    dom.prePrintedModeCheckbox.addEventListener('change', (e) => {
-        document.body.classList.toggle('pre-printed-mode', e.target.checked);
-    });
     
-    // Initial Setup
-    const printButtonIcon = dom.printButton.querySelector('.btn-icon');
-    if (printButtonIcon) printButtonIcon.innerHTML = icons.print;
-    updateStyles(); // Set initial styles from default values
+    // --- Initial Application Boot ---
+    updateStyles();
+    renderPreviewDOM();
     loadData();
 });
 </script>
