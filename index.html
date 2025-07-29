@@ -8,7 +8,7 @@
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap');
         
         :root {
-            --bg-color: #f4f7fa; --preview-bg: #e2e8f0; --text-color: #334155;
+            --bg-color: #f4f7fa; --preview-bg: #e9eef5; --text-color: #334155;
             --primary-color: #3b82f6; --primary-hover: #2563eb; --card-bg: #ffffff;
             --border-color: #e2e8f0; --muted-text: #64748b;
             --shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -2px rgba(0,0,0,0.05);
@@ -19,30 +19,33 @@
             --label-price-color: #ef4444; --label-border-width: 1px; --label-border-style: dashed;
             --label-border-color: #cbd5e1; --label-padding: 5px; --label-border-radius: 8px;
             --price-box-bg: rgba(255, 255, 255, 0.85); --price-box-border-color: var(--label-price-color);
-            --label-item-font-weight: 700; --label-item-text-transform: none;
+            --label-item-font-weight: 700;
             
             /* User-Editable Variables */
             --label-item-font-size: 16px; --label-price-font-size: 24px;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body {
+            height: 100%;
+            overflow: hidden; /* CRITICAL: Prevents all page-level scrolling */
+        }
         body {
             font-family: 'Cairo', sans-serif; background-color: var(--bg-color); color: var(--text-color);
-            display: flex; height: 100vh; overflow: hidden; /* CRITICAL: Prevents body scrolling */
+            display: flex;
         }
         .app-container { display: flex; width: 100%; height: 100%; flex-direction: row-reverse; }
 
-        /* MODIFIED: Increased width and using gap for spacing */
+        /* MODIFIED: Control panel layout for full-height data interaction */
         .control-panel {
-            width: 650px;
-            min-width: 600px;
-            background-color: var(--bg-color);
-            padding: 20px; height: 100vh; border-left: 1px solid var(--border-color);
-            display: flex; flex-direction: column; gap: 20px; /* Using gap for clean spacing */
+            width: 650px; min-width: 600px; background-color: var(--bg-color);
+            padding: 20px; height: 100%; border-left: 1px solid var(--border-color);
+            display: flex; flex-direction: column; gap: 20px;
         }
+        /* MODIFIED: Preview panel now holds controls below the sheet */
         .preview-panel {
             flex-grow: 1; display: flex; flex-direction: column; align-items: center;
-            justify-content: center; padding: 30px; height: 100vh; overflow: auto;
+            justify-content: center; padding: 20px; height: 100%; overflow-y: auto;
         }
 
         h1 { font-size: 1.8rem; font-weight: 700; color: var(--text-color); margin-bottom: 0; }
@@ -62,23 +65,21 @@
             font-family: 'Cairo', sans-serif; background-color: #f8fafc; transition: var(--transition); font-size: 1rem;
         }
         input:focus, select:focus { border-color: var(--primary-color); background-color: white; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); outline: none; }
-        input[type="checkbox"] { width: auto; }
         
         .section-card { 
             background: var(--card-bg); padding: 20px; border-radius: var(--radius-lg); box-shadow: var(--shadow);
-            margin-bottom: 0; /* Removed margin, handled by parent gap */
             display: flex; flex-direction: column;
         }
+        /* CRITICAL: These sections will grow to fill the available vertical space */
         #item-selection-section, #print-queue-section { 
             flex-grow: 1; 
-            min-height: 0; /* CRITICAL: Allows flex items to shrink and prevents overflow */
+            min-height: 0; /* Allows flex items to shrink and prevents parent overflow */
         }
         .loader { border: 4px solid #e2e8f0; border-top: 4px solid var(--primary-color); border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; display: none; margin: 0 auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
         .app-status { padding: 15px 20px; border-radius: var(--radius-md); color: #fff; text-align: center; font-weight: 600; box-shadow: var(--shadow); display: none; align-items: center; justify-content: center; gap: 10px; }
         .app-status.error { background: #ef4444; } .app-status.success { background: #22c55e; }
-        .app-status .icon svg { width: 20px; height: 20px; fill: white; }
         
         #search-controls { display: flex; gap: 10px; margin-bottom: 15px; }
         #search-field { flex: 0 0 120px; }
@@ -86,22 +87,36 @@
         #search-container:focus-within { border-color: var(--primary-color); background-color: white; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); }
         #search-input { border: none; flex-grow: 1; padding: 5px; outline: none; background: transparent; }
         
+        /* CRITICAL: Enables scrolling ONLY within the lists */
         .item-list, #print-queue-list {
-            flex-grow: 1; /* Allow lists to fill available space */
-            overflow-y: auto; /* Enable vertical scroll ONLY within the list */
+            flex-grow: 1;
+            overflow-y: auto;
             border: 1px solid var(--border-color);
             border-radius: var(--radius-lg); background: white;
         }
         .item-card { display: flex; align-items: center; padding: 12px 15px; border-bottom: 1px solid var(--border-color); transition: var(--transition); cursor: pointer; position: relative; }
         .item-card:last-child { border-bottom: none; }
-        .item-card:hover { background-color: #f8fafc; }
         .item-card.selected { background-color: #eff6ff; color: #1e40af; font-weight: 600; }
         .item-card.selected::before { content: ''; position: absolute; right: 0; top: 0; bottom: 0; width: 4px; background-color: var(--primary-color); }
-        .item-card input[type="checkbox"] { margin-left: 15px; transform: scale(1.3); accent-color: var(--primary-color); }
 
         #a4-sheet {
             background: white; width: 21cm; height: 29.7cm; box-shadow: var(--shadow-lg); padding: 1cm;
-            transform-origin: center center; transform: scale(0.65); display: grid; align-content: start; margin-bottom: 20px;
+            transform-origin: center top; transform: scale(0.6); display: grid; align-content: start; flex-shrink: 0;
+        }
+        
+        /* NEW: Container for controls under the preview sheet */
+        .preview-controls {
+            margin-top: 20px;
+            background-color: var(--card-bg);
+            padding: 25px;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow);
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            align-items: center;
         }
         
         .price-label {
@@ -116,47 +131,30 @@
         .label-price { font-size: var(--label-price-font-size); font-weight: 700; color: var(--label-price-color); white-space: nowrap; }
 
         .slider-value { font-weight: 600; color: var(--primary-color); }
-        fieldset { border: none; border-radius: var(--radius-lg); padding: 20px; margin-bottom: 0; background-color: #f8fafc; border: 1px solid var(--border-color); }
-        legend { font-weight: 700; color: var(--text-color); padding: 0 5px; font-size: 1.1rem; }
-        .control-group { margin-bottom: 15px; } .control-group:last-child { margin-bottom: 0; }
+        fieldset { border: none; padding: 0; margin: 0; width: 100%; }
+        legend { font-weight: 700; color: var(--text-color); padding-bottom: 10px; font-size: 1.1rem; border-bottom: 1px solid var(--border-color); margin-bottom: 15px; }
         .control-group label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--muted-text); }
         
         .grid-2, .grid-3 { display: grid; gap: 15px; align-items: end; }
         .grid-2 { grid-template-columns: repeat(2, 1fr); }
         .grid-3 { grid-template-columns: repeat(3, 1fr); }
         
-        #layout-calculation-status { background-color: #eef2ff; padding: 10px; border-radius: var(--radius-md); text-align: center; font-weight: 600; color: #4338ca; margin-top: auto; }
-
-        .queue-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; border-bottom: 1px solid var(--border-color); gap: 10px; }
+        .queue-item { display: flex; align-items: center; padding: 10px 15px; border-bottom: 1px solid var(--border-color); gap: 10px; }
         .queue-item:last-child { border-bottom: none; }
-        .queue-item-details { flex-grow: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-        .queue-item-name { font-weight: 600; color: var(--text-color); cursor: pointer; padding: 2px 4px; border-radius: 4px; transition: background-color 0.2s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .queue-item-details { flex-grow: 1; min-width: 0; }
+        .queue-item-name { font-weight: 600; cursor: pointer; padding: 2px 4px; border-radius: 4px; transition: background-color 0.2s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .queue-item-name:hover { background-color: #eef2ff; }
         .queue-item-meta { font-size: 13px; color: var(--muted-text); }
-        .queue-item-remove {
-            background-color: #fee2e2; color: #b91c1c; border: none; width: 28px; height: 28px;
-            border-radius: 50%; font-size: 20px; font-weight: bold; cursor: pointer; flex-shrink: 0;
-            display: flex; align-items: center; justify-content: center; line-height: 1;
-            padding: 0; transition: var(--transition);
-        }
-        .queue-item-remove:hover { background-color: #ef4444; color: white; transform: scale(1.1); box-shadow: none;}
-        .queue-item-name-input {
-            font-family: 'Cairo', sans-serif; font-weight: 600; font-size: 1rem;
-            width: 100%; border: 1px solid var(--primary-color);
-            border-radius: 4px; padding: 2px 4px; box-sizing: border-box;
-        }
-        #queue-summary {
-            margin-top: 15px; text-align: center; font-weight: 600; color: var(--primary-color);
-            background-color: #eef2ff; padding: 10px; border-radius: var(--radius-md);
-        }
+        .queue-item-remove { background-color: #fee2e2; color: #b91c1c; border: none; width: 28px; height: 28px; border-radius: 50%; font-size: 20px; font-weight: bold; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; padding: 0; }
+        .queue-item-name-input { font-family: 'Cairo', sans-serif; font-weight: 600; font-size: 1rem; width: 100%; border: 1px solid var(--primary-color); border-radius: 4px; padding: 2px 4px; }
+        #queue-summary { margin-top: 15px; text-align: center; font-weight: 600; color: var(--primary-color); background-color: #eef2ff; padding: 10px; border-radius: var(--radius-md); }
 
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #f1f5f9; }
         ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
 
         @media print {
-            .control-panel, #print-button, .app-status, #layout-calculation-status { display: none !important; }
+            .control-panel, .preview-controls { display: none !important; }
             body, .app-container, .preview-panel { display: block !important; width: 100% !important; height: auto !important; overflow: visible !important; background: #fff !important; padding: 0 !important; margin: 0 !important; }
             #a4-sheet { transform: none !important; box-shadow: none !important; border: none !important; padding: 0 !important; margin: 0 !important; width: 100% !important; height: 100% !important; display: grid !important; page-break-after: always; }
             .price-label { page-break-inside: avoid !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; border-color: #000 !important; }
@@ -169,20 +167,39 @@
     <div class="app-container">
         <div class="preview-panel">
             <div id="a4-sheet"></div>
-            <button id="print-button" style="display:none;"><span class="btn-icon"></span> طباعة</button>
-            <div id="layout-calculation-status" style="display: none;"></div>
+            <!-- MODIFIED: Controls are now here, under the preview -->
+            <div class="preview-controls">
+                <fieldset>
+                    <legend>إعدادات التصميم والطباعة</legend>
+                    <div class="control-group">
+                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                            <input type="checkbox" id="pre-printed-mode-checkbox" style="transform: scale(1.1);">
+                            <span>الطباعة على نموذج مُعد مسبقاً</span>
+                        </label>
+                    </div>
+                    <div class="grid-2">
+                        <div><label>خط الصنف (px): <span id="item-font-size-value" class="slider-value">16</span></label><input type="range" id="item-font-size" min="8" max="32" value="16"></div>
+                        <div><label>خط السعر (px): <span id="price-font-size-value" class="slider-value">24</span></label><input type="range" id="price-font-size" min="12" max="52" value="24"></div>
+                    </div>
+                </fieldset>
+                <button id="print-button" style="display:none; width: 100%;"><span class="btn-icon"></span> طباعة</button>
+            </div>
         </div>
         
         <aside class="control-panel">
             <div style="display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;">
-                 <h1>شيلف مجمع</h1>
-                 <a href="../index.html" style="text-decoration: none; color: #0077cc; font-weight: 500;">← للوحة التحكم</a>
+                 <h1>لوحة التحكم</h1>
+                 <a href="../index.html" style="text-decoration: none; color: #0077cc; font-weight: 500;">← العودة</a>
             </div>
             <div id="app-status" class="app-status" style="flex-shrink: 0;"></div>
-
+            
             <section class="section-card" style="flex-shrink: 0;">
-                <h2>1. تحميل البيانات</h2>
-                <div id="loader" class="loader"></div>
+                 <h2>1. إضافة بطاقات للقائمة</h2>
+                 <div class="grid-3">
+                   <input type="number" id="price-input" placeholder="أدخل السعر" step="0.01" min="0">
+                   <input type="number" id="quantity-input" placeholder="الكمية" value="1" min="1">
+                   <button id="add-to-queue-btn">إضافة للقائمة</button>
+                 </div>
             </section>
 
             <section id="item-selection-section" class="section-card" style="display:none;">
@@ -194,35 +211,11 @@
                 <div id="item-list"></div>
             </section>
 
-            <section id="generation-section" class="section-card" style="display:none; flex-shrink: 0;">
-                 <h2>3. إضافة بطاقات للقائمة</h2>
-                 <div class="grid-3">
-                   <input type="number" id="price-input" placeholder="أدخل السعر" step="0.01" min="0">
-                   <input type="number" id="quantity-input" placeholder="الكمية" value="1" min="1">
-                   <button id="add-to-queue-btn">إضافة للقائمة</button>
-                 </div>
-            </section>
-
             <section id="print-queue-section" class="section-card" style="display:none;">
-                <h2>4. قائمة الطباعة <small style="font-weight:400; color:var(--muted-text)">(انقر على الاسم للتعديل)</small></h2>
+                <h2>3. قائمة الطباعة <small style="font-weight:400; color:var(--muted-text)">(انقر على الاسم للتعديل)</small></h2>
                 <div id="print-queue-list"></div>
                 <div id="queue-summary" style="display: none;"></div>
             </section>
-            
-            <fieldset style="flex-shrink: 0;">
-                <legend>5. إعدادات الطباعة</legend>
-                 <div class="control-group">
-                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-weight: normal; color: var(--text-color);">
-                        <input type="checkbox" id="pre-printed-mode-checkbox" style="margin-left: 5px; transform: scale(1.1);">
-                        <span>الطباعة على نموذج مُعد مسبقاً</span>
-                    </label>
-                </div>
-                <div class="control-group grid-2">
-                     <div><label>خط الصنف (px): <span id="item-font-size-value" class="slider-value">16</span></label><input type="range" id="item-font-size" min="8" max="28" value="16"></div>
-                     <div><label>خط السعر (px): <span id="price-font-size-value" class="slider-value">24</span></label><input type="range" id="price-font-size" min="12" max="48" value="24"></div>
-                </div>
-            </fieldset>
-
         </aside>
     </div>
 
@@ -239,15 +232,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const state = { allItems: [], selectedItemIds: new Set(), printQueue: [] };
     
     const dom = {
-        appStatus: document.getElementById('app-status'), loader: document.getElementById('loader'),
+        appStatus: document.getElementById('app-status'),
         itemSelectionSection: document.getElementById('item-selection-section'),
-        generationSection: document.getElementById('generation-section'),
         searchInput: document.getElementById('search-input'), searchField: document.getElementById('search-field'),
         itemList: document.getElementById('item-list'), priceInput: document.getElementById('price-input'), 
         quantityInput: document.getElementById('quantity-input'), addToQueueBtn: document.getElementById('add-to-queue-btn'),
         printQueueSection: document.getElementById('print-queue-section'), printQueueList: document.getElementById('print-queue-list'),
         queueSummary: document.getElementById('queue-summary'), a4Sheet: document.getElementById('a4-sheet'),
-        printButton: document.getElementById('print-button'), layoutStatus: document.getElementById('layout-calculation-status'),
+        printButton: document.getElementById('print-button'),
         prePrintedModeCheckbox: document.getElementById('pre-printed-mode-checkbox'),
         itemFontSize: document.getElementById('item-font-size'), priceFontSize: document.getElementById('price-font-size'),
     };
@@ -259,7 +251,7 @@ document.addEventListener('DOMContentLoaded', function() {
         dom.appStatus.innerHTML = iconHtml + message;
         dom.appStatus.className = `app-status ${type}`;
         dom.appStatus.style.display = 'flex';
-        setTimeout(() => { dom.appStatus.style.display = 'none'; }, type === 'error' ? 8000 : 4000);
+        setTimeout(() => { dom.appStatus.style.display = 'none'; }, type === 'error' ? 6000 : 3000);
     };
 
     const findCommon = (arr) => {
@@ -341,19 +333,20 @@ document.addEventListener('DOMContentLoaded', function() {
         const root = document.documentElement.style;
         root.setProperty('--label-item-font-size', `${dom.itemFontSize.value}px`);
         root.setProperty('--label-price-font-size', `${dom.priceFontSize.value}px`);
-
-        const PAGE_HEIGHT_MM = 297, MARGIN_MM = 10, PRINTABLE_HEIGHT = PAGE_HEIGHT_MM - (MARGIN_MM * 2);
-        const labelHeight = 30, gap = 5;
-        const labelsPerPage = Math.floor((PRINTABLE_HEIGHT + gap) / (labelHeight + gap));
         
         dom.a4Sheet.innerHTML = '';
-        dom.a4Sheet.style.gridTemplateColumns = `1fr`;
-        dom.a4Sheet.style.gap = `${gap}mm`;
-        dom.a4Sheet.style.gridTemplateRows = `repeat(${labelsPerPage}, ${labelHeight}mm)`;
-        
         let labelsToRender = state.printQueue.flatMap(job => Array(job.quantity).fill(job));
         
-        for (let i = 0; i < Math.min(labelsToRender.length, labelsPerPage); i++) {
+        if(labelsToRender.length > 0) {
+            const PAGE_HEIGHT_MM = 297, MARGIN_MM = 10, PRINTABLE_HEIGHT = PAGE_HEIGHT_MM - (MARGIN_MM * 2);
+            const labelHeight = 30, gap = 5;
+            const labelsPerPage = Math.floor((PRINTABLE_HEIGHT + gap) / (labelHeight + gap));
+            dom.a4Sheet.style.gridTemplateColumns = `1fr`;
+            dom.a4Sheet.style.gap = `${gap}mm`;
+            dom.a4Sheet.style.gridTemplateRows = `repeat(${labelsPerPage}, ${labelHeight}mm)`;
+        }
+        
+        for (let i = 0; i < labelsToRender.length; i++) {
             const job = labelsToRender[i];
             const label = document.createElement('div');
             label.className = 'price-label';
@@ -362,16 +355,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="label-price-area"><div class="label-price-container"><div class="label-price">${job.price.toFixed(2)} ج.م</div></div></div>`;
             dom.a4Sheet.appendChild(label);
         }
-
-        const totalInQueue = state.printQueue.reduce((sum, job) => sum + parseInt(job.quantity), 0);
-        dom.layoutStatus.textContent = `سعة الصفحة: ${labelsPerPage} بطاقات | القائمة تحتوي على ${totalInQueue} بطاقة.`;
-        dom.layoutStatus.style.display = 'block';
         
         const printButtonIcon = dom.printButton.querySelector('.btn-icon');
         if (printButtonIcon) printButtonIcon.innerHTML = icons.print;
         dom.printButton.style.display = labelsToRender.length > 0 ? 'inline-flex' : 'none';
     };
-    const debouncedUpdatePreview = debounce(updatePreview, 250);
+    const debouncedUpdatePreview = debounce(updatePreview, 150);
 
     const handleAddToQueue = () => {
         if (state.selectedItemIds.size === 0) return showStatus('خطأ: يرجى تحديد صنف واحد على الأقل.', 'error');
@@ -408,7 +397,6 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     const loadData = async () => {
-        dom.loader.style.display = 'block';
         try {
             const response = await fetch(WEB_APP_URL);
             if (!response.ok) throw new Error(`فشل الاتصال بالخادم (Status: ${response.status})`);
@@ -417,13 +405,10 @@ document.addEventListener('DOMContentLoaded', function() {
             state.allItems = data.map((item, index) => ({ ...item, id: item.id || index }));
             showStatus(`تم تحميل ${state.allItems.length} صنف بنجاح.`, 'success');
             dom.itemSelectionSection.style.display = 'flex';
-            dom.generationSection.style.display = 'block';
             renderItems(state.allItems);
             updatePreview();
         } catch (error) {
             showStatus(`فشل تحميل البيانات: ${error.message}.`, 'error');
-        } finally {
-            dom.loader.style.display = 'none';
         }
     };
     
