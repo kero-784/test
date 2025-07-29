@@ -15,70 +15,69 @@
             --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.07), 0 4px 6px -4px rgba(0,0,0,0.07);
             --radius-md: 8px; --radius-lg: 12px; --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
             
-            /* Default Layout and Design Variables (No longer user-editable) */
-            --label-price-color: #ef4444;
-            --label-border-width: 1px;
-            --label-border-style: dashed;
-            --label-border-color: #cbd5e1;
-            --label-padding: 5px;
-            --label-border-radius: 8px;
-            --price-box-bg: rgba(255, 255, 255, 0.85);
-            --price-box-border-color: var(--label-price-color);
-            --label-item-font-weight: 700;
-            --label-item-text-transform: none;
+            /* Default Layout Variables */
+            --label-price-color: #ef4444; --label-border-width: 1px; --label-border-style: dashed;
+            --label-border-color: #cbd5e1; --label-padding: 5px; --label-border-radius: 8px;
+            --price-box-bg: rgba(255, 255, 255, 0.85); --price-box-border-color: var(--label-price-color);
+            --label-item-font-weight: 700; --label-item-text-transform: none;
             
             /* User-Editable Variables */
-            --label-item-font-size: 16px;
-            --label-price-font-size: 24px;
+            --label-item-font-size: 16px; --label-price-font-size: 24px;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             font-family: 'Cairo', sans-serif; background-color: var(--bg-color); color: var(--text-color);
-            display: flex; height: 100vh; overflow: hidden; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+            display: flex; height: 100vh; overflow: hidden; /* CRITICAL: Prevents body scrolling */
         }
         .app-container { display: flex; width: 100%; height: 100%; flex-direction: row-reverse; }
 
+        /* MODIFIED: Increased width and using gap for spacing */
         .control-panel {
-            width: 550px; /* MODIFIED: Increased width */
-            min-width: 500px; /* MODIFIED: Increased min-width */
+            width: 650px;
+            min-width: 600px;
             background-color: var(--bg-color);
-            padding: 30px; height: 100vh; overflow-y: auto; border-left: 1px solid var(--border-color);
+            padding: 20px; height: 100vh; border-left: 1px solid var(--border-color);
+            display: flex; flex-direction: column; gap: 20px; /* Using gap for clean spacing */
         }
         .preview-panel {
             flex-grow: 1; display: flex; flex-direction: column; align-items: center;
-            justify-content: center; padding: 30px; height: 100vh; background-color: var(--preview-bg);
+            justify-content: center; padding: 30px; height: 100vh; overflow: auto;
         }
 
-        h1 { font-size: 2rem; font-weight: 700; color: var(--text-color); margin-bottom: 25px; }
-        h2 { font-size: 1.25rem; font-weight: 600; color: var(--text-color); margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); }
-        h3 { font-size: 1.5rem; font-weight: 700; color: var(--primary-color); margin: 40px 0 25px 0; border-bottom: 2px solid; padding-bottom: 15px;}
-
+        h1 { font-size: 1.8rem; font-weight: 700; color: var(--text-color); margin-bottom: 0; }
+        h2 { font-size: 1.15rem; font-weight: 600; color: var(--text-color); margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); }
+        
         button {
-            background-color: var(--primary-color);
-            color: white; border: none; padding: 12px 25px; border-radius: var(--radius-md); font-family: 'Cairo', sans-serif;
-            font-size: 1rem; font-weight: 600; cursor: pointer; transition: var(--transition); box-shadow: var(--shadow);
+            background-color: var(--primary-color); color: white; border: none; padding: 12px 25px; 
+            border-radius: var(--radius-md); font-family: 'Cairo', sans-serif; font-size: 1rem; font-weight: 600; 
+            cursor: pointer; transition: var(--transition); box-shadow: var(--shadow);
             display: inline-flex; align-items: center; justify-content: center; gap: 8px;
         }
         button:hover { background-color: var(--primary-hover); transform: translateY(-2px); box-shadow: var(--shadow-lg); }
-        button:disabled { background-color: #94a3b8; cursor: not-allowed; transform: none; box-shadow: none; }
         .btn-icon svg { width:18px; height:18px; }
         
         input, select {
             width: 100%; padding: 10px 12px; border-radius: var(--radius-md); border: 1px solid var(--border-color);
-            font-family: 'Cairo', sans-serif; background-color: #f8fafc; transition: var(--transition);
+            font-family: 'Cairo', sans-serif; background-color: #f8fafc; transition: var(--transition); font-size: 1rem;
         }
         input:focus, select:focus { border-color: var(--primary-color); background-color: white; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); outline: none; }
-        input[type="color"] { padding: 4px; height: 42px; }
         input[type="checkbox"] { width: auto; }
         
-        .section-card { background: var(--card-bg); padding: 25px; border-radius: var(--radius-lg); box-shadow: var(--shadow); margin-bottom: 30px; }
+        .section-card { 
+            background: var(--card-bg); padding: 20px; border-radius: var(--radius-lg); box-shadow: var(--shadow);
+            margin-bottom: 0; /* Removed margin, handled by parent gap */
+            display: flex; flex-direction: column;
+        }
+        #item-selection-section, #print-queue-section { 
+            flex-grow: 1; 
+            min-height: 0; /* CRITICAL: Allows flex items to shrink and prevents overflow */
+        }
         .loader { border: 4px solid #e2e8f0; border-top: 4px solid var(--primary-color); border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; display: none; margin: 0 auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
-        .app-status { padding: 15px 20px; margin-bottom: 20px; border-radius: var(--radius-md); color: #fff; text-align: center; font-weight: 600; box-shadow: var(--shadow); display: none; align-items: center; justify-content: center; gap: 10px; }
-        .app-status.error { background: #ef4444; }
-        .app-status.success { background: #22c55e; }
+        .app-status { padding: 15px 20px; border-radius: var(--radius-md); color: #fff; text-align: center; font-weight: 600; box-shadow: var(--shadow); display: none; align-items: center; justify-content: center; gap: 10px; }
+        .app-status.error { background: #ef4444; } .app-status.success { background: #22c55e; }
         .app-status .icon svg { width: 20px; height: 20px; fill: white; }
         
         #search-controls { display: flex; gap: 10px; margin-bottom: 15px; }
@@ -87,76 +86,77 @@
         #search-container:focus-within { border-color: var(--primary-color); background-color: white; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); }
         #search-input { border: none; flex-grow: 1; padding: 5px; outline: none; background: transparent; }
         
-        .item-list { max-height: 30vh; overflow-y: auto; border: 1px solid var(--border-color); border-radius: var(--radius-lg); background: white; }
+        .item-list, #print-queue-list {
+            flex-grow: 1; /* Allow lists to fill available space */
+            overflow-y: auto; /* Enable vertical scroll ONLY within the list */
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg); background: white;
+        }
         .item-card { display: flex; align-items: center; padding: 12px 15px; border-bottom: 1px solid var(--border-color); transition: var(--transition); cursor: pointer; position: relative; }
         .item-card:last-child { border-bottom: none; }
         .item-card:hover { background-color: #f8fafc; }
         .item-card.selected { background-color: #eff6ff; color: #1e40af; font-weight: 600; }
         .item-card.selected::before { content: ''; position: absolute; right: 0; top: 0; bottom: 0; width: 4px; background-color: var(--primary-color); }
         .item-card input[type="checkbox"] { margin-left: 15px; transform: scale(1.3); accent-color: var(--primary-color); }
-        .item-card .details { display: flex; flex-direction: column; }
-        .item-card .item-meta { font-size: 12px; color: var(--muted-text); }
-        .item-card.selected .item-meta { color: #60a5fa; }
 
         #a4-sheet {
             background: white; width: 21cm; height: 29.7cm; box-shadow: var(--shadow-lg); padding: 1cm;
-            transform-origin: center center; transform: scale(0.65); display: grid; align-content: start;
+            transform-origin: center center; transform: scale(0.65); display: grid; align-content: start; margin-bottom: 20px;
         }
-        #print-button { margin-top: 25px; }
         
         .price-label {
-            display: flex; flex-direction: row; align-items: center;
-            overflow: hidden; background-color: white; color: var(--text-color); font-family: 'Cairo', sans-serif;
-            border: var(--label-border-width) var(--label-border-style) var(--label-border-color); border-radius: var(--label-border-radius); padding: var(--label-padding);
+            display: flex; flex-direction: row; align-items: center; overflow: hidden; background-color: white; 
+            color: var(--text-color); font-family: 'Cairo', sans-serif;
+            border: var(--label-border-width) var(--label-border-style) var(--label-border-color); 
+            border-radius: var(--label-border-radius); padding: var(--label-padding);
         }
-        .label-info-area { flex: 1 1 auto; text-align: center; padding: 0 10px; font-size: var(--label-item-font-size); font-weight: var(--label-item-font-weight); text-transform: var(--label-item-text-transform); }
+        .label-info-area { flex: 1 1 auto; text-align: center; padding: 0 10px; font-size: var(--label-item-font-size); font-weight: var(--label-item-font-weight); }
         .label-price-area { flex: 0 0 35%; text-align: center; padding: 0 5px; }
         .label-price-container { border: 2px solid var(--price-box-border-color); border-radius: 8px; text-align: center; background: var(--price-box-bg); padding: 5px 10px; display: inline-block; }
         .label-price { font-size: var(--label-price-font-size); font-weight: 700; color: var(--label-price-color); white-space: nowrap; }
 
         .slider-value { font-weight: 600; color: var(--primary-color); }
-        fieldset { border: none; border-radius: var(--radius-lg); padding: 20px; margin-bottom: 20px; background-color: #f8fafc; border: 1px solid var(--border-color); }
+        fieldset { border: none; border-radius: var(--radius-lg); padding: 20px; margin-bottom: 0; background-color: #f8fafc; border: 1px solid var(--border-color); }
         legend { font-weight: 700; color: var(--text-color); padding: 0 5px; font-size: 1.1rem; }
-        .control-group { margin-bottom: 20px; } .control-group:last-child { margin-bottom: 0; }
+        .control-group { margin-bottom: 15px; } .control-group:last-child { margin-bottom: 0; }
         .control-group label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--muted-text); }
         
         .grid-2, .grid-3 { display: grid; gap: 15px; align-items: end; }
         .grid-2 { grid-template-columns: repeat(2, 1fr); }
         .grid-3 { grid-template-columns: repeat(3, 1fr); }
         
-        #layout-calculation-status { background-color: #eef2ff; padding: 10px; border-radius: var(--radius-md); text-align: center; font-weight: 600; color: #4338ca; margin-top: 15px; display:none; }
+        #layout-calculation-status { background-color: #eef2ff; padding: 10px; border-radius: var(--radius-md); text-align: center; font-weight: 600; color: #4338ca; margin-top: auto; }
 
-        #print-queue-list {
-            max-height: 25vh; overflow-y: auto; border: 1px solid var(--border-color);
-            border-radius: var(--radius-lg); background: white;
-        }
-        .queue-item {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 12px 15px; border-bottom: 1px solid var(--border-color);
-        }
+        .queue-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; border-bottom: 1px solid var(--border-color); gap: 10px; }
         .queue-item:last-child { border-bottom: none; }
-        .queue-item-details { display: flex; flex-direction: column; gap: 4px; }
-        .queue-item-name { font-weight: 600; color: var(--text-color); }
-        .queue-item-meta { font-size: 14px; color: var(--muted-text); }
+        .queue-item-details { flex-grow: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+        .queue-item-name { font-weight: 600; color: var(--text-color); cursor: pointer; padding: 2px 4px; border-radius: 4px; transition: background-color 0.2s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .queue-item-name:hover { background-color: #eef2ff; }
+        .queue-item-meta { font-size: 13px; color: var(--muted-text); }
         .queue-item-remove {
             background-color: #fee2e2; color: #b91c1c; border: none; width: 28px; height: 28px;
-            border-radius: 50%; font-size: 20px; font-weight: bold; cursor: pointer;
+            border-radius: 50%; font-size: 20px; font-weight: bold; cursor: pointer; flex-shrink: 0;
             display: flex; align-items: center; justify-content: center; line-height: 1;
             padding: 0; transition: var(--transition);
         }
         .queue-item-remove:hover { background-color: #ef4444; color: white; transform: scale(1.1); box-shadow: none;}
+        .queue-item-name-input {
+            font-family: 'Cairo', sans-serif; font-weight: 600; font-size: 1rem;
+            width: 100%; border: 1px solid var(--primary-color);
+            border-radius: 4px; padding: 2px 4px; box-sizing: border-box;
+        }
         #queue-summary {
             margin-top: 15px; text-align: center; font-weight: 600; color: var(--primary-color);
             background-color: #eef2ff; padding: 10px; border-radius: var(--radius-md);
         }
 
         ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: var(--bg-color); }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
         ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
 
         @media print {
-            .control-panel, #print-button, .app-status { display: none !important; }
+            .control-panel, #print-button, .app-status, #layout-calculation-status { display: none !important; }
             body, .app-container, .preview-panel { display: block !important; width: 100% !important; height: auto !important; overflow: visible !important; background: #fff !important; padding: 0 !important; margin: 0 !important; }
             #a4-sheet { transform: none !important; box-shadow: none !important; border: none !important; padding: 0 !important; margin: 0 !important; width: 100% !important; height: 100% !important; display: grid !important; page-break-after: always; }
             .price-label { page-break-inside: avoid !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; border-color: #000 !important; }
@@ -169,16 +169,18 @@
     <div class="app-container">
         <div class="preview-panel">
             <div id="a4-sheet"></div>
-            <div id="layout-calculation-status"></div>
             <button id="print-button" style="display:none;"><span class="btn-icon"></span> طباعة</button>
+            <div id="layout-calculation-status" style="display: none;"></div>
         </div>
         
         <aside class="control-panel">
-            <h1>شيلف مجمع</h1>
-            <a href="../index.html" style="text-decoration: none; display: block; text-align: center; margin-bottom: 25px; color: #0077cc; font-weight: 500;">← العودة إلى لوحة التحكم</a>
-            <div id="app-status" class="app-status"></div>
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;">
+                 <h1>شيلف مجمع</h1>
+                 <a href="../index.html" style="text-decoration: none; color: #0077cc; font-weight: 500;">← للوحة التحكم</a>
+            </div>
+            <div id="app-status" class="app-status" style="flex-shrink: 0;"></div>
 
-            <section class="section-card">
+            <section class="section-card" style="flex-shrink: 0;">
                 <h2>1. تحميل البيانات</h2>
                 <div id="loader" class="loader"></div>
             </section>
@@ -187,45 +189,34 @@
                 <h2>2. بحث وتحديد الأصناف</h2>
                 <div id="search-controls">
                     <select id="search-field"><option value="name">الاسم</option><option value="code">الكود</option></select>
-                    <div id="search-container">
-                        <input type="search" id="search-input" placeholder="اكتب هنا للبحث...">
-                    </div>
+                    <div id="search-container"><input type="search" id="search-input" placeholder="اكتب للبحث..."></div>
                 </div>
-                <div id="item-list" class="item-list"></div>
+                <div id="item-list"></div>
             </section>
 
-            <section id="generation-section" class="section-card" style="display:none;">
+            <section id="generation-section" class="section-card" style="display:none; flex-shrink: 0;">
                  <h2>3. إضافة بطاقات للقائمة</h2>
-                 <div class="control-group">
-                    <div class="grid-3">
-                       <input type="number" id="price-input" placeholder="أدخل السعر" step="0.01" min="0">
-                       <input type="number" id="quantity-input" placeholder="الكمية" value="1" min="1">
-                       <button id="add-to-queue-btn">إضافة للقائمة</button>
-                    </div>
+                 <div class="grid-3">
+                   <input type="number" id="price-input" placeholder="أدخل السعر" step="0.01" min="0">
+                   <input type="number" id="quantity-input" placeholder="الكمية" value="1" min="1">
+                   <button id="add-to-queue-btn">إضافة للقائمة</button>
                  </div>
             </section>
 
             <section id="print-queue-section" class="section-card" style="display:none;">
-                <h2>4. قائمة الطباعة</h2>
+                <h2>4. قائمة الطباعة <small style="font-weight:400; color:var(--muted-text)">(انقر على الاسم للتعديل)</small></h2>
                 <div id="print-queue-list"></div>
                 <div id="queue-summary" style="display: none;"></div>
             </section>
-
-            <!-- REMOVED: All design customization sections are gone -->
             
-            <h3>5. إعدادات الطباعة</h3>
-            <fieldset>
-                <legend>إعدادات عامة</legend>
-                <div class="control-group">
+            <fieldset style="flex-shrink: 0;">
+                <legend>5. إعدادات الطباعة</legend>
+                 <div class="control-group">
                     <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-weight: normal; color: var(--text-color);">
                         <input type="checkbox" id="pre-printed-mode-checkbox" style="margin-left: 5px; transform: scale(1.1);">
-                        <span>الطباعة على نموذج مُعد مسبقاً<br><small style="color: var(--muted-text); font-weight: 400;">(إخفاء الإطارات عند الطباعة)</small></span>
+                        <span>الطباعة على نموذج مُعد مسبقاً</span>
                     </label>
                 </div>
-            </fieldset>
-
-            <fieldset>
-                <legend>أحجام الخطوط</legend>
                 <div class="control-group grid-2">
                      <div><label>خط الصنف (px): <span id="item-font-size-value" class="slider-value">16</span></label><input type="range" id="item-font-size" min="8" max="28" value="16"></div>
                      <div><label>خط السعر (px): <span id="price-font-size-value" class="slider-value">24</span></label><input type="range" id="price-font-size" min="12" max="48" value="24"></div>
@@ -245,29 +236,20 @@ document.addEventListener('DOMContentLoaded', function() {
         error: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" /></svg>`,
     };
     
-    const state = {
-        allItems: [], 
-        selectedItemIds: new Set(),
-        printQueue: [],
-    };
+    const state = { allItems: [], selectedItemIds: new Set(), printQueue: [] };
     
     const dom = {
         appStatus: document.getElementById('app-status'), loader: document.getElementById('loader'),
         itemSelectionSection: document.getElementById('item-selection-section'),
         generationSection: document.getElementById('generation-section'),
         searchInput: document.getElementById('search-input'), searchField: document.getElementById('search-field'),
-        itemList: document.getElementById('item-list'),
-        priceInput: document.getElementById('price-input'), 
-        quantityInput: document.getElementById('quantity-input'),
-        addToQueueBtn: document.getElementById('add-to-queue-btn'),
-        printQueueSection: document.getElementById('print-queue-section'),
-        printQueueList: document.getElementById('print-queue-list'),
-        queueSummary: document.getElementById('queue-summary'),
-        a4Sheet: document.getElementById('a4-sheet'), printButton: document.getElementById('print-button'),
-        layoutStatus: document.getElementById('layout-calculation-status'),
+        itemList: document.getElementById('item-list'), priceInput: document.getElementById('price-input'), 
+        quantityInput: document.getElementById('quantity-input'), addToQueueBtn: document.getElementById('add-to-queue-btn'),
+        printQueueSection: document.getElementById('print-queue-section'), printQueueList: document.getElementById('print-queue-list'),
+        queueSummary: document.getElementById('queue-summary'), a4Sheet: document.getElementById('a4-sheet'),
+        printButton: document.getElementById('print-button'), layoutStatus: document.getElementById('layout-calculation-status'),
         prePrintedModeCheckbox: document.getElementById('pre-printed-mode-checkbox'),
-        itemFontSize: document.getElementById('item-font-size'),
-        priceFontSize: document.getElementById('price-font-size'),
+        itemFontSize: document.getElementById('item-font-size'), priceFontSize: document.getElementById('price-font-size'),
     };
 
     const debounce = (func, delay) => { let timeoutId; return (...args) => { clearTimeout(timeoutId); timeoutId = setTimeout(() => { func.apply(this, args); }, delay); }; };
@@ -321,16 +303,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const handleSearch = () => {
         const query = dom.searchInput.value.toLowerCase().trim();
         const field = dom.searchField.value;
-
-        if (!query) {
-            renderItems(state.allItems);
-            return;
-        }
-
-        const filtered = state.allItems.filter(item => {
-            const fieldToSearch = String(item[field] || '').toLowerCase();
-            return fieldToSearch.includes(query);
-        });
+        const filtered = query ? state.allItems.filter(item => String(item[field] || '').toLowerCase().includes(query)) : state.allItems;
         renderItems(filtered);
     };
 
@@ -343,33 +316,32 @@ document.addEventListener('DOMContentLoaded', function() {
         if (state.printQueue.length === 0) {
             dom.printQueueList.innerHTML = '<p style="text-align:center; padding: 20px; color: var(--muted-text);">قائمة الطباعة فارغة.</p>';
             dom.printQueueSection.style.display = 'none';
-            dom.queueSummary.style.display = 'none';
         } else {
-            dom.printQueueSection.style.display = 'block';
+            dom.printQueueSection.style.display = 'flex';
             state.printQueue.forEach(job => {
                 const itemEl = document.createElement('div');
                 itemEl.className = 'queue-item';
+                itemEl.dataset.id = job.id;
                 itemEl.innerHTML = `
                     <div class="queue-item-details">
-                        <span class="queue-item-name">${job.name}</span>
+                        <span class="queue-item-name" title="${job.name}">${job.name}</span>
                         <span class="queue-item-meta">السعر: ${job.price.toFixed(2)} ج.م - الكمية: ${job.quantity}</span>
                     </div>
-                    <button class="queue-item-remove" data-id="${job.id}" title="إزالة">×</button>
+                    <button class="queue-item-remove" title="إزالة">×</button>
                 `;
                 dom.printQueueList.appendChild(itemEl);
             });
             dom.queueSummary.textContent = `الإجمالي: ${totalLabels} بطاقة`;
             dom.queueSummary.style.display = 'block';
         }
+        updatePreview();
     };
     
     const updatePreview = () => {
         const root = document.documentElement.style;
-        // Update only the user-editable CSS variables
         root.setProperty('--label-item-font-size', `${dom.itemFontSize.value}px`);
         root.setProperty('--label-price-font-size', `${dom.priceFontSize.value}px`);
 
-        // Fixed layout calculation
         const PAGE_HEIGHT_MM = 297, MARGIN_MM = 10, PRINTABLE_HEIGHT = PAGE_HEIGHT_MM - (MARGIN_MM * 2);
         const labelHeight = 30, gap = 5;
         const labelsPerPage = Math.floor((PRINTABLE_HEIGHT + gap) / (labelHeight + gap));
@@ -379,18 +351,12 @@ document.addEventListener('DOMContentLoaded', function() {
         dom.a4Sheet.style.gap = `${gap}mm`;
         dom.a4Sheet.style.gridTemplateRows = `repeat(${labelsPerPage}, ${labelHeight}mm)`;
         
-        let labelsToRender = [];
-        for (const job of state.printQueue) {
-            for (let i = 0; i < job.quantity; i++) {
-                labelsToRender.push(job);
-            }
-        }
+        let labelsToRender = state.printQueue.flatMap(job => Array(job.quantity).fill(job));
         
         for (let i = 0; i < Math.min(labelsToRender.length, labelsPerPage); i++) {
             const job = labelsToRender[i];
             const label = document.createElement('div');
             label.className = 'price-label';
-            // MODIFIED: Simplified label structure without logo
             label.innerHTML = `
                 <div class="label-info-area">${job.name}</div>
                 <div class="label-price-area"><div class="label-price-container"><div class="label-price">${job.price.toFixed(2)} ج.م</div></div></div>`;
@@ -405,56 +371,43 @@ document.addEventListener('DOMContentLoaded', function() {
         if (printButtonIcon) printButtonIcon.innerHTML = icons.print;
         dom.printButton.style.display = labelsToRender.length > 0 ? 'inline-flex' : 'none';
     };
+    const debouncedUpdatePreview = debounce(updatePreview, 250);
 
     const handleAddToQueue = () => {
-        try {
-            if (state.selectedItemIds.size === 0) return showStatus('خطأ: يرجى تحديد صنف واحد على الأقل.', 'error');
-            const price = parseFloat(dom.priceInput.value);
-            if (isNaN(price) || price <= 0) return showStatus('خطأ: يرجى إدخال سعر صحيح وموجب.', 'error');
-            const quantity = parseInt(dom.quantityInput.value);
-            if (isNaN(quantity) || quantity < 1) return showStatus('خطأ: يرجى إدخال كمية صحيحة (1 أو أكثر).', 'error');
-            
-            const selectedItems = state.allItems.filter(item => state.selectedItemIds.has(item.id));
-            let newName;
-            
-            if (selectedItems.length === 1) { newName = selectedItems[0].name; } 
-            else {
-                const allNames = selectedItems.map(item => item.name);
-                let commonUnit = '';
-                const allUnits = allNames.map(name => extractUnit(name)).filter(Boolean);
-                if (allUnits.length > 0) {
-                    const unitCounts = allUnits.reduce((acc, unit) => { acc[unit] = (acc[unit] || 0) + 1; return acc; }, {});
-                    if(Object.keys(unitCounts).length > 0) { commonUnit = Object.keys(unitCounts).reduce((a, b) => unitCounts[a] > unitCounts[b] ? a : b); }
-                }
-                const namesWithoutUnits = allNames.map(name => name.replace(extractUnit(name) || '', '').trim());
-                const commonStart = findCommon(namesWithoutUnits);
-                const nameParts = [commonStart, "أنواع", commonUnit].filter(Boolean);
-                newName = nameParts.join(' ').replace(/\s+/g, ' ');
-            }
-            
-            const job = { id: Date.now(), name: newName, price, quantity };
-            state.printQueue.push(job);
-
-            state.selectedItemIds.clear();
-            dom.priceInput.value = '';
-            dom.quantityInput.value = '1';
-            dom.searchInput.value = '';
-            handleSearch();
-            
-            dom.priceInput.focus();
-
-            renderPrintQueue();
-            updatePreview();
-            showStatus(`تمت إضافة "${newName}" للقائمة.`, 'success');
-
-        } catch (error) {
-            console.error(error);
-            showStatus('حدث خطأ غير متوقع أثناء إضافة البطاقة.', 'error');
+        if (state.selectedItemIds.size === 0) return showStatus('خطأ: يرجى تحديد صنف واحد على الأقل.', 'error');
+        const price = parseFloat(dom.priceInput.value);
+        if (isNaN(price) || price <= 0) return showStatus('خطأ: يرجى إدخال سعر صحيح وموجب.', 'error');
+        const quantity = parseInt(dom.quantityInput.value);
+        if (isNaN(quantity) || quantity < 1) return showStatus('خطأ: يرجى إدخال كمية صحيحة (1 أو أكثر).', 'error');
+        
+        const selectedItems = state.allItems.filter(item => state.selectedItemIds.has(item.id));
+        let newName;
+        
+        if (selectedItems.length === 1) { newName = selectedItems[0].name; } 
+        else {
+            const allNames = selectedItems.map(item => item.name);
+            const allUnits = allNames.map(name => extractUnit(name)).filter(Boolean);
+            const unitCounts = allUnits.reduce((acc, unit) => { acc[unit] = (acc[unit] || 0) + 1; return acc; }, {});
+            const commonUnit = Object.keys(unitCounts).length > 0 ? Object.keys(unitCounts).reduce((a, b) => unitCounts[a] > unitCounts[b] ? a : b) : '';
+            const namesWithoutUnits = allNames.map(name => name.replace(extractUnit(name) || '', '').trim());
+            const commonStart = findCommon(namesWithoutUnits);
+            newName = [commonStart, "أنواع", commonUnit].filter(Boolean).join(' ').replace(/\s+/g, ' ');
         }
+        
+        const job = { id: Date.now(), name: newName, price, quantity };
+        state.printQueue.push(job);
+
+        state.selectedItemIds.clear();
+        dom.priceInput.value = '';
+        dom.quantityInput.value = '1';
+        dom.searchInput.value = '';
+        handleSearch();
+        dom.priceInput.focus();
+        renderPrintQueue();
+        showStatus(`تمت إضافة "${newName}" للقائمة.`, 'success');
     };
 
     const loadData = async () => {
-        if (!WEB_APP_URL || !WEB_APP_URL.includes('script.google.com')) { return showStatus('خطأ فادح: لم يتم تحديد رابط API.', 'error'); }
         dom.loader.style.display = 'block';
         try {
             const response = await fetch(WEB_APP_URL);
@@ -462,63 +415,75 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await response.json();
             if (data.error) throw new Error(data.message);
             state.allItems = data.map((item, index) => ({ ...item, id: item.id || index }));
-            if (state.allItems.length > 0) {
-                showStatus(`تم تحميل ${state.allItems.length} صنف بنجاح.`, 'success');
-                dom.itemSelectionSection.style.display = 'block';
-                dom.generationSection.style.display = 'block';
-                renderItems(state.allItems);
-                updatePreview();
-            } else {
-                 showStatus('تم الاتصال بنجاح ولكن لم يتم العثور على بيانات.', 'info');
-            }
+            showStatus(`تم تحميل ${state.allItems.length} صنف بنجاح.`, 'success');
+            dom.itemSelectionSection.style.display = 'flex';
+            dom.generationSection.style.display = 'block';
+            renderItems(state.allItems);
+            updatePreview();
         } catch (error) {
-            showStatus(`فشل تحميل البيانات: ${error.message}. تحقق من الرابط واتصالك بالانترنت.`, 'error');
+            showStatus(`فشل تحميل البيانات: ${error.message}.`, 'error');
         } finally {
             dom.loader.style.display = 'none';
         }
     };
     
-    const debouncedUpdatePreview = debounce(updatePreview, 250);
-    
     // --- Event Listeners ---
     dom.addToQueueBtn.addEventListener('click', handleAddToQueue);
     dom.printButton.addEventListener('click', () => window.print());
-
+    dom.searchInput.addEventListener('input', debouncedSearch);
+    dom.searchField.addEventListener('change', handleSearch);
+    dom.itemFontSize.addEventListener('input', debouncedUpdatePreview);
+    dom.priceFontSize.addEventListener('input', debouncedUpdatePreview);
+    dom.prePrintedModeCheckbox.addEventListener('change', (e) => document.body.classList.toggle('pre-printed-mode', e.target.checked));
+    
     dom.printQueueList.addEventListener('click', e => {
-        const removeButton = e.target.closest('.queue-item-remove');
-        if (removeButton) {
-            const jobId = parseInt(removeButton.dataset.id);
+        const queueItem = e.target.closest('.queue-item');
+        if (!queueItem) return;
+        const jobId = parseInt(queueItem.dataset.id);
+
+        if (e.target.closest('.queue-item-remove')) {
             state.printQueue = state.printQueue.filter(job => job.id !== jobId);
             renderPrintQueue();
-            updatePreview();
+        }
+
+        if (e.target.matches('.queue-item-name')) {
+            const nameSpan = e.target;
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.value = nameSpan.textContent;
+            input.className = 'queue-item-name-input';
+            
+            nameSpan.replaceWith(input);
+            input.focus();
+            input.select();
+            
+            const saveChanges = () => {
+                const newName = input.value.trim();
+                const job = state.printQueue.find(j => j.id === jobId);
+                if (job && newName) { job.name = newName; }
+                renderPrintQueue();
+            };
+            
+            input.addEventListener('blur', saveChanges);
+            input.addEventListener('keydown', (ev) => {
+                if (ev.key === 'Enter') input.blur();
+                else if (ev.key === 'Escape') renderPrintQueue();
+            });
         }
     });
 
-    dom.searchInput.addEventListener('input', debouncedSearch);
-    dom.searchField.addEventListener('change', handleSearch);
-    
-    // Simplified listeners for remaining controls
-    dom.itemFontSize.addEventListener('input', debouncedUpdatePreview);
-    dom.priceFontSize.addEventListener('input', debouncedUpdatePreview);
-    
-    // Update slider value displays
     ['item-font-size', 'price-font-size'].forEach(id => {
         const input = document.getElementById(id);
         const valueSpan = document.getElementById(`${id}-value`);
-        if(input && valueSpan) {
+        if (input && valueSpan) {
             valueSpan.textContent = input.value;
             input.addEventListener('input', e => valueSpan.textContent = e.target.value);
         }
     });
 
-    dom.prePrintedModeCheckbox.addEventListener('change', (e) => {
-        document.body.classList.toggle('pre-printed-mode', e.target.checked);
-    });
-    
     // --- Initial Setup ---
     dom.prePrintedModeCheckbox.checked = true;
     document.body.classList.add('pre-printed-mode');
-    
     loadData();
 });
 </script>
