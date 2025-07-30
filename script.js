@@ -1746,7 +1746,7 @@ document.addEventListener('DOMContentLoaded', () => {
             grandTotalValue += groupTotalValue;
             
             const headerHtml = `<thead><tr><th>${_t('table_h_code')}</th><th>${_t('table_h_name')}</th><th>${_t('table_h_category')}</th><th style="text-align:right;">${_t(qtyColumnHeader)}</th>${hasValue ? `<th style="text-align:right;">${_t('table_h_total_value_consumed')}</th>` : ''}</tr></thead>`;
-            const groupFooterHtml = hasValue && breakdownBy ? `<tfoot><tr style="font-weight:bold; background-color: var(--bg-color);"><td colspan="4" style="text-align:right;">${_t('total_value')} for ${group.name}:</td><td style="text-align:right;">${groupTotalValue.toFixed(2)} EGP</td></tr></tfoot>` : '';
+            const groupFooterHtml = hasValue && breakdownBy ? `<tfoot><tr style="font-weight:bold; background-color: var(--bg-color);"><td colspan="4" style="text-align:right;">${_t('table_h_total')} for ${group.name}:</td><td style="text-align:right;">${groupTotalValue.toFixed(2)} EGP</td></tr></tfoot>` : '';
             
             overallHtml += `<table class="report-sub-table">${headerHtml}<tbody>${tableBodyHtml}</tbody>${groupFooterHtml}</table>`;
         });
@@ -1954,526 +1954,213 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
-    const generateReceiveDocument = (data) => { const supplier = findByKey(state.suppliers, 'supplierCode', data.supplierCode) || { name: 'DELETED' }; const branch = findByKey(state.branches, 'branchCode', data.branchCode) || { name: 'DELETED' }; let itemsHtml = '', totalValue = 0; data.items.forEach(item => { const itemTotal = item.quantity * item.cost; totalValue += itemTotal; itemsHtml += `<tr><td>${item.itemCode}</td><td>${item.itemName}</td><td>${item.quantity.toFixed(2)}</td><td>${item.cost.toFixed(2)} EGP</td><td>${itemTotal.toFixed(2)} EGP</td></tr>`; }); const content = `<div class="printable-document card" dir="${state.currentLanguage === 'ar' ? 'rtl' : 'ltr'}"><h2>Goods Received Note</h2><p><strong>GRN No:</strong> ${data.batchId}</p><p><strong>${_t('table_h_invoice_no')}:</strong> ${data.invoiceNumber}</p><p><strong>${_t('table_h_date')}:</strong> ${new Date(data.date).toLocaleString()}</p><p><strong>${_t('supplier')}:</strong> ${supplier.name} (${supplier.supplierCode || ''})</p><p><strong>${_t('receive_stock')} at:</strong> ${branch.name} (${branch.branchCode || ''})</p><hr><h3>${_t('items_to_be_received')}</h3><table><thead><tr><th>${_t('table_h_code')}</th><th>${_t('item')}</th><th>${_t('table_h_qty')}</th><th>${_t('table_h_cost_per_unit')}</th><th>${_t('table_h_total')}</th></tr></thead><tbody>${itemsHtml}</tbody><tfoot><tr><td colspan="4" style="text-align:right;font-weight:bold;">${_t('total_value')}</td><td style="font-weight:bold;">${totalValue.toFixed(2)} EGP</td></tr></tfoot></table><hr><p><strong>${_t('notes_optional')}:</strong> ${data.notes || 'N/A'}</p><br><p><strong>Signature:</strong> _________________________</p></div>`; printContent(content); };
-    const generateTransferDocument = (data) => { const fromBranch = findByKey(state.branches, 'branchCode', data.fromBranchCode) || { name: 'DELETED' }; const toBranch = findByKey(state.branches, 'branchCode', data.toBranchCode) || { name: 'DELETED' }; let itemsHtml = ''; data.items.forEach(item => { const fullItem = findByKey(state.items, 'code', item.itemCode) || { code: 'N/A', name: 'DELETED', unit: 'N/A' }; itemsHtml += `<tr><td>${fullItem.code || item.itemCode}</td><td>${item.itemName || fullItem.name}</td><td>${parseFloat(item.quantity).toFixed(2)}</td><td>${fullItem.unit}</td></tr>`; }); const content = `<div class="printable-document card" dir="${state.currentLanguage === 'ar' ? 'rtl' : 'ltr'}"><h2>${_t('internal_transfer')} Order</h2><p><strong>Order ID:</strong> ${data.batchId}</p><p><strong>${_t('reference')}:</strong> ${data.ref}</p><p><strong>${_t('table_h_date')}:</strong> ${new Date(data.date).toLocaleString()}</p><hr><p><strong>${_t('from_branch')}:</strong> ${fromBranch.name} (${fromBranch.branchCode || ''})</p><p><strong>${_t('to_branch')}:</strong> ${toBranch.name} (${toBranch.branchCode || ''})</p><hr><h3>${_t('items_to_be_transferred')}</h3><table><thead><tr><th>${_t('table_h_code')}</th><th>${_t('item')}</th><th>${_t('table_h_qty')}</th><th>${_t('table_h_unit')}</th></tr></thead><tbody>${itemsHtml}</tbody></table><hr><p><strong>${_t('notes_optional')}:</strong> ${data.notes || 'N/A'}</p><br><p><strong>Sender:</strong> _________________</p><p><strong>Receiver:</strong> _________________</p></div>`; printContent(content); };
-    const generateIssueDocument = (data) => { const fromBranch = findByKey(state.branches, 'branchCode', data.fromBranchCode) || { name: 'DELETED' }; const toSection = findByKey(state.sections, 'sectionCode', data.sectionCode) || { name: 'DELETED' }; let itemsHtml = ''; data.items.forEach(item => { const fullItem = findByKey(state.items, 'code', item.itemCode) || { name: 'DELETED', unit: 'N/A' }; itemsHtml += `<tr><td>${item.itemCode}</td><td>${item.itemName || fullItem.name}</td><td>${item.quantity.toFixed(2)}</td><td>${fullItem.unit}</td></tr>`; }); const content = `<div class="printable-document card" dir="${state.currentLanguage === 'ar' ? 'rtl' : 'ltr'}"><h2>${_t('issue_stock')} Note</h2><p><strong>${_t('issue_ref_no')}:</strong> ${data.ref}</p><p><strong>Batch ID:</strong> ${data.batchId}</p><p><strong>${_t('table_h_date')}:</strong> ${new Date(data.date).toLocaleString()}</p><hr><p><strong>${_t('from_branch')}:</strong> ${fromBranch.name} (${fromBranch.branchCode || ''})</p><p><strong>${_t('to_section')}:</strong> ${toSection.name} (${toSection.sectionCode || ''})</p><hr><h3>${_t('items_to_be_issued')}</h3><table><thead><tr><th>${_t('table_h_code')}</th><th>${_t('item')}</th><th>${_t('table_h_qty')}</th><th>${_t('table_h_unit')}</th></tr></thead><tbody>${itemsHtml}</tbody></table><hr><p><strong>${_t('notes_optional')}:</strong> ${data.notes || 'N/A'}</p><br><p><strong>Issued By:</strong> _________________</p><p><strong>Received By:</strong> _________________</p></div>`; printContent(content); };
-    const generatePaymentVoucher = (data) => { const supplier = findByKey(state.suppliers, 'supplierCode', data.supplierCode) || { name: 'DELETED' }; let invoicesHtml = ''; data.payments.forEach(p => { invoicesHtml += `<tr><td>${p.invoiceNumber}</td><td>${p.amount.toFixed(2)} EGP</td></tr>`; }); const content = `<div class="printable-document card" dir="${state.currentLanguage === 'ar' ? 'rtl' : 'ltr'}"><h2>Payment Voucher</h2><p><strong>Voucher ID:</strong> ${data.payments[0].paymentId}</p><p><strong>${_t('table_h_date')}:</strong> ${new Date(data.date).toLocaleString()}</p><hr><p><strong>Paid To:</strong> ${supplier.name} (${supplier.supplierCode || ''})</p><p><strong>${_t('table_h_amount')}:</strong> ${data.totalAmount.toFixed(2)} EGP</p><p><strong>Method:</strong> ${data.method}</p><hr><h3>Payment Allocation</h3><table><thead><tr><th>${_t('table_h_invoice_no')}</th><th>${_t('table_h_amount_to_pay')}</th></tr></thead><tbody>${invoicesHtml}</tbody></table><br><p><strong>Signature:</strong> _________________</p></div>`; printContent(content); };
-    const generatePODocument = (data) => { const supplier = findByKey(state.suppliers, 'supplierCode', data.supplierCode) || { name: 'DELETED' }; let itemsHtml = '', totalValue = 0; data.items.forEach(item => { const itemDetails = findByKey(state.items, 'code', item.itemCode) || {name: "N/A"}; const itemTotal = (parseFloat(item.quantity) || 0) * (parseFloat(item.cost) || 0); totalValue += itemTotal; itemsHtml += `<tr><td>${item.itemCode}</td><td>${itemDetails.name}</td><td>${(parseFloat(item.quantity) || 0).toFixed(2)}</td><td>${(parseFloat(item.cost) || 0).toFixed(2)} EGP</td><td>${itemTotal.toFixed(2)} EGP</td></tr>`; }); const content = `<div class="printable-document card" dir="${state.currentLanguage === 'ar' ? 'rtl' : 'ltr'}"><h2>${_t('po')}</h2><p><strong>${_t('table_h_po_no')}:</strong> ${data.poId || data.batchId}</p><p><strong>${_t('table_h_date')}:</strong> ${new Date(data.date).toLocaleString()}</p><p><strong>${_t('supplier')}:</strong> ${supplier.name} (${supplier.supplierCode || ''})</p><hr><h3>${_t('items_to_order')}</h3><table><thead><tr><th>${_t('table_h_code')}</th><th>${_t('item')}</th><th>${_t('table_h_qty')}</th><th>${_t('table_h_cost_per_unit')}</th><th>${_t('table_h_total')}</th></tr></thead><tbody>${itemsHtml}</tbody><tfoot><tr><td colspan="4" style="text-align:right;font-weight:bold;">${_t('total_value')}</td><td style="font-weight:bold;">${totalValue.toFixed(2)} EGP</td></tr></tfoot></table><hr><p><strong>${_t('notes_optional')}:</strong> ${data.notes || 'N/A'}</p><br><p><strong>Authorized By:</strong> ${data.createdBy || state.currentUser.Name}</p></div>`; printContent(content); };
-    const generateReturnDocument = (data) => { const supplier = findByKey(state.suppliers, 'supplierCode', data.supplierCode) || { name: 'DELETED' }; const branch = findByKey(state.branches, 'branchCode', data.fromBranchCode) || { name: 'DELETED' }; let itemsHtml = '', totalValue = 0; data.items.forEach(item => { const itemTotal = item.quantity * item.cost; totalValue += itemTotal; itemsHtml += `<tr><td>${item.itemCode}</td><td>${item.itemName}</td><td>${item.quantity.toFixed(2)}</td><td>${item.cost.toFixed(2)} EGP</td><td>${itemTotal.toFixed(2)} EGP</td></tr>`; }); const content = `<div class="printable-document card" dir="${state.currentLanguage === 'ar' ? 'rtl' : 'ltr'}"><h2>${_t('return_to_supplier')} Note</h2><p><strong>${_t('credit_note_ref')}:</strong> ${data.ref}</p><p><strong>${_t('table_h_date')}:</strong> ${new Date(data.date).toLocaleString()}</p><p><strong>Returned To:</strong> ${supplier.name}</p><p><strong>Returned From:</strong> ${branch.name}</p><hr><h3>${_t('items_to_return')}</h3><table><thead><tr><th>${_t('table_h_code')}</th><th>${_t('item')}</th><th>${_t('table_h_qty')}</th><th>${_t('table_h_cost_per_unit')}</th><th>${_t('table_h_total')}</th></tr></thead><tbody>${itemsHtml}</tbody><tfoot><tr><td colspan="4" style="text-align:right;font-weight:bold;">${_t('total_value')}</td><td style="font-weight:bold;">${totalValue.toFixed(2)} EGP</td></tr></tfoot></table><hr><p><strong>Reason:</strong> ${data.notes || 'N/A'}</p></div>`; printContent(content); };
-    const generateRequestIssueDocument = (data) => { const fromBranch = findByKey(state.branches, 'branchCode', data.fromBranchCode) || { name: 'DELETED' }; const toSection = findByKey(state.sections, 'sectionCode', data.sectionCode) || { name: 'DELETED' }; let itemsHtml = ''; data.items.forEach(item => { const fullItem = findByKey(state.items, 'code', item.itemCode) || { name: 'DELETED', unit: 'N/A' }; itemsHtml += `<tr><td>${item.itemCode}</td><td>${item.itemName || fullItem.name}</td><td>${(item.quantity || 0).toFixed(2)}</td><td>${fullItem.unit}</td></tr>`; }); const content = `<div class="printable-document card" dir="${state.currentLanguage === 'ar' ? 'rtl' : 'ltr'}"><h2>DRAFT ${_t('issue_stock')} Note (from Request)</h2><p><strong>${_t('table_h_req_id')}:</strong> ${data.ref}</p><p><strong>${_t('table_h_date')}:</strong> ${new Date(data.date).toLocaleString()}</p><hr><p><strong>${_t('from_branch')}:</strong> ${fromBranch.name} (${fromBranch.branchCode || ''})</p><p><strong>${_t('to_section')}:</strong> ${toSection.name} (${toSection.sectionCode || ''})</p><hr><h3>${_t('items_to_be_issued')}</h3><table><thead><tr><th>${_t('table_h_code')}</th><th>${_t('item')}</th><th>${_t('table_h_qty')}</th><th>${_t('table_h_unit')}</th></tr></thead><tbody>${itemsHtml}</tbody></table><hr><p><strong>${_t('notes_optional')}:</strong> ${data.notes || 'N/A'}</p><br><p><strong>Issued By:</strong> _________________</p><p><strong>Received By:</strong> _________________</p></div>`; printContent(content); };
-
-// PART 4 OF 4: CALCULATION ENGINES, EVENT LISTENERS & INITIALIZATION
-    function updateReceiveGrandTotal() { let grandTotal = 0; (state.currentReceiveList || []).forEach(item => { grandTotal += (parseFloat(item.quantity) || 0) * (parseFloat(item.cost) || 0); }); document.getElementById('receive-grand-total').textContent = `${grandTotal.toFixed(2)} EGP`; }
-    function updateTransferGrandTotal() { let grandTotalQty = 0; (state.currentTransferList || []).forEach(item => { grandTotalQty += (parseFloat(item.quantity) || 0); }); document.getElementById('transfer-grand-total').textContent = grandTotalQty.toFixed(2); }
-    function updateIssueGrandTotal() { let grandTotalQty = 0; (state.currentIssueList || []).forEach(item => { grandTotalQty += (parseFloat(item.quantity) || 0); }); document.getElementById('issue-grand-total').textContent = grandTotalQty.toFixed(2); }
-    function updatePOGrandTotal() { let grandTotal = 0; (state.currentPOList || []).forEach(item => { grandTotal += (parseFloat(item.quantity) || 0) * (parseFloat(item.cost) || 0); }); document.getElementById('po-grand-total').textContent = `${grandTotal.toFixed(2)} EGP`; }
-    function updatePOEditGrandTotal() { let grandTotal = 0; (state.currentEditingPOList || []).forEach(item => { grandTotal += (parseFloat(item.quantity) || 0) * (parseFloat(item.cost) || 0); }); document.getElementById('edit-po-grand-total').textContent = `${grandTotal.toFixed(2)} EGP`; }
-    function updateReturnGrandTotal() { let grandTotal = 0; (state.currentReturnList || []).forEach(item => { grandTotal += (parseFloat(item.quantity) || 0) * (parseFloat(item.cost) || 0); }); document.getElementById('return-grand-total').textContent = `${grandTotal.toFixed(2)} EGP`; }
-
-    async function loadAndRenderBackups() {
-        const container = document.getElementById('backup-list-container');
-        container.innerHTML = `<table><tbody><tr><td><div class="spinner" style="width:30px;height:30px;border-width:3px;"></div></td><td>${_t('loading_backups')}</td></tr></tbody></table>`;
-        const result = await postData('listBackups', {}, null);
-        if (result && result.data) {
-            state.backups = result.data;
-            if (state.backups.length === 0) {
-                container.innerHTML = `<p>${_t('no_backups_found')}</p>`;
-                return;
-            }
-            let tableHtml = `<table id="table-backups"><thead><tr><th>${_t('backup_name')}</th><th>${_t('date_created')}</th><th>${_t('actions')}</th></tr></thead><tbody>`;
-            state.backups.forEach(backup => {
-                tableHtml += `
-                    <tr>
-                        <td>${backup.name}</td>
-                        <td>${new Date(backup.dateCreated).toLocaleString()}</td>
-                        <td>
-                            <div class="action-buttons">
-                                <a href="${backup.url}" target="_blank" rel="noopener noreferrer" class="secondary small" style="text-decoration: none;">${_t('open')}</a>
-                                <button class="danger small btn-restore" data-url="${backup.url}">${_t('restore')}</button>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-            });
-            tableHtml += '</tbody></table>';
-            container.innerHTML = tableHtml;
-        } else {
-            container.innerHTML = `<p>Could not load backup list. Please check permissions or try again.</p>`;
-        }
-    }
-    
-    async function loadAutoBackupSettings() {
-        const toggle = document.getElementById('auto-backup-toggle');
-        const frequencyContainer = document.getElementById('auto-backup-frequency-container');
-        const statusEl = document.getElementById('auto-backup-status');
-        
-        statusEl.textContent = 'Checking status...';
-        const result = await postData('getAutomaticBackupStatus', {}, null);
-        
-        if (result && typeof result.data.enabled !== 'undefined') {
-            const isEnabled = result.data.enabled;
-            toggle.checked = isEnabled;
-            frequencyContainer.style.display = isEnabled ? 'block' : 'none';
-            statusEl.textContent = isEnabled 
-                ? 'Automatic backups are currently active.'
-                : 'Automatic backups are currently disabled.';
-        } else {
-            statusEl.textContent = 'Could not retrieve automatic backup status.';
-        }
-    }
-    
-    async function handleAutoBackupToggle() {
-        const toggle = document.getElementById('auto-backup-toggle');
-        const frequency = document.getElementById('auto-backup-frequency').value;
-        const frequencyContainer = document.getElementById('auto-backup-frequency-container');
-        const statusEl = document.getElementById('auto-backup-status');
-        
-        const isEnabled = toggle.checked;
-        frequencyContainer.style.display = isEnabled ? 'block' : 'none';
-        
-        statusEl.textContent = 'Updating settings...';
-        const result = await postData('setAutomaticBackup', { enabled: isEnabled, frequency: frequency }, toggle);
-
-        if (result) {
-            showToast(_t('auto_backup_updated_toast'), 'success');
-            statusEl.textContent = isEnabled
-                ? `Automatic backups are now enabled (${frequency}).`
-                : 'Automatic backups have been disabled.';
-        } else {
-            toggle.checked = !isEnabled;
-            frequencyContainer.style.display = toggle.checked ? 'block' : 'none';
-            statusEl.textContent = _t('auto_backup_failed_toast');
-        }
-    }
-
-    function openRestoreModal(backupFileId, backupFileName) {
-        const modal = document.getElementById('restore-modal');
-        const sheetListContainer = document.getElementById('restore-sheet-list');
-        const confirmInput = document.getElementById('restore-confirmation-input');
-        const confirmBtn = document.getElementById('btn-confirm-restore');
-    
-        document.getElementById('restore-filename-display').textContent = backupFileName;
-        confirmBtn.dataset.backupFileId = backupFileId;
-        
-        confirmInput.value = '';
-        confirmBtn.disabled = true;
-    
-        const coreSheets = [ 'Items', 'Suppliers', 'Branches', 'Sections', 'Transactions', 'Payments', 'PurchaseOrders', 'PurchaseOrderItems', 'ItemRequests', 'Users', 'Permissions' ];
-        
-        sheetListContainer.innerHTML = '';
-        coreSheets.forEach(sheetName => {
-            sheetListContainer.innerHTML += `<div class="form-group-checkbox"><input type="checkbox" id="restore-sheet-${sheetName}" name="restoreSheet" value="${sheetName}"><label for="restore-sheet-${sheetName}">${sheetName}</label></div>`;
+    // --- Document Generation Functions ---
+    const generateReceiveDocument = (data) => {
+        const supplier = findByKey(state.suppliers, 'supplierCode', data.supplierCode) || { name: 'DELETED' };
+        const branch = findByKey(state.branches, 'branchCode', data.branchCode) || { name: 'DELETED' };
+        let itemsHtml = '', totalValue = 0;
+        data.items.forEach(item => {
+            const itemTotal = item.quantity * item.cost;
+            totalValue += itemTotal;
+            itemsHtml += `<tr><td>${item.itemCode}</td><td>${item.itemName}</td><td>${item.quantity.toFixed(2)}</td><td>${item.cost.toFixed(2)} EGP</td><td>${itemTotal.toFixed(2)} EGP</td></tr>`;
         });
-        
-        const updateConfirmButtonState = () => {
-            const sheetsSelected = document.querySelectorAll('#restore-sheet-list input:checked').length > 0;
-            confirmBtn.disabled = !(confirmInput.value === 'RESTORE' && sheetsSelected);
-        };
-
-        confirmInput.addEventListener('input', updateConfirmButtonState);
-        sheetListContainer.addEventListener('change', updateConfirmButtonState);
-    
-        modal.classList.add('active');
-    }
-    
-    async function handleConfirmRestore(e) {
-        const btn = e.target;
-        const backupFileId = btn.dataset.backupFileId;
-        const selectedSheets = Array.from(document.querySelectorAll('#restore-sheet-list input:checked')).map(el => el.value);
-    
-        if (selectedSheets.length === 0) {
-            showToast(_t('restore_select_sheet_toast'), 'error');
-            return;
-        }
-    
-        const payload = {
-            backupFileId: backupFileId,
-            sheetsToRestore: selectedSheets
-        };
-    
-        const result = await postData('restoreFromBackup', payload, btn);
-    
-        if (result) {
-            showToast(result.data.message || _t('restore_completed_toast'), 'success');
-            closeModal();
-            await reloadDataAndRefreshUI();
-        }
-    }
-
-    async function handleTransactionSubmit(payload, buttonEl) {
-        const action = payload.type === 'po' ? 'addPurchaseOrder' : 'addTransactionBatch';
-        const result = await postData(action, payload, buttonEl);
-        if (result) {
-            const typeKey = payload.type.replace(/_/g,'');
-            let message = _t('tx_processed_toast', { txType: _t(typeKey) });
-            if (payload.type === 'receive' || payload.type === 'po') {
-                 message = _t('tx_processed_approval_toast', { txType: _t(typeKey) });
-            }
-
-            if (payload.type === 'receive') { state.currentReceiveList = []; document.getElementById('form-receive-details').reset(); renderReceiveListTable(); }
-            else if (payload.type === 'transfer_out') { generateTransferDocument(result.data); state.currentTransferList = []; document.getElementById('form-transfer-details').reset(); document.getElementById('transfer-ref').value = generateId('TRN'); renderTransferListTable(); }
-            else if (payload.type === 'issue') { generateIssueDocument(result.data); state.currentIssueList = []; document.getElementById('form-issue-details').reset(); document.getElementById('issue-ref').value = generateId('ISN'); renderIssueListTable(); }
-            else if (payload.type === 'po') { state.currentPOList = []; document.getElementById('form-po-details').reset(); document.getElementById('po-ref').value = generateId('PO'); renderPOListTable(); }
-            else if (payload.type === 'return_out') { generateReturnDocument(result.data); state.currentReturnList = []; document.getElementById('form-return-details').reset(); renderReturnListTable(); }
-            showToast(message, 'success');
-            await reloadDataAndRefreshUI();
-        }
-    }
-
-    // --- OPERATIONAL CONTEXT MODAL ---
-    function getOperationContext(requiredContexts = { branch: false, section: false }) {
-        return new Promise(resolve => {
-            contextPromiseResolver = resolve;
-            
-            const branchGroup = document.getElementById('context-modal-branch-group');
-            const sectionGroup = document.getElementById('context-modal-section-group');
-            
-            branchGroup.style.display = requiredContexts.branch ? 'block' : 'none';
-            sectionGroup.style.display = requiredContexts.section ? 'block' : 'none';
-
-            if (requiredContexts.branch) {
-                populateOptions(document.getElementById('context-branch-select'), state.branches, _t('select_a_branch'), 'branchCode', 'name');
-            }
-            if (requiredContexts.section) {
-                populateOptions(document.getElementById('context-section-select'), state.sections, _t('select_a_section'), 'sectionCode', 'name');
-            }
-
-            contextSelectorModal.classList.add('active');
-        });
-    }
-
-    function handleContextSelection() {
-        const selectedBranch = document.getElementById('context-branch-select').value;
-        const selectedSection = document.getElementById('context-section-select').value;
-        
-        const branchVisible = document.getElementById('context-modal-branch-group').style.display !== 'none';
-        const sectionVisible = document.getElementById('context-modal-section-group').style.display !== 'none';
-        
-        if ((branchVisible && !selectedBranch) || (sectionVisible && !selectedSection)) {
-            showToast(_t('fill_required_fields_toast'), 'error');
-            return;
-        }
-
-        if (contextPromiseResolver) {
-            contextPromiseResolver({
-                branch: selectedBranch,
-                section: selectedSection
-            });
-            contextPromiseResolver = null;
-        }
-        contextSelectorModal.classList.remove('active');
-    }
-    
-    function setupRoleBasedNav() {
-        const user = state.currentUser; if (!user) return;
-        const userFirstName = user.Name.split(' ')[0];
-        document.querySelector('.sidebar-header h1').textContent = _t('hi_user', {userFirstName});
-        const navMap = { 'dashboard': 'viewDashboard', 'operations': 'viewOperations', 'purchasing': 'viewPurchasing', 'requests': 'viewRequests', 'payments': 'viewPayments', 'reports': 'viewReports', 'stock-levels': 'viewStockLevels', 'transaction-history': 'viewTransactionHistory', 'setup': 'viewSetup', 'master-data': 'viewMasterData', 'user-management': 'manageUsers', 'backup': 'opBackupRestore', 'activity-log': 'viewActivityLog' };
-        for (const [view, permission] of Object.entries(navMap)) {
-            const navItem = document.querySelector(`[data-view="${view}"]`);
-            if (navItem) { 
-                let hasPermission = userCan(permission);
-                if (view === 'requests') { hasPermission = userCan('opRequestItems') || userCan('opApproveIssueRequest') || userCan('opApproveResupplyRequest'); }
-                if (view === 'operations') { hasPermission = userCan('viewOperations') || userCan('opStockAdjustment') || userCan('opFinancialAdjustment'); }
-                navItem.parentElement.style.display = hasPermission ? '' : 'none'; 
-            }
-        }
-    }
-    
-    function logout() { Logger.info('User logging out.'); location.reload(); }
-    
-    function initializeAppUI() {
-        Logger.info('Application UI initializing...');
-        setupRoleBasedNav();
-        attachEventListeners();
-        attachSubNavListeners();
-        setupSearch('search-items', renderItemsTable, 'items', ['name', 'code', 'category']);
-        setupSearch('search-suppliers', renderSuppliersTable, 'suppliers', ['name', 'supplierCode']);
-        setupSearch('search-branches', renderBranchesTable, 'branches', ['name', 'branchCode']);
-        setupSearch('search-sections', renderSectionsTable, 'sections', ['name', 'sectionCode']);
-        setupSearch('stock-levels-search', renderItemCentricStockView, 'items', ['name', 'code']);
-        document.getElementById('item-inquiry-search').addEventListener('input', e => renderItemInquiry(e.target.value.toLowerCase()));
-        
-        document.getElementById('btn-export-items').addEventListener('click', () => exportToExcel('table-items', 'ItemList.xlsx'));
-        document.getElementById('btn-export-suppliers').addEventListener('click', () => exportToExcel('table-suppliers', 'SupplierList.xlsx'));
-        document.getElementById('btn-export-branches').addEventListener('click', () => exportToExcel('table-branches', 'BranchList.xlsx'));
-        document.getElementById('btn-export-sections').addEventListener('click', () => exportToExcel('table-sections', 'SectionList.xlsx'));
-        document.getElementById('btn-export-stock').addEventListener('click', () => exportToExcel('table-stock-levels-by-item', 'StockLevels.xlsx'));
-        document.getElementById('btn-export-supplier-statement').addEventListener('click', () => exportToExcel('table-supplier-statement-report', 'SupplierStatement.xlsx'));
-        document.getElementById('btn-export-branch-consumption').addEventListener('click', () => exportToExcel('table-branch-consumption-results-report', 'BranchConsumption.xlsx'));
-        document.getElementById('btn-export-section-consumption').addEventListener('click', () => exportToExcel('table-section-consumption-results-report', 'SectionConsumption.xlsx'));
-        document.getElementById('btn-export-resupply-report').addEventListener('click', () => exportToExcel('table-resupply-report-results-report', 'ResupplyReport.xlsx'));
-        
-        updateUserBranchDisplay();
-        updatePendingRequestsWidget();
-        const firstVisibleView = document.querySelector('#main-nav .nav-item:not([style*="display: none"]) a')?.dataset.view || 'dashboard';
-        showView(firstVisibleView);
-        Logger.info('Application initialized successfully.');
-    }
-    
-    function updateUserBranchDisplay() {
-        const displayEl = document.getElementById('user-branch-display');
-        if (!state.currentUser) { displayEl.textContent = ''; return; }
-        const branch = findByKey(state.branches, 'branchCode', state.currentUser.AssignedBranchCode);
-        const section = findByKey(state.sections, 'sectionCode', state.currentUser.AssignedSectionCode);
-        let displayText = '';
-        if (branch) displayText += `${_t('branch')}: ${branch.name}`;
-        if (section) displayText += `${displayText ? ' / ' : ''}${_t('section')}: ${section.name}`;
-        displayEl.textContent = displayText;
-    }
-
-    function openPOEditModal(poId) {
-        const po = findByKey(state.purchaseOrders, 'poId', poId);
-        if (!po) return;
-        const poItems = state.purchaseOrderItems.filter(i => i.poId === poId);
-        state.currentEditingPOList = poItems.map(item => {
-            const masterItem = findByKey(state.items, 'code', item.itemCode);
-            return {
-                itemCode: item.itemCode,
-                itemName: masterItem?.name || "N/A",
-                quantity: parseFloat(item.quantity),
-                cost: parseFloat(item.cost)
-            };
-        });
-
-        const modalBody = document.getElementById('edit-po-modal-body');
-        modalBody.innerHTML = `
-            <div class="form-grid">
-                <div class="form-group"><label>${_t('table_h_po_no')}</label><input type="text" id="edit-po-id" value="${po.poId}" readonly></div>
-                <div class="form-group"><label>${_t('supplier')}</label><input type="text" value="${findByKey(state.suppliers, 'supplierCode', po.supplierCode)?.name}" readonly></div>
-                <div class="form-group span-full"><label for="edit-po-notes">${_t('notes_optional')}</label><textarea id="edit-po-notes" rows="2">${po.notes || ''}</textarea></div>
-            </div>
-            <div class="card" style="margin-top: 20px;">
-                <h2 data-translate-key="items_to_order">${_t('items_to_order')}</h2>
-                <table id="table-edit-po-list">
-                    <thead><tr><th>${_t('table_h_code')}</th><th>${_t('item_name')}</th><th>${_t('table_h_quantity')}</th><th>${_t('table_h_cost_per_unit')}</th><th>${_t('table_h_total')}</th><th>${_t('table_h_actions')}</th></tr></thead>
-                    <tbody></tbody>
-                    <tfoot><tr style="font-weight: bold; background-color: var(--bg-color);"><td colspan="4" style="text-align: right;">${_t('grand_total')}</td><td id="edit-po-grand-total" colspan="2">0.00 EGP</td></tr></tfoot>
+        const content = `
+            <div class="printable-document card" dir="${state.currentLanguage === 'ar' ? 'rtl' : 'ltr'}">
+                <h2>Goods Received Note</h2>
+                <p><strong>GRN No:</strong> ${data.batchId}</p>
+                <p><strong>${_t('table_h_invoice_no')}:</strong> ${data.invoiceNumber}</p>
+                <p><strong>${_t('table_h_date')}:</strong> ${new Date(data.date).toLocaleString()}</p>
+                <p><strong>${_t('supplier')}:</strong> ${supplier.name} (${supplier.supplierCode || ''})</p>
+                <p><strong>${_t('receive_stock')} at:</strong> ${branch.name} (${branch.branchCode || ''})</p>
+                <hr>
+                <h3>${_t('items_to_be_received')}</h3>
+                <table>
+                    <thead><tr><th>${_t('table_h_code')}</th><th>Item</th><th>${_t('table_h_qty')}</th><th>${_t('table_h_cost_per_unit')}</th><th>${_t('table_h_total')}</th></tr></thead>
+                    <tbody>${itemsHtml}</tbody>
+                    <tfoot><tr><td colspan="4" style="text-align:right;font-weight:bold;">Total Value</td><td style="font-weight:bold;">${totalValue.toFixed(2)} EGP</td></tr></tfoot>
                 </table>
-                <div style="margin-top: 20px;"><button type="button" data-context="edit-po" class="secondary">${_t('select_items')}</button></div>
-            </div>
-        `;
-        
-        const modal = document.getElementById('edit-po-modal');
-        modal.querySelector('.modal-footer').innerHTML = `
-            <button class="secondary modal-cancel">${_t('cancel')}</button>
-            <button id="btn-print-draft-po" class="secondary">${_t('print_list')}</button>
-            <button id="btn-save-po-changes" class="primary" data-po-id="${po.poId}">${_t('save_changes')}</button>
-        `;
-        
-        document.getElementById('btn-print-draft-po').onclick = () => {
-            const supplier = findByKey(state.suppliers, 'supplierCode', po.supplierCode);
-            const dataToPrint = {
-                poId: document.getElementById('edit-po-id').value,
-                date: new Date(),
-                supplierCode: po.supplierCode,
-                notes: document.getElementById('edit-po-notes').value,
-                items: state.currentEditingPOList,
-                createdBy: po.createdBy || state.currentUser.Name
-            };
-            generatePODocument(dataToPrint);
-        };
+                <hr>
+                <p><strong>${_t('notes_optional')}:</strong> ${data.notes || 'N/A'}</p><br>
+                <p><strong>Signature:</strong> _________________________</p>
+            </div>`;
+        printContent(content);
+    };
 
-        renderPOEditListTable();
-        editPOModal.classList.add('active');
-    }
-
-    // --- NEW FUNCTION TO FIX EDIT INVOICE BUTTON ---
-    function openInvoiceEditModal(batchId) {
-        const txGroup = state.transactions.filter(t => t.batchId === batchId && t.type === 'receive');
-        if (txGroup.length === 0) {
-            showToast('Could not find invoice data to edit.', 'error');
-            return;
-        }
-        const firstTx = txGroup[0];
-
-        // Reuse the PO editing list and renderer for consistency
-        state.currentEditingPOList = txGroup.map(tx => {
-            const masterItem = findByKey(state.items, 'code', tx.itemCode);
-            return {
-                itemCode: tx.itemCode,
-                itemName: masterItem?.name || 'N/A',
-                quantity: parseFloat(tx.quantity),
-                cost: parseFloat(tx.cost)
-            };
-        });
-
-        const modalBody = document.getElementById('edit-po-modal-body');
-        const supplier = findByKey(state.suppliers, 'supplierCode', firstTx.supplierCode);
-        const branch = findByKey(state.branches, 'branchCode', firstTx.branchCode);
-
-        modalBody.innerHTML = `
-            <div class="form-grid">
-                <div class="form-group"><label>Batch ID</label><input type="text" value="${batchId}" readonly></div>
-                <div class="form-group"><label>${_t('supplier')}</label><input type="text" value="${supplier?.name || 'N/A'}" readonly></div>
-                <div class="form-group"><label>${_t('branch')}</label><input type="text" value="${branch?.name || 'N/A'}" readonly></div>
-                <div class="form-group"><label for="edit-invoice-number">${_t('table_h_invoice_no')}</label><input type="text" id="edit-invoice-number" value="${firstTx.invoiceNumber || ''}" required></div>
-                <div class="form-group span-full"><label for="edit-invoice-notes">${_t('notes_optional')}</label><textarea id="edit-invoice-notes" rows="2">${firstTx.notes || ''}</textarea></div>
-            </div>
-            <div class="card" style="margin-top: 20px;">
-                <h2 data-translate-key="items_to_be_received">${_t('items_to_be_received')}</h2>
-                <table id="table-edit-po-list">
-                    <thead><tr><th>${_t('table_h_code')}</th><th>${_t('item_name')}</th><th>${_t('table_h_quantity')}</th><th>${_t('table_h_cost_per_unit')}</th><th>${_t('table_h_total')}</th><th>${_t('table_h_actions')}</th></tr></thead>
-                    <tbody></tbody>
-                    <tfoot><tr style="font-weight: bold; background-color: var(--bg-color);"><td colspan="4" style="text-align: right;">${_t('grand_total')}</td><td id="edit-po-grand-total" colspan="2">0.00 EGP</td></tr></tfoot>
-                </table>
-                <div style="margin-top: 20px;"><button type="button" data-context="edit-po" class="secondary">${_t('select_items')}</button></div>
-            </div>
-        `;
-
-        const modal = document.getElementById('edit-po-modal');
-        document.getElementById('edit-po-modal-title').textContent = _t('edit') + ' ' + _t('receive_stock');
-        modal.querySelector('.modal-footer').innerHTML = `
-            <button type="button" class="secondary modal-cancel">${_t('cancel')}</button>
-            <button id="btn-save-invoice-changes" class="primary" data-batch-id="${batchId}">${_t('save_changes')}</button>
-        `;
-
-        renderPOEditListTable();
-        editPOModal.classList.add('active');
-    }
-    
-    async function savePOChanges(e) {
-        const btn = e.currentTarget;
-        const poId = btn.dataset.poId;
-        const notes = document.getElementById('edit-po-notes').value;
-        const totalValue = state.currentEditingPOList.reduce((acc, item) => acc + (item.quantity * item.cost), 0);
-        const payload = {
-            poId,
-            notes,
-            totalValue,
-            items: state.currentEditingPOList
-        };
-        const result = await postData('editPurchaseOrder', payload, btn);
-        if (result) {
-            showToast('PO updated successfully!', 'success');
-            closeModal();
-            reloadDataAndRefreshUI();
-        }
-    }
-
-    // --- NEW FUNCTION TO SAVE INVOICE CHANGES ---
-    async function saveInvoiceChanges(e) {
-        const btn = e.currentTarget;
-        const batchId = btn.dataset.batchId;
-        const notes = document.getElementById('edit-invoice-notes').value;
-        const invoiceNumber = document.getElementById('edit-invoice-number').value;
-
-        if (!invoiceNumber) {
-            showToast('Invoice Number is required.', 'error');
-            return;
-        }
-
-        const payload = {
-            batchId,
-            invoiceNumber,
-            notes,
-            items: state.currentEditingPOList
-        };
-        const result = await postData('editInvoice', payload, btn);
-        if (result) {
-            showToast('Invoice updated successfully!', 'success');
-            closeModal();
-            reloadDataAndRefreshUI();
-        }
-    }
-
-    function openApproveRequestModal(requestId) {
-        const requestGroup = state.itemRequests.filter(r => r.RequestID === requestId);
-        if (requestGroup.length === 0) return;
-        const first = requestGroup[0];
-        const stock = calculateStockLevels();
-        const branchStock = stock[first.ToBranch] || {};
-        
-        document.getElementById('approve-request-modal-title').textContent = `${_t('approve')} ${_t('request')}: ${requestId}`;
-        const modalBody = document.getElementById('approve-request-modal-body');
-
+    const generateTransferDocument = (data) => {
+        const fromBranch = findByKey(state.branches, 'branchCode', data.fromBranchCode) || { name: 'DELETED' };
+        const toBranch = findByKey(state.branches, 'branchCode', data.toBranchCode) || { name: 'DELETED' };
         let itemsHtml = '';
-        requestGroup.forEach(req => {
-            const item = findByKey(state.items, 'code', req.ItemCode);
-            const availableQty = branchStock[req.ItemCode]?.quantity || 0;
-            itemsHtml += `
-                <tr>
-                    <td>${req.ItemCode}</td>
-                    <td>${item?.name || 'N/A'}</td>
-                    <td>${req.Quantity}</td>
-                    <td>${availableQty.toFixed(2)}</td>
-                    <td><input type="number" class="table-input" data-item-code="${req.ItemCode}" value="${req.Quantity}" min="0" max="${availableQty}" step="0.01"></td>
-                </tr>
-            `;
+        data.items.forEach(item => {
+            const fullItem = findByKey(state.items, 'code', item.itemCode) || { code: 'N/A', name: 'DELETED', unit: 'N/A' };
+            itemsHtml += `<tr><td>${fullItem.code || item.itemCode}</td><td>${item.itemName || fullItem.name}</td><td>${parseFloat(item.quantity).toFixed(2)}</td><td>${fullItem.unit}</td></tr>`;
         });
+        const content = `
+            <div class="printable-document card" dir="${state.currentLanguage === 'ar' ? 'rtl' : 'ltr'}">
+                <h2>${_t('internal_transfer')} Order</h2>
+                <p><strong>Order ID:</strong> ${data.batchId}</p>
+                <p><strong>${_t('reference')}:</strong> ${data.ref}</p>
+                <p><strong>${_t('table_h_date')}:</strong> ${new Date(data.date).toLocaleString()}</p>
+                <hr>
+                <p><strong>${_t('from_branch')}:</strong> ${fromBranch.name} (${fromBranch.branchCode || ''})</p>
+                <p><strong>${_t('to_branch')}:</strong> ${toBranch.name} (${toBranch.branchCode || ''})</p>
+                <hr>
+                <h3>${_t('items_to_be_transferred')}</h3>
+                <table>
+                    <thead><tr><th>${_t('table_h_code')}</th><th>Item</th><th>${_t('table_h_qty')}</th><th>${_t('table_h_unit')}</th></tr></thead>
+                    <tbody>${itemsHtml}</tbody>
+                </table>
+                <hr>
+                <p><strong>${_t('notes_optional')}:</strong> ${data.notes || 'N/A'}</p><br>
+                <p><strong>Sender:</strong> _________________</p>
+                <p><strong>Receiver:</strong> _________________</p>
+            </div>`;
+        printContent(content);
+    };
 
-        modalBody.innerHTML = `
-            <p><strong>${_t('from_section')}:</strong> ${findByKey(state.sections, 'sectionCode', first.FromSection)?.name}</p>
-            <p><strong>${_t('to_branch')}:</strong> ${findByKey(state.branches, 'branchCode', first.ToBranch)?.name}</p>
-            <p><strong>${_t('notes_optional')}:</strong> ${first.Notes || 'N/A'}</p>
-            <hr>
-            <table id="table-approve-request-items">
-                <thead><tr><th>${_t('table_h_code')}</th><th>${_t('item')}</th><th>Qty Req.</th><th>${_t('table_h_available')}</th><th>${_t('table_h_qty_to_issue')}</th></tr></thead>
-                <tbody>${itemsHtml}</tbody>
-            </table>
-            <div class="form-group" style="margin-top: 20px;">
-                <label for="approve-status-notes">${_t('notes_optional')}</label>
-                <textarea id="approve-status-notes" rows="2" placeholder="e.g., Partial issue due to stock availability."></textarea>
-            </div>
-        `;
-        
-        const modal = document.getElementById('approve-request-modal');
-        const confirmBtn = modal.querySelector('#btn-confirm-request-approval');
-        confirmBtn.dataset.requestId = requestId;
-        
-        document.getElementById('btn-print-draft-issue-note').onclick = () => {
-            const itemsToPrint = [];
-            document.querySelectorAll('#table-approve-request-items tbody tr').forEach(tr => {
-                const input = tr.querySelector('input');
-                const itemCode = input.dataset.itemCode;
-                const quantity = parseFloat(input.value) || 0;
-                if (quantity > 0) {
-                    itemsToPrint.push({
-                        itemCode: itemCode,
-                        itemName: findByKey(state.items, 'code', itemCode)?.name,
-                        quantity: quantity
-                    });
-                }
-            });
-            const dataToPrint = {
-                ref: requestId,
-                date: new Date(),
-                fromBranchCode: first.ToBranch,
-                sectionCode: first.FromSection,
-                notes: document.getElementById('approve-status-notes').value,
-                items: itemsToPrint
-            };
-            generateRequestIssueDocument(dataToPrint);
-        };
-        
-        approveRequestModal.classList.add('active');
-    }
-    
-    async function confirmRequestApproval(e) {
-        const btn = e.currentTarget;
-        const requestId = btn.dataset.requestId;
-        if (!requestId) {
-            showToast('Error: Request ID is missing.', 'error');
-            return;
-        }
-        const statusNotes = document.getElementById('approve-status-notes').value;
-        const editedItems = [];
-        document.querySelectorAll('#table-approve-request-items tbody tr').forEach(tr => {
-            const input = tr.querySelector('input');
-            editedItems.push({
-                itemCode: input.dataset.itemCode,
-                issuedQuantity: parseFloat(input.value) || 0
-            });
+    const generateIssueDocument = (data) => {
+        const fromBranch = findByKey(state.branches, 'branchCode', data.fromBranchCode) || { name: 'DELETED' };
+        const toSection = findByKey(state.sections, 'sectionCode', data.sectionCode) || { name: 'DELETED' };
+        let itemsHtml = '';
+        data.items.forEach(item => {
+            const fullItem = findByKey(state.items, 'code', item.itemCode) || { name: 'DELETED', unit: 'N/A' };
+            itemsHtml += `<tr><td>${item.itemCode}</td><td>${item.itemName || fullItem.name}</td><td>${item.quantity.toFixed(2)}</td><td>${fullItem.unit}</td></tr>`;
         });
-        
-        const payload = { requestId, statusNotes, editedItems };
-        const result = await postData('approveItemRequest', payload, btn);
-        if (result) {
-            showToast('Request approved and processed!', 'success');
-            closeModal();
-            reloadDataAndRefreshUI();
-        }
-    }
+        const content = `
+            <div class="printable-document card" dir="${state.currentLanguage === 'ar' ? 'rtl' : 'ltr'}">
+                <h2>${_t('issue_stock')} Note</h2>
+                <p><strong>${_t('issue_ref_no')}:</strong> ${data.ref}</p>
+                <p><strong>Batch ID:</strong> ${data.batchId}</p>
+                <p><strong>${_t('table_h_date')}:</strong> ${new Date(data.date).toLocaleString()}</p>
+                <hr>
+                <p><strong>${_t('from_branch')}:</strong> ${fromBranch.name} (${fromBranch.branchCode || ''})</p>
+                <p><strong>${_t('to_section')}:</strong> ${toSection.name} (${toSection.sectionCode || ''})</p>
+                <hr>
+                <h3>${_t('items_to_be_issued')}</h3>
+                <table>
+                    <thead><tr><th>${_t('table_h_code')}</th><th>Item</th><th>${_t('table_h_qty')}</th><th>${_t('table_h_unit')}</th></tr></thead>
+                    <tbody>${itemsHtml}</tbody>
+                </table>
+                <hr>
+                <p><strong>${_t('notes_optional')}:</strong> ${data.notes || 'N/A'}</p><br>
+                <p><strong>Issued By:</strong> _________________</p>
+                <p><strong>Received By:</strong> _________________</p>
+            </div>`;
+        printContent(content);
+    };
+
+    const generatePaymentVoucher = (data) => {
+        const supplier = findByKey(state.suppliers, 'supplierCode', data.supplierCode) || { name: 'DELETED' };
+        let invoicesHtml = '';
+        data.payments.forEach(p => {
+            invoicesHtml += `<tr><td>${p.invoiceNumber}</td><td>${p.amount.toFixed(2)} EGP</td></tr>`;
+        });
+        const content = `
+            <div class="printable-document card" dir="${state.currentLanguage === 'ar' ? 'rtl' : 'ltr'}">
+                <h2>Payment Voucher</h2>
+                <p><strong>Voucher ID:</strong> ${data.payments[0].paymentId}</p>
+                <p><strong>${_t('table_h_date')}:</strong> ${new Date(data.date).toLocaleString()}</p>
+                <hr>
+                <p><strong>Paid To:</strong> ${supplier.name} (${supplier.supplierCode || ''})</p>
+                <p><strong>${_t('table_h_amount')}:</strong> ${data.totalAmount.toFixed(2)} EGP</p>
+                <p><strong>Method:</strong> ${data.method}</p>
+                <hr>
+                <h3>Payment Allocation</h3>
+                <table>
+                    <thead><tr><th>${_t('table_h_invoice_no')}</th><th>${_t('table_h_amount_to_pay')}</th></tr></thead>
+                    <tbody>${invoicesHtml}</tbody>
+                </table><br>
+                <p><strong>Signature:</strong> _________________</p>
+            </div>`;
+        printContent(content);
+    };
+
+    const generatePODocument = (data) => {
+        const supplier = findByKey(state.suppliers, 'supplierCode', data.supplierCode) || { name: 'DELETED' };
+        let itemsHtml = '', totalValue = 0;
+        data.items.forEach(item => {
+            const itemDetails = findByKey(state.items, 'code', item.itemCode) || {name: "N/A"};
+            const itemTotal = (parseFloat(item.quantity) || 0) * (parseFloat(item.cost) || 0);
+            totalValue += itemTotal;
+            itemsHtml += `<tr><td>${item.itemCode}</td><td>${itemDetails.name}</td><td>${(parseFloat(item.quantity) || 0).toFixed(2)}</td><td>${(parseFloat(item.cost) || 0).toFixed(2)} EGP</td><td>${itemTotal.toFixed(2)} EGP</td></tr>`;
+        });
+        const content = `
+            <div class="printable-document card" dir="${state.currentLanguage === 'ar' ? 'rtl' : 'ltr'}">
+                <h2>${_t('po')}</h2>
+                <p><strong>${_t('table_h_po_no')}:</strong> ${data.poId || data.batchId}</p>
+                <p><strong>${_t('table_h_date')}:</strong> ${new Date(data.date).toLocaleString()}</p>
+                <p><strong>${_t('supplier')}:</strong> ${supplier.name} (${supplier.supplierCode || ''})</p>
+                <hr>
+                <h3>${_t('items_to_order')}</h3>
+                <table>
+                    <thead><tr><th>${_t('table_h_code')}</th><th>Item</th><th>${_t('table_h_qty')}</th><th>${_t('table_h_cost_per_unit')}</th><th>${_t('table_h_total')}</th></tr></thead>
+                    <tbody>${itemsHtml}</tbody>
+                    <tfoot><tr><td colspan="4" style="text-align:right;font-weight:bold;">Total Value</td><td style="font-weight:bold;">${totalValue.toFixed(2)} EGP</td></tr></tfoot>
+                </table>
+                <hr>
+                <p><strong>${_t('notes_optional')}:</strong> ${data.notes || 'N/A'}</p><br>
+                <p><strong>Authorized By:</strong> ${data.createdBy || state.currentUser.Name}</p>
+            </div>`;
+        printContent(content);
+    };
+
+    const generateReturnDocument = (data) => {
+        const supplier = findByKey(state.suppliers, 'supplierCode', data.supplierCode) || { name: 'DELETED' };
+        const branch = findByKey(state.branches, 'branchCode', data.fromBranchCode) || { name: 'DELETED' };
+        let itemsHtml = '', totalValue = 0;
+        data.items.forEach(item => {
+            const itemTotal = item.quantity * item.cost;
+            totalValue += itemTotal;
+            itemsHtml += `<tr><td>${item.itemCode}</td><td>${item.itemName}</td><td>${item.quantity.toFixed(2)}</td><td>${item.cost.toFixed(2)} EGP</td><td>${itemTotal.toFixed(2)} EGP</td></tr>`;
+        });
+        const content = `
+            <div class="printable-document card" dir="${state.currentLanguage === 'ar' ? 'rtl' : 'ltr'}">
+                <h2>${_t('return_to_supplier')} Note</h2>
+                <p><strong>${_t('credit_note_ref')}:</strong> ${data.ref}</p>
+                <p><strong>${_t('table_h_date')}:</strong> ${new Date(data.date).toLocaleString()}</p>
+                <p><strong>Returned To:</strong> ${supplier.name}</p>
+                <p><strong>Returned From:</strong> ${branch.name}</p>
+                <hr>
+                <h3>${_t('items_to_return')}</h3>
+                <table>
+                    <thead><tr><th>${_t('table_h_code')}</th><th>Item</th><th>${_t('table_h_qty')}</th><th>${_t('table_h_cost_per_unit')}</th><th>${_t('table_h_total')}</th></tr></thead>
+                    <tbody>${itemsHtml}</tbody>
+                    <tfoot><tr><td colspan="4" style="text-align:right;font-weight:bold;">Total Value</td><td style="font-weight:bold;">${totalValue.toFixed(2)} EGP</td></tr></tfoot>
+                </table>
+                <hr>
+                <p><strong>Reason:</strong> ${data.notes || 'N/A'}</p>
+            </div>`;
+        printContent(content);
+    };
+
+    const generateRequestIssueDocument = (data) => {
+        const fromBranch = findByKey(state.branches, 'branchCode', data.fromBranchCode) || { name: 'DELETED' };
+        const toSection = findByKey(state.sections, 'sectionCode', data.sectionCode) || { name: 'DELETED' };
+        let itemsHtml = '';
+        data.items.forEach(item => {
+            const fullItem = findByKey(state.items, 'code', item.itemCode) || { name: 'DELETED', unit: 'N/A' };
+            itemsHtml += `<tr><td>${item.itemCode}</td><td>${item.itemName || fullItem.name}</td><td>${(item.quantity || 0).toFixed(2)}</td><td>${fullItem.unit}</td></tr>`;
+        });
+        const content = `
+            <div class="printable-document card" dir="${state.currentLanguage === 'ar' ? 'rtl' : 'ltr'}">
+                <h2>DRAFT ${_t('issue_stock')} Note (from Request)</h2>
+                <p><strong>${_t('table_h_req_id')}:</strong> ${data.ref}</p>
+                <p><strong>${_t('table_h_date')}:</strong> ${new Date(data.date).toLocaleString()}</p>
+                <hr>
+                <p><strong>${_t('from_branch')}:</strong> ${fromBranch.name} (${fromBranch.branchCode || ''})</p>
+                <p><strong>${_t('to_section')}:</strong> ${toSection.name} (${toSection.sectionCode || ''})</p>
+                <hr>
+                <h3>${_t('items_to_be_issued')}</h3>
+                <table>
+                    <thead><tr><th>${_t('table_h_code')}</th><th>Item</th><th>${_t('table_h_qty')}</th><th>${_t('table_h_unit')}</th></tr></thead>
+                    <tbody>${itemsHtml}</tbody>
+                </table>
+                <hr>
+                <p><strong>${_t('notes_optional')}:</strong> ${data.notes || 'N/A'}</p><br>
+                <p><strong>Issued By:</strong> _________________</p>
+                <p><strong>Received By:</strong> _________________</p>
+            </div>`;
+        printContent(content);
+    };
 
     function init() {
         // Set up language switcher
