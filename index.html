@@ -118,16 +118,35 @@
                 </div>
                 <div id="subview-consumption-report" class="sub-view">
                     <div class="card">
-                        <div class="form-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
-                            <div class="form-group"><label for="consumption-branch-filter" data-translate-key="branches">Branches</label><select id="consumption-branch-filter" multiple></select></div>
-                            <div class="form-group"><label for="consumption-section-filter" data-translate-key="sections">Sections</label><select id="consumption-section-filter" multiple></select></div>
-                            <div class="form-group"><label for="consumption-category-filter" data-translate-key="categories">Categories</label><select id="consumption-category-filter" multiple></select></div>
-                            <div class="form-group"><label for="consumption-item-filter" data-translate-key="items">Items</label><select id="consumption-item-filter" multiple></select></div>
+                        <div class="form-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); align-items: start;">
+                            <div class="form-group">
+                                <label for="consumption-branch-filter" data-translate-key="branches">Branches</label>
+                                <input type="search" class="search-bar-input small" id="consumption-branch-search" placeholder="Search branches..." style="margin-bottom: 8px;">
+                                <div class="action-buttons" style="margin-bottom: 8px;"><button class="secondary small" data-target="consumption-branch-filter" data-action="select-all">Select All</button><button class="secondary small" data-target="consumption-branch-filter" data-action="deselect-all">Deselect All</button></div>
+                                <select id="consumption-branch-filter" multiple style="height: 150px;"></select>
+                            </div>
+                            <div class="form-group">
+                                <label for="consumption-section-filter" data-translate-key="sections">Sections</label>
+                                <input type="search" class="search-bar-input small" id="consumption-section-search" placeholder="Search sections..." style="margin-bottom: 8px;">
+                                <div class="action-buttons" style="margin-bottom: 8px;"><button class="secondary small" data-target="consumption-section-filter" data-action="select-all">Select All</button><button class="secondary small" data-target="consumption-section-filter" data-action="deselect-all">Deselect All</button></div>
+                                <select id="consumption-section-filter" multiple style="height: 150px;"></select>
+                            </div>
+                            <div class="form-group">
+                                <label for="consumption-category-filter" data-translate-key="categories">Categories</label>
+                                 <div class="action-buttons" style="margin-bottom: 8px;"><button class="secondary small" data-target="consumption-category-filter" data-action="select-all">Select All</button><button class="secondary small" data-target="consumption-category-filter" data-action="deselect-all">Deselect All</button></div>
+                                <select id="consumption-category-filter" multiple style="height: 150px;"></select>
+                            </div>
+                             <div class="form-group">
+                                <label for="consumption-item-filter" data-translate-key="items">Items</label>
+                                <input type="search" class="search-bar-input small" id="consumption-item-search" placeholder="Search items..." style="margin-bottom: 8px;">
+                                <div class="action-buttons" style="margin-bottom: 8px;"><button class="secondary small" data-target="consumption-item-filter" data-action="select-all">Select All</button><button class="secondary small" data-target="consumption-item-filter" data-action="deselect-all">Deselect All</button></div>
+                                <select id="consumption-item-filter" multiple style="height: 150px;"></select>
+                            </div>
                         </div>
                         <div class="report-generator-controls" style="margin-top: 16px;">
                             <input type="date" id="consumption-start-date">
                             <input type="date" id="consumption-end-date">
-                            <button id="btn-generate-consumption-report" class="primary small" data-translate-key="generate">Generate Report</button>
+                            <button id="btn-generate-consumption-report" class="primary small" data-translate-key="generate_report">Generate Report</button>
                             <button id="btn-export-consumption-report" class="secondary small" disabled data-translate-key="export_to_excel">Export</button>
                         </div>
                         <div id="consumption-report-results" class="printable-area" style="display: none; margin-top:20px;"></div>
