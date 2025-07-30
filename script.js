@@ -12,7 +12,7 @@ window.printReport = function(elementId) {
 
 document.addEventListener('DOMContentLoaded', () => {
     // !!! IMPORTANT: PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL HERE
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw6ILWFJPd8gsFQY-h4ZVZSByQfSXIzl6OpKk2m488Ihu9u1TCFSxsWAjvkW5Ws65NU/exec';
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw2Gs-9bzCtYQlXTQQVVAG8PPfKOcJkylJI71stIvppsgsJKH_81Pr6ypNT9HCzWiR0/exec';
 
     const Logger = {
         info: (message, ...args) => console.log(`[StockWise INFO] ${message}`, ...args),
@@ -53,7 +53,8 @@ document.addEventListener('DOMContentLoaded', () => {
         invoiceModalSelections: new Set(),
         allUsers: [],
         allRoles: [],
-        backups: []
+        backups: [],
+        adminContextPromise: {},
     };
     let modalContext = null;
 
@@ -172,9 +173,8 @@ document.addEventListener('DOMContentLoaded', () => {
             'total_payment': 'Total Payment:',
             'submit_payment_btn': 'Submit Payment',
             'supplier_statement': 'Supplier Statement',
-            'branch_consumption': 'Branch Consumption',
-            'section_usage': 'Section Usage',
-            'resupply_report': 'Resupply Report',
+            'consumption_report': 'Consumption Report',
+            'consumption_report_desc': 'Generate a detailed report of item consumption across selected branches and sections.',
             'select_a_supplier': 'Select a Supplier',
             'generate': 'Generate',
             'select_a_branch': 'Select a Branch',
@@ -339,8 +339,6 @@ document.addEventListener('DOMContentLoaded', () => {
             'tx_processed_approval_toast': '{txType} processed! Submitted for approval.',
             'select_po_first_toast': 'You must select a Purchase Order to receive stock.',
             'fill_required_fields_toast': 'Please fill all required fields and add items.',
-
-            // New from here
             'status_approved': 'Approved',
             'status_pending': 'Pending Approval',
             'status_rejected': 'Rejected',
@@ -528,9 +526,8 @@ document.addEventListener('DOMContentLoaded', () => {
             'total_payment': 'إجمالي الدفعة:',
             'submit_payment_btn': 'إرسال الدفعة',
             'supplier_statement': 'كشف حساب مورد',
-            'branch_consumption': 'استهلاك الفرع',
-            'section_usage': 'استخدام القسم',
-            'resupply_report': 'تقرير إعادة التزويد',
+            'consumption_report': 'تقرير الاستهلاك',
+            'consumption_report_desc': 'إنشاء تقرير مفصل لاستهلاك الأصناف عبر الفروع والأقسام المحددة.',
             'select_a_supplier': 'اختر موردًا',
             'generate': 'إنشاء',
             'select_a_branch': 'اختر فرعًا',
@@ -1028,7 +1025,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const result = await postData('getItemHistory', { itemCode }, null);
         
-        populateOptions(document.getElementById('history-filter-branch'), state.branches, _t('all_branches'), 'branchCode', 'name');
+        populateOptions(document.getElementById('history-filter-branch'), state.branches, _t('all_branches'), 'branchCode', 'branchName');
         const txTypes = ['receive', 'issue', 'transfer_out', 'transfer_in', 'return_out', 'adjustment_in', 'adjustment_out'];
         const txTypeOptions = txTypes.map(t => ({'type': t, 'name': t.replace(/_/g, ' ').toUpperCase()}));
         populateOptions(document.getElementById('history-filter-type'), txTypeOptions, _t('all_types'), 'type', 'name');
@@ -1063,8 +1060,8 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         const first = transferGroup[0];
-        const fromBranch = findByKey(state.branches, 'branchCode', first.fromBranchCode)?.name || first.fromBranchCode;
-        const toBranch = findByKey(state.branches, 'branchCode', first.toBranchCode)?.name || first.toBranchCode;
+        const fromBranch = findByKey(state.branches, 'branchCode', first.fromBranchCode)?.branchName || first.fromBranchCode;
+        const toBranch = findByKey(state.branches, 'branchCode', first.toBranchCode)?.branchName || first.toBranchCode;
 
         const modalBody = document.getElementById('view-transfer-modal-body');
         const items = transferGroup.map(tx => {
@@ -1125,14 +1122,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 record = findByKey(state.branches, 'branchCode', id);
                 if (!record) return;
                 editModalTitle.textContent = _t('edit_branch');
-                formHtml = `<div class="form-grid"><div class="form-group"><label>${_t('branch_code')}</label><input type="text" value="${record.branchCode}" readonly></div><div class="form-group"><label for="edit-branch-name">${_t('branch_name')}</label><input type="text" id="edit-branch-name" name="name" value="${record.name}" required></div></div>`;
+                formHtml = `<div class="form-grid"><div class="form-group"><label>${_t('branch_code')}</label><input type="text" value="${record.branchCode}" readonly></div><div class="form-group"><label for="edit-branch-name">${_t('branch_name')}</label><input type="text" id="edit-branch-name" name="branchName" value="${record.branchName}" required></div></div>`;
                 editModalBody.innerHTML = formHtml;
                 break;
             case 'section':
                 record = findByKey(state.sections, 'sectionCode', id);
                 if (!record) return;
                 editModalTitle.textContent = _t('edit_section');
-                formHtml = `<div class="form-grid"><div class="form-group"><label>${_t('section_code')}</label><input type="text" value="${record.sectionCode}" readonly></div><div class="form-group"><label for="edit-section-name">${_t('section_name')}</label><input type="text" id="edit-section-name" name="name" value="${record.name}" required></div></div>`;
+                formHtml = `<div class="form-grid"><div class="form-group"><label>${_t('section_code')}</label><input type="text" value="${record.sectionCode}" readonly></div><div class="form-group"><label for="edit-section-name">${_t('section_name')}</label><input type="text" id="edit-section-name" name="sectionName" value="${record.sectionName}" required></div></div>`;
                 editModalBody.innerHTML = formHtml;
                 break;
             case 'user':
@@ -1147,8 +1144,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 const currentSection = record ? record.AssignedSectionCode : '';
 
                 const roleOptions = state.allRoles.map(r => `<option value="${r.RoleName}" ${r.RoleName === currentRole ? 'selected' : ''}>${r.RoleName}</option>`).join('');
-                const branchOptions = state.branches.map(b => `<option value="${b.branchCode}" ${b.branchCode === currentBranch ? 'selected' : ''}>${b.name}</option>`).join('');
-                const sectionOptions = state.sections.map(s => `<option value="${s.sectionCode}" ${s.sectionCode === currentSection ? 'selected' : ''}>${s.name}</option>`).join('');
+                const branchOptions = state.branches.map(b => `<option value="${b.branchCode}" ${b.branchCode === currentBranch ? 'selected' : ''}>${b.branchName}</option>`).join('');
+                const sectionOptions = state.sections.map(s => `<option value="${s.sectionCode}" ${s.sectionCode === currentSection ? 'selected' : ''}>${s.sectionName}</option>`).join('');
                 const passwordLabel = id ? _t('edit_user_password_label') : _t('edit_user_password_label_new');
                 
                 formHtml = `<div class="form-grid"><div class="form-group"><label>${_t('username')}</label><input type="text" id="edit-user-username" name="Username" value="${currentUsername}" ${id ? 'readonly' : 'required'}></div><div class="form-group"><label for="edit-user-name">${_t('table_h_fullname')}</label><input type="text" id="edit-user-name" name="Name" value="${currentName}" required></div><div class="form-group"><label for="edit-user-role">${_t('table_h_role')}</label><select id="edit-user-role" name="RoleName" required>${roleOptions}</select></div><div class="form-group"><label for="edit-user-branch">${_t('branch')}</label><select id="edit-user-branch" name="AssignedBranchCode"><option value="">None</option>${branchOptions}</select></div><div class="form-group"><label for="edit-user-section">${_t('section')}</label><select id="edit-user-section" name="AssignedSectionCode"><option value="">None</option>${sectionOptions}</select></div><div class="form-group span-full"><label for="edit-user-password">${passwordLabel}</label><input type="password" id="edit-user-password" name="LoginCode" ${!id ? 'required' : ''}></div>`;
@@ -1466,7 +1463,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const canEdit = userCan('editBranch');
         data.forEach(branch => {
             const tr = document.createElement('tr');
-            tr.innerHTML = `<td>${branch.branchCode || ''}</td><td>${branch.name}</td><td>${canEdit ? `<button class="secondary small btn-edit" data-type="branch" data-id="${branch.branchCode}">${_t('edit')}</button>`: 'N/A'}</td>`;
+            tr.innerHTML = `<td>${branch.branchCode || ''}</td><td>${branch.branchName}</td><td>${canEdit ? `<button class="secondary small btn-edit" data-type="branch" data-id="${branch.branchCode}">${_t('edit')}</button>`: 'N/A'}</td>`;
             tbody.appendChild(tr);
         });
     }
@@ -1481,7 +1478,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const canEdit = userCan('editSection');
         data.forEach(section => {
             const tr = document.createElement('tr');
-            tr.innerHTML = `<td>${section.sectionCode || ''}</td><td>${section.name}</td><td>${canEdit ? `<button class="secondary small btn-edit" data-type="section" data-id="${section.sectionCode}">${_t('edit')}</button>`: 'N/A'}</td>`;
+            tr.innerHTML = `<td>${section.sectionCode || ''}</td><td>${section.sectionName}</td><td>${canEdit ? `<button class="secondary small btn-edit" data-type="section" data-id="${section.sectionCode}">${_t('edit')}</button>`: 'N/A'}</td>`;
             tbody.appendChild(tr);
         });
     }
@@ -1562,7 +1559,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const stockByBranch = calculateStockLevels();
         const branchesToDisplay = getVisibleBranchesForCurrentUser();
         let tableHTML = `<table id="table-stock-levels-by-item"><thead><tr><th>${_t('table_h_code')}</th><th>${_t('table_h_name')}</th>`;
-        branchesToDisplay.forEach(b => { tableHTML += `<th>${b.name}</th>` });
+        branchesToDisplay.forEach(b => { tableHTML += `<th>${b.branchName}</th>` });
         tableHTML += `<th>${_t('table_h_total')}</th></tr></thead><tbody>`;
         itemsToRender.forEach(item => {
             tableHTML += `<tr><td>${item.code}</td><td>${item.name}</td>`;
@@ -1597,7 +1594,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const itemStock = stockByBranch[branch.branchCode]?.[item.code];
                 if (itemStock && itemStock.quantity > 0) {
                     const value = itemStock.quantity * itemStock.avgCost;
-                    html += `<tr><td>${branch.name} (${branch.branchCode || ''})</td><td>${itemStock.quantity.toFixed(2)}</td><td>${value.toFixed(2)} EGP</td></tr>`;
+                    html += `<tr><td>${branch.branchName} (${branch.branchCode || ''})</td><td>${itemStock.quantity.toFixed(2)}</td><td>${value.toFixed(2)} EGP</td></tr>`;
                     totalQty += itemStock.quantity;
                     totalValue += value;
                     found = true;
@@ -1666,61 +1663,6 @@ document.addEventListener('DOMContentLoaded', () => {
         exportBtn.disabled = false;
     }
 
-    function renderConsumptionReport(config) {
-        const { resultsContainerId, exportBtnId, data, title, entityName, dateHeader, historicalCosts, qtyColumnHeader = 'table_h_total_qty_consumed' } = config;
-        const resultsContainer = document.getElementById(resultsContainerId);
-        const exportBtn = document.getElementById(exportBtnId);
-    
-        const hasValue = !!historicalCosts;
-    
-        const groupedByItem = {};
-        (data || []).forEach(t => {
-            if (!groupedByItem[t.itemCode]) {
-                const item = findByKey(state.items, 'code', t.itemCode) || { name: 'N/A', unit: 'N/A', category: 'N/A' };
-                groupedByItem[t.itemCode] = { item, totalQty: 0, totalValue: 0 };
-            }
-            
-            const quantity = parseFloat(t.quantity) || 0;
-            groupedByItem[t.itemCode].totalQty += quantity;
-    
-            if (hasValue) {
-                const costAtTransaction = historicalCosts[`${t.batchId}-${t.itemCode}`] || findByKey(state.items, 'code', t.itemCode)?.cost || 0;
-                groupedByItem[t.itemCode].totalValue += quantity * costAtTransaction;
-            }
-        });
-    
-        let tableBodyHtml = '';
-        const sortedGroups = Object.values(groupedByItem).sort((a, b) => a.item.name.localeCompare(b.item.name));
-    
-        sortedGroups.forEach(group => {
-            tableBodyHtml += `<tr>
-                <td>${group.item.code}</td>
-                <td>${group.item.name}</td>
-                <td>${_t(group.item.category?.toLowerCase()) || group.item.category || 'N/A'}</td>
-                <td style="text-align:right;">${group.totalQty.toFixed(2)} ${group.item.unit}</td>
-                ${hasValue ? `<td style="text-align:right;">${group.totalValue.toFixed(2)} EGP</td>` : ''}
-            </tr>`;
-        });
-        
-        const grandTotalValue = sortedGroups.reduce((sum, group) => sum + group.totalValue, 0);
-    
-        const headerHtml = `<thead><tr><th>${_t('table_h_code')}</th><th>${_t('table_h_name')}</th><th>${_t('table_h_category')}</th><th style="text-align:right;">${_t(qtyColumnHeader)}</th>${hasValue ? `<th style="text-align:right;">${_t('table_h_total_value_consumed')}</th>` : ''}</tr></thead>`;
-        const footerHtml = hasValue ? `<tfoot><tr style="font-weight:bold; background-color: var(--bg-color);">
-            <td colspan="4" style="text-align:right;">${_t('grand_total_value')}</td>
-            <td style="text-align:right;">${grandTotalValue.toFixed(2)} EGP</td>
-        </tr></tfoot>` : '';
-    
-        resultsContainer.innerHTML = `<div class="printable-document">
-            <div class="printable-header"><div><h2>${_t('consumption_report_title', {title: _t(title), entityName})}</h2><p style="margin:0; color: var(--text-light-color);">${dateHeader}</p></div><button class="secondary small no-print" onclick="printReport('${resultsContainerId}')">${_t('print_list')}</button></div>
-            <div class="report-area"><table id="table-${resultsContainerId}-report">
-                ${headerHtml}
-                <tbody>${tableBodyHtml}</tbody>
-                ${footerHtml}
-            </table></div></div>`;
-        resultsContainer.style.display = 'block';
-        exportBtn.disabled = false;
-    }
-    
     function renderPriceHistory(priceHistory) {
         const container = document.getElementById('subview-price-history');
         let html = `<h4>${_t('price_change_log')}</h4><table id="table-price-history"><thead><tr><th>${_t('table_h_date')}</th><th>${_t('table_h_old_cost')}</th><th>${_t('table_h_new_cost')}</th><th>${_t('table_h_change')}</th><th>${_t('table_h_source')}</th><th>${_t('table_h_updated_by')}</th></tr></thead><tbody>`;
@@ -1773,31 +1715,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 switch (t.type) {
                     case 'receive': 
-                        details = _t('movement_details_receive', {supplier: findByKey(state.suppliers, 'supplierCode', t.supplierCode)?.name || t.supplierCode, branch: findByKey(state.branches, 'branchCode', t.branchCode)?.name || t.branchCode});
+                        details = _t('movement_details_receive', {supplier: findByKey(state.suppliers, 'supplierCode', t.supplierCode)?.name || t.supplierCode, branch: findByKey(state.branches, 'branchCode', t.branchCode)?.branchName || t.branchCode});
                         qtyIn = quantity.toFixed(2);
                         break;
                     case 'issue':
-                        details = _t('movement_details_issue', {branch: findByKey(state.branches, 'branchCode', t.fromBranchCode)?.name || t.fromBranchCode, section: findByKey(state.sections, 'sectionCode', t.sectionCode)?.name || t.sectionCode});
+                        details = _t('movement_details_issue', {branch: findByKey(state.branches, 'branchCode', t.fromBranchCode)?.branchName || t.fromBranchCode, section: findByKey(state.sections, 'sectionCode', t.sectionCode)?.sectionName || t.sectionCode});
                         qtyOut = quantity.toFixed(2);
                         break;
                     case 'transfer_out':
-                        details = _t('movement_details_transfer_out', {fromBranch: findByKey(state.branches, 'branchCode', t.fromBranchCode)?.name, toBranch: findByKey(state.branches, 'branchCode', t.toBranchCode)?.name});
+                        details = _t('movement_details_transfer_out', {fromBranch: findByKey(state.branches, 'branchCode', t.fromBranchCode)?.branchName, toBranch: findByKey(state.branches, 'branchCode', t.toBranchCode)?.branchName});
                         qtyOut = quantity.toFixed(2);
                         break;
                     case 'transfer_in':
-                        details = _t('movement_details_transfer_in', {toBranch: findByKey(state.branches, 'branchCode', t.toBranchCode)?.name, fromBranch: findByKey(state.branches, 'branchCode', t.fromBranchCode)?.name});
+                        details = _t('movement_details_transfer_in', {toBranch: findByKey(state.branches, 'branchCode', t.toBranchCode)?.branchName, fromBranch: findByKey(state.branches, 'branchCode', t.fromBranchCode)?.branchName});
                         qtyIn = quantity.toFixed(2);
                         break;
                     case 'return_out':
-                        details = _t('movement_details_return', {branch: findByKey(state.branches, 'branchCode', t.fromBranchCode)?.name, supplier: findByKey(state.suppliers, 'supplierCode', t.supplierCode)?.name});
+                        details = _t('movement_details_return', {branch: findByKey(state.branches, 'branchCode', t.fromBranchCode)?.branchName, supplier: findByKey(state.suppliers, 'supplierCode', t.supplierCode)?.name});
                         qtyOut = quantity.toFixed(2);
                         break;
                     case 'adjustment_in':
-                        details = _t('movement_details_adjustment', {branch: findByKey(state.branches, 'branchCode', t.fromBranchCode)?.name});
+                        details = _t('movement_details_adjustment', {branch: findByKey(state.branches, 'branchCode', t.fromBranchCode)?.branchName});
                         qtyIn = quantity.toFixed(2);
                         break;
                     case 'adjustment_out':
-                        details = _t('movement_details_adjustment', {branch: findByKey(state.branches, 'branchCode', t.fromBranchCode)?.name});
+                        details = _t('movement_details_adjustment', {branch: findByKey(state.branches, 'branchCode', t.fromBranchCode)?.branchName});
                         qtyOut = quantity.toFixed(2);
                         break;
                 }
@@ -1865,20 +1807,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
             switch(first.type) {
                 case 'receive':
-                    details = `${_t('receive')} ${group.transactions.length} ${_t('items')} from <strong>${findByKey(state.suppliers, 'supplierCode', first.supplierCode)?.name || 'N/A'}</strong> to <strong>${findByKey(state.branches, 'branchCode', first.branchCode)?.name || 'N/A'}</strong>`;
+                    details = `${_t('receive')} ${group.transactions.length} ${_t('items')} from <strong>${findByKey(state.suppliers, 'supplierCode', first.supplierCode)?.name || 'N/A'}</strong> to <strong>${findByKey(state.branches, 'branchCode', first.branchCode)?.branchName || 'N/A'}</strong>`;
                     refNum = first.invoiceNumber;
                     statusTag = first.isApproved === true || String(first.isApproved).toUpperCase() === 'TRUE' ? `<span class="status-tag status-approved">${_t('status_approved')}</span>` : `<span class="status-tag status-pendingapproval">${_t('status_pending')}</span>`;
                     break;
                 case 'return_out':
-                    details = `${_t('return')} ${group.transactions.length} ${_t('items')} from <strong>${findByKey(state.branches, 'branchCode', first.fromBranchCode)?.name || 'N/A'}</strong> to <strong>${findByKey(state.suppliers, 'supplierCode', first.supplierCode)?.name || 'N/A'}</strong>`;
+                    details = `${_t('return')} ${group.transactions.length} ${_t('items')} from <strong>${findByKey(state.branches, 'branchCode', first.fromBranchCode)?.branchName || 'N/A'}</strong> to <strong>${findByKey(state.suppliers, 'supplierCode', first.supplierCode)?.name || 'N/A'}</strong>`;
                     typeDisplay = _t('return_to_supplier');
                     break;
                 case 'issue':
-                    details = `${_t('issue')} ${group.transactions.length} ${_t('items')} from <strong>${findByKey(state.branches, 'branchCode', first.fromBranchCode)?.name || 'N/A'}</strong> to <strong>${findByKey(state.sections, 'sectionCode', first.sectionCode)?.name || 'N/A'}</strong>`;
+                    details = `${_t('issue')} ${group.transactions.length} ${_t('items')} from <strong>${findByKey(state.branches, 'branchCode', first.fromBranchCode)?.branchName || 'N/A'}</strong> to <strong>${findByKey(state.sections, 'sectionCode', first.sectionCode)?.sectionName || 'N/A'}</strong>`;
                     break;
                 case 'transfer_out':
                 case 'transfer_in':
-                     details = `${_t('transfer')} ${group.transactions.length} ${_t('items')} from <strong>${findByKey(state.branches, 'branchCode', first.fromBranchCode)?.name || 'N/A'}</strong> to <strong>${findByKey(state.branches, 'branchCode', first.toBranchCode)?.name || 'N/A'}</strong>`;
+                     details = `${_t('transfer')} ${group.transactions.length} ${_t('items')} from <strong>${findByKey(state.branches, 'branchCode', first.fromBranchCode)?.branchName || 'N/A'}</strong> to <strong>${findByKey(state.branches, 'branchCode', first.toBranchCode)?.branchName || 'N/A'}</strong>`;
                      typeDisplay = _t('transfer');
                      statusTag = `<span class="status-tag status-${(first.Status || '').toLowerCase().replace(/ /g,'')}">${_t('status_' + (first.Status || '').toLowerCase().replace(/ /g,''))}</span>`;
                      break;
@@ -1890,7 +1832,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 case 'adjustment_in':
                 case 'adjustment_out':
                      typeDisplay = _t('stock_adjustment');
-                     details = `${_t('adjustments')} ${group.transactions.length} ${_t('items')} at <strong>${findByKey(state.branches, 'branchCode', first.fromBranchCode)?.name || 'N/A'}</strong>`;
+                     details = `${_t('adjustments')} ${group.transactions.length} ${_t('items')} at <strong>${findByKey(state.branches, 'branchCode', first.fromBranchCode)?.branchName || 'N/A'}</strong>`;
                      break;
             }
             
@@ -1914,13 +1856,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
-    const generateReceiveDocument = (data) => { const supplier = findByKey(state.suppliers, 'supplierCode', data.supplierCode) || { name: 'DELETED' }; const branch = findByKey(state.branches, 'branchCode', data.branchCode) || { name: 'DELETED' }; let itemsHtml = '', totalValue = 0; data.items.forEach(item => { const itemTotal = item.quantity * item.cost; totalValue += itemTotal; itemsHtml += `<tr><td>${item.itemCode}</td><td>${item.itemName}</td><td>${item.quantity.toFixed(2)}</td><td>${item.cost.toFixed(2)} EGP</td><td>${itemTotal.toFixed(2)} EGP</td></tr>`; }); const content = `<div class="printable-document card" dir="${state.currentLanguage === 'ar' ? 'rtl' : 'ltr'}"><h2>Goods Received Note</h2><p><strong>GRN No:</strong> ${data.batchId}</p><p><strong>${_t('table_h_invoice_no')}:</strong> ${data.invoiceNumber}</p><p><strong>${_t('table_h_date')}:</strong> ${new Date(data.date).toLocaleString()}</p><p><strong>${_t('supplier')}:</strong> ${supplier.name} (${supplier.supplierCode || ''})</p><p><strong>${_t('receive_stock')} at:</strong> ${branch.name} (${branch.branchCode || ''})</p><hr><h3>${_t('items_to_be_received')}</h3><table><thead><tr><th>${_t('table_h_code')}</th><th>${_t('item')}</th><th>${_t('table_h_qty')}</th><th>${_t('table_h_cost_per_unit')}</th><th>${_t('table_h_total')}</th></tr></thead><tbody>${itemsHtml}</tbody><tfoot><tr><td colspan="4" style="text-align:right;font-weight:bold;">${_t('total_value')}</td><td style="font-weight:bold;">${totalValue.toFixed(2)} EGP</td></tr></tfoot></table><hr><p><strong>${_t('notes_optional')}:</strong> ${data.notes || 'N/A'}</p><br><p><strong>Signature:</strong> _________________________</p></div>`; printContent(content); };
-    const generateTransferDocument = (data) => { const fromBranch = findByKey(state.branches, 'branchCode', data.fromBranchCode) || { name: 'DELETED' }; const toBranch = findByKey(state.branches, 'branchCode', data.toBranchCode) || { name: 'DELETED' }; let itemsHtml = ''; data.items.forEach(item => { const fullItem = findByKey(state.items, 'code', item.itemCode) || { code: 'N/A', name: 'DELETED', unit: 'N/A' }; itemsHtml += `<tr><td>${fullItem.code || item.itemCode}</td><td>${item.itemName || fullItem.name}</td><td>${parseFloat(item.quantity).toFixed(2)}</td><td>${fullItem.unit}</td></tr>`; }); const content = `<div class="printable-document card" dir="${state.currentLanguage === 'ar' ? 'rtl' : 'ltr'}"><h2>${_t('internal_transfer')} Order</h2><p><strong>Order ID:</strong> ${data.batchId}</p><p><strong>${_t('reference')}:</strong> ${data.ref}</p><p><strong>${_t('table_h_date')}:</strong> ${new Date(data.date).toLocaleString()}</p><hr><p><strong>${_t('from_branch')}:</strong> ${fromBranch.name} (${fromBranch.branchCode || ''})</p><p><strong>${_t('to_branch')}:</strong> ${toBranch.name} (${toBranch.branchCode || ''})</p><hr><h3>${_t('items_to_be_transferred')}</h3><table><thead><tr><th>${_t('table_h_code')}</th><th>${_t('item')}</th><th>${_t('table_h_qty')}</th><th>${_t('table_h_unit')}</th></tr></thead><tbody>${itemsHtml}</tbody></table><hr><p><strong>${_t('notes_optional')}:</strong> ${data.notes || 'N/A'}</p><br><p><strong>Sender:</strong> _________________</p><p><strong>Receiver:</strong> _________________</p></div>`; printContent(content); };
-    const generateIssueDocument = (data) => { const fromBranch = findByKey(state.branches, 'branchCode', data.fromBranchCode) || { name: 'DELETED' }; const toSection = findByKey(state.sections, 'sectionCode', data.sectionCode) || { name: 'DELETED' }; let itemsHtml = ''; data.items.forEach(item => { const fullItem = findByKey(state.items, 'code', item.itemCode) || { name: 'DELETED', unit: 'N/A' }; itemsHtml += `<tr><td>${item.itemCode}</td><td>${item.itemName || fullItem.name}</td><td>${item.quantity.toFixed(2)}</td><td>${fullItem.unit}</td></tr>`; }); const content = `<div class="printable-document card" dir="${state.currentLanguage === 'ar' ? 'rtl' : 'ltr'}"><h2>${_t('issue_stock')} Note</h2><p><strong>${_t('issue_ref_no')}:</strong> ${data.ref}</p><p><strong>Batch ID:</strong> ${data.batchId}</p><p><strong>${_t('table_h_date')}:</strong> ${new Date(data.date).toLocaleString()}</p><hr><p><strong>${_t('from_branch')}:</strong> ${fromBranch.name} (${fromBranch.branchCode || ''})</p><p><strong>${_t('to_section')}:</strong> ${toSection.name} (${toSection.sectionCode || ''})</p><hr><h3>${_t('items_to_be_issued')}</h3><table><thead><tr><th>${_t('table_h_code')}</th><th>${_t('item')}</th><th>${_t('table_h_qty')}</th><th>${_t('table_h_unit')}</th></tr></thead><tbody>${itemsHtml}</tbody></table><hr><p><strong>${_t('notes_optional')}:</strong> ${data.notes || 'N/A'}</p><br><p><strong>Issued By:</strong> _________________</p><p><strong>Received By:</strong> _________________</p></div>`; printContent(content); };
+    const generateReceiveDocument = (data) => { const supplier = findByKey(state.suppliers, 'supplierCode', data.supplierCode) || { name: 'DELETED' }; const branch = findByKey(state.branches, 'branchCode', data.branchCode) || { branchName: 'DELETED' }; let itemsHtml = '', totalValue = 0; data.items.forEach(item => { const itemTotal = item.quantity * item.cost; totalValue += itemTotal; itemsHtml += `<tr><td>${item.itemCode}</td><td>${item.itemName}</td><td>${item.quantity.toFixed(2)}</td><td>${item.cost.toFixed(2)} EGP</td><td>${itemTotal.toFixed(2)} EGP</td></tr>`; }); const content = `<div class="printable-document card" dir="${state.currentLanguage === 'ar' ? 'rtl' : 'ltr'}"><h2>Goods Received Note</h2><p><strong>GRN No:</strong> ${data.batchId}</p><p><strong>${_t('table_h_invoice_no')}:</strong> ${data.invoiceNumber}</p><p><strong>${_t('table_h_date')}:</strong> ${new Date(data.date).toLocaleString()}</p><p><strong>${_t('supplier')}:</strong> ${supplier.name} (${supplier.supplierCode || ''})</p><p><strong>${_t('receive_stock')} at:</strong> ${branch.branchName} (${branch.branchCode || ''})</p><hr><h3>${_t('items_to_be_received')}</h3><table><thead><tr><th>${_t('table_h_code')}</th><th>${_t('item')}</th><th>${_t('table_h_qty')}</th><th>${_t('table_h_cost_per_unit')}</th><th>${_t('table_h_total')}</th></tr></thead><tbody>${itemsHtml}</tbody><tfoot><tr><td colspan="4" style="text-align:right;font-weight:bold;">${_t('total_value')}</td><td style="font-weight:bold;">${totalValue.toFixed(2)} EGP</td></tr></tfoot></table><hr><p><strong>${_t('notes_optional')}:</strong> ${data.notes || 'N/A'}</p><br><p><strong>Signature:</strong> _________________________</p></div>`; printContent(content); };
+    const generateTransferDocument = (data) => { const fromBranch = findByKey(state.branches, 'branchCode', data.fromBranchCode) || { branchName: 'DELETED' }; const toBranch = findByKey(state.branches, 'branchCode', data.toBranchCode) || { branchName: 'DELETED' }; let itemsHtml = ''; data.items.forEach(item => { const fullItem = findByKey(state.items, 'code', item.itemCode) || { code: 'N/A', name: 'DELETED', unit: 'N/A' }; itemsHtml += `<tr><td>${fullItem.code || item.itemCode}</td><td>${item.itemName || fullItem.name}</td><td>${parseFloat(item.quantity).toFixed(2)}</td><td>${fullItem.unit}</td></tr>`; }); const content = `<div class="printable-document card" dir="${state.currentLanguage === 'ar' ? 'rtl' : 'ltr'}"><h2>${_t('internal_transfer')} Order</h2><p><strong>Order ID:</strong> ${data.batchId}</p><p><strong>${_t('reference')}:</strong> ${data.ref}</p><p><strong>${_t('table_h_date')}:</strong> ${new Date(data.date).toLocaleString()}</p><hr><p><strong>${_t('from_branch')}:</strong> ${fromBranch.branchName} (${fromBranch.branchCode || ''})</p><p><strong>${_t('to_branch')}:</strong> ${toBranch.branchName} (${toBranch.branchCode || ''})</p><hr><h3>${_t('items_to_be_transferred')}</h3><table><thead><tr><th>${_t('table_h_code')}</th><th>${_t('item')}</th><th>${_t('table_h_qty')}</th><th>${_t('table_h_unit')}</th></tr></thead><tbody>${itemsHtml}</tbody></table><hr><p><strong>${_t('notes_optional')}:</strong> ${data.notes || 'N/A'}</p><br><p><strong>Sender:</strong> _________________</p><p><strong>Receiver:</strong> _________________</p></div>`; printContent(content); };
+    const generateIssueDocument = (data) => { const fromBranch = findByKey(state.branches, 'branchCode', data.fromBranchCode) || { branchName: 'DELETED' }; const toSection = findByKey(state.sections, 'sectionCode', data.sectionCode) || { sectionName: 'DELETED' }; let itemsHtml = ''; data.items.forEach(item => { const fullItem = findByKey(state.items, 'code', item.itemCode) || { name: 'DELETED', unit: 'N/A' }; itemsHtml += `<tr><td>${item.itemCode}</td><td>${item.itemName || fullItem.name}</td><td>${item.quantity.toFixed(2)}</td><td>${fullItem.unit}</td></tr>`; }); const content = `<div class="printable-document card" dir="${state.currentLanguage === 'ar' ? 'rtl' : 'ltr'}"><h2>${_t('issue_stock')} Note</h2><p><strong>${_t('issue_ref_no')}:</strong> ${data.ref}</p><p><strong>Batch ID:</strong> ${data.batchId}</p><p><strong>${_t('table_h_date')}:</strong> ${new Date(data.date).toLocaleString()}</p><hr><p><strong>${_t('from_branch')}:</strong> ${fromBranch.branchName} (${fromBranch.branchCode || ''})</p><p><strong>${_t('to_section')}:</strong> ${toSection.sectionName} (${toSection.sectionCode || ''})</p><hr><h3>${_t('items_to_be_issued')}</h3><table><thead><tr><th>${_t('table_h_code')}</th><th>${_t('item')}</th><th>${_t('table_h_qty')}</th><th>${_t('table_h_unit')}</th></tr></thead><tbody>${itemsHtml}</tbody></table><hr><p><strong>${_t('notes_optional')}:</strong> ${data.notes || 'N/A'}</p><br><p><strong>Issued By:</strong> _________________</p><p><strong>Received By:</strong> _________________</p></div>`; printContent(content); };
     const generatePaymentVoucher = (data) => { const supplier = findByKey(state.suppliers, 'supplierCode', data.supplierCode) || { name: 'DELETED' }; let invoicesHtml = ''; data.payments.forEach(p => { invoicesHtml += `<tr><td>${p.invoiceNumber}</td><td>${p.amount.toFixed(2)} EGP</td></tr>`; }); const content = `<div class="printable-document card" dir="${state.currentLanguage === 'ar' ? 'rtl' : 'ltr'}"><h2>Payment Voucher</h2><p><strong>Voucher ID:</strong> ${data.payments[0].paymentId}</p><p><strong>${_t('table_h_date')}:</strong> ${new Date(data.date).toLocaleString()}</p><hr><p><strong>Paid To:</strong> ${supplier.name} (${supplier.supplierCode || ''})</p><p><strong>${_t('table_h_amount')}:</strong> ${data.totalAmount.toFixed(2)} EGP</p><p><strong>Method:</strong> ${data.method}</p><hr><h3>Payment Allocation</h3><table><thead><tr><th>${_t('table_h_invoice_no')}</th><th>${_t('table_h_amount_to_pay')}</th></tr></thead><tbody>${invoicesHtml}</tbody></table><br><p><strong>Signature:</strong> _________________</p></div>`; printContent(content); };
     const generatePODocument = (data) => { const supplier = findByKey(state.suppliers, 'supplierCode', data.supplierCode) || { name: 'DELETED' }; let itemsHtml = '', totalValue = 0; data.items.forEach(item => { const itemDetails = findByKey(state.items, 'code', item.itemCode) || {name: "N/A"}; const itemTotal = (parseFloat(item.quantity) || 0) * (parseFloat(item.cost) || 0); totalValue += itemTotal; itemsHtml += `<tr><td>${item.itemCode}</td><td>${itemDetails.name}</td><td>${(parseFloat(item.quantity) || 0).toFixed(2)}</td><td>${(parseFloat(item.cost) || 0).toFixed(2)} EGP</td><td>${itemTotal.toFixed(2)} EGP</td></tr>`; }); const content = `<div class="printable-document card" dir="${state.currentLanguage === 'ar' ? 'rtl' : 'ltr'}"><h2>${_t('po')}</h2><p><strong>${_t('table_h_po_no')}:</strong> ${data.poId || data.batchId}</p><p><strong>${_t('table_h_date')}:</strong> ${new Date(data.date).toLocaleString()}</p><p><strong>${_t('supplier')}:</strong> ${supplier.name} (${supplier.supplierCode || ''})</p><hr><h3>${_t('items_to_order')}</h3><table><thead><tr><th>${_t('table_h_code')}</th><th>${_t('item')}</th><th>${_t('table_h_qty')}</th><th>${_t('table_h_cost_per_unit')}</th><th>${_t('table_h_total')}</th></tr></thead><tbody>${itemsHtml}</tbody><tfoot><tr><td colspan="4" style="text-align:right;font-weight:bold;">${_t('total_value')}</td><td style="font-weight:bold;">${totalValue.toFixed(2)} EGP</td></tr></tfoot></table><hr><p><strong>${_t('notes_optional')}:</strong> ${data.notes || 'N/A'}</p><br><p><strong>Authorized By:</strong> ${data.createdBy || state.currentUser.Name}</p></div>`; printContent(content); };
-    const generateReturnDocument = (data) => { const supplier = findByKey(state.suppliers, 'supplierCode', data.supplierCode) || { name: 'DELETED' }; const branch = findByKey(state.branches, 'branchCode', data.fromBranchCode) || { name: 'DELETED' }; let itemsHtml = '', totalValue = 0; data.items.forEach(item => { const itemTotal = item.quantity * item.cost; totalValue += itemTotal; itemsHtml += `<tr><td>${item.itemCode}</td><td>${item.itemName}</td><td>${item.quantity.toFixed(2)}</td><td>${item.cost.toFixed(2)} EGP</td><td>${itemTotal.toFixed(2)} EGP</td></tr>`; }); const content = `<div class="printable-document card" dir="${state.currentLanguage === 'ar' ? 'rtl' : 'ltr'}"><h2>${_t('return_to_supplier')} Note</h2><p><strong>${_t('credit_note_ref')}:</strong> ${data.ref}</p><p><strong>${_t('table_h_date')}:</strong> ${new Date(data.date).toLocaleString()}</p><p><strong>Returned To:</strong> ${supplier.name}</p><p><strong>Returned From:</strong> ${branch.name}</p><hr><h3>${_t('items_to_return')}</h3><table><thead><tr><th>${_t('table_h_code')}</th><th>${_t('item')}</th><th>${_t('table_h_qty')}</th><th>${_t('table_h_cost_per_unit')}</th><th>${_t('table_h_total')}</th></tr></thead><tbody>${itemsHtml}</tbody><tfoot><tr><td colspan="4" style="text-align:right;font-weight:bold;">${_t('total_value')}</td><td style="font-weight:bold;">${totalValue.toFixed(2)} EGP</td></tr></tfoot></table><hr><p><strong>Reason:</strong> ${data.notes || 'N/A'}</p></div>`; printContent(content); };
-    const generateRequestIssueDocument = (data) => { const fromBranch = findByKey(state.branches, 'branchCode', data.fromBranchCode) || { name: 'DELETED' }; const toSection = findByKey(state.sections, 'sectionCode', data.sectionCode) || { name: 'DELETED' }; let itemsHtml = ''; data.items.forEach(item => { const fullItem = findByKey(state.items, 'code', item.itemCode) || { name: 'DELETED', unit: 'N/A' }; itemsHtml += `<tr><td>${item.itemCode}</td><td>${item.itemName || fullItem.name}</td><td>${(item.quantity || 0).toFixed(2)}</td><td>${fullItem.unit}</td></tr>`; }); const content = `<div class="printable-document card" dir="${state.currentLanguage === 'ar' ? 'rtl' : 'ltr'}"><h2>DRAFT ${_t('issue_stock')} Note (from Request)</h2><p><strong>${_t('table_h_req_id')}:</strong> ${data.ref}</p><p><strong>${_t('table_h_date')}:</strong> ${new Date(data.date).toLocaleString()}</p><hr><p><strong>${_t('from_branch')}:</strong> ${fromBranch.name} (${fromBranch.branchCode || ''})</p><p><strong>${_t('to_section')}:</strong> ${toSection.name} (${toSection.sectionCode || ''})</p><hr><h3>${_t('items_to_be_issued')}</h3><table><thead><tr><th>${_t('table_h_code')}</th><th>${_t('item')}</th><th>${_t('table_h_qty')}</th><th>${_t('table_h_unit')}</th></tr></thead><tbody>${itemsHtml}</tbody></table><hr><p><strong>${_t('notes_optional')}:</strong> ${data.notes || 'N/A'}</p><br><p><strong>Issued By:</strong> _________________</p><p><strong>Received By:</strong> _________________</p></div>`; printContent(content); };
+    const generateReturnDocument = (data) => { const supplier = findByKey(state.suppliers, 'supplierCode', data.supplierCode) || { name: 'DELETED' }; const branch = findByKey(state.branches, 'branchCode', data.fromBranchCode) || { branchName: 'DELETED' }; let itemsHtml = '', totalValue = 0; data.items.forEach(item => { const itemTotal = item.quantity * item.cost; totalValue += itemTotal; itemsHtml += `<tr><td>${item.itemCode}</td><td>${item.itemName}</td><td>${item.quantity.toFixed(2)}</td><td>${item.cost.toFixed(2)} EGP</td><td>${itemTotal.toFixed(2)} EGP</td></tr>`; }); const content = `<div class="printable-document card" dir="${state.currentLanguage === 'ar' ? 'rtl' : 'ltr'}"><h2>${_t('return_to_supplier')} Note</h2><p><strong>${_t('credit_note_ref')}:</strong> ${data.ref}</p><p><strong>${_t('table_h_date')}:</strong> ${new Date(data.date).toLocaleString()}</p><p><strong>Returned To:</strong> ${supplier.name}</p><p><strong>Returned From:</strong> ${branch.branchName}</p><hr><h3>${_t('items_to_return')}</h3><table><thead><tr><th>${_t('table_h_code')}</th><th>${_t('item')}</th><th>${_t('table_h_qty')}</th><th>${_t('table_h_cost_per_unit')}</th><th>${_t('table_h_total')}</th></tr></thead><tbody>${itemsHtml}</tbody><tfoot><tr><td colspan="4" style="text-align:right;font-weight:bold;">${_t('total_value')}</td><td style="font-weight:bold;">${totalValue.toFixed(2)} EGP</td></tr></tfoot></table><hr><p><strong>Reason:</strong> ${data.notes || 'N/A'}</p></div>`; printContent(content); };
+    const generateRequestIssueDocument = (data) => { const fromBranch = findByKey(state.branches, 'branchCode', data.fromBranchCode) || { branchName: 'DELETED' }; const toSection = findByKey(state.sections, 'sectionCode', data.sectionCode) || { sectionName: 'DELETED' }; let itemsHtml = ''; data.items.forEach(item => { const fullItem = findByKey(state.items, 'code', item.itemCode) || { name: 'DELETED', unit: 'N/A' }; itemsHtml += `<tr><td>${item.itemCode}</td><td>${item.itemName || fullItem.name}</td><td>${(item.quantity || 0).toFixed(2)}</td><td>${fullItem.unit}</td></tr>`; }); const content = `<div class="printable-document card" dir="${state.currentLanguage === 'ar' ? 'rtl' : 'ltr'}"><h2>DRAFT ${_t('issue_stock')} Note (from Request)</h2><p><strong>${_t('table_h_req_id')}:</strong> ${data.ref}</p><p><strong>${_t('table_h_date')}:</strong> ${new Date(data.date).toLocaleString()}</p><hr><p><strong>${_t('from_branch')}:</strong> ${fromBranch.branchName} (${fromBranch.branchCode || ''})</p><p><strong>${_t('to_section')}:</strong> ${toSection.sectionName} (${toSection.sectionCode || ''})</p><hr><h3>${_t('items_to_be_issued')}</h3><table><thead><tr><th>${_t('table_h_code')}</th><th>${_t('item')}</th><th>${_t('table_h_qty')}</th><th>${_t('table_h_unit')}</th></tr></thead><tbody>${itemsHtml}</tbody></table><hr><p><strong>${_t('notes_optional')}:</strong> ${data.notes || 'N/A'}</p><br><p><strong>Issued By:</strong> _________________</p><p><strong>Received By:</strong> _________________</p></div>`; printContent(content); };
 
 // PART 4 OF 4: CALCULATION ENGINES, EVENT LISTENERS & INITIALIZATION
     function updateReceiveGrandTotal() { let grandTotal = 0; (state.currentReceiveList || []).forEach(item => { grandTotal += (parseFloat(item.quantity) || 0) * (parseFloat(item.cost) || 0); }); document.getElementById('receive-grand-total').textContent = `${grandTotal.toFixed(2)} EGP`; }
@@ -2082,7 +2024,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const findByKey = (array, key, value) => (array || []).find(el => el && String(el[key]) === String(value));
     const generateId = (prefix) => `${prefix}-${Date.now()}`;
-    const printContent = (content) => { document.getElementById('print-area').innerHTML = content; setTimeout(() => window.print(), 100); };
+    const printContent = (content) => { document.getElementById('print-area').innerHTML = content; setTimeout(() => window.print(), 200); };
     const exportToExcel = (tableId, filename) => { try { const table = document.getElementById(tableId); if (!table) { showToast('Please generate a report first.', 'error'); return; } const wb = XLSX.utils.table_to_book(table, {sheet: "Sheet1"}); XLSX.writeFile(wb, filename); showToast('Exporting to Excel...', 'success'); } catch (err) { showToast('Excel export failed.', 'error'); Logger.error('Export Error:', err); } };
     
     const calculateStockLevels = () => {
@@ -2239,12 +2181,11 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const populateOptions = (el, data, ph, valueKey, textKey, textKey2) => { 
-        if (!el) {
-            console.warn(`populateOptions failed: element is null for placeholder "${ph}"`);
-            return;
-        }
+        if (!el) { console.warn(`populateOptions failed: element is null for placeholder "${ph}"`); return; }
         el.innerHTML = `<option value="">${ph}</option>`; 
-        (data || []).forEach(item => { el.innerHTML += `<option value="${item[valueKey]}">${item[textKey]}${textKey2 && item[textKey2] ? ' (' + item[textKey2] + ')' : ''}</option>`; }); 
+        (data || []).forEach(item => { 
+            el.innerHTML += `<option value="${item[valueKey]}">${item[textKey]}${textKey2 && item[textKey2] ? ' (' + item[textKey2] + ')' : ''}</option>`;
+        }); 
     };
     
     function getVisibleBranchesForCurrentUser() { if (!state.currentUser) return []; if (userCan('viewAllBranches')) { return state.branches; } if (state.currentUser.AssignedBranchCode) { return state.branches.filter(b => String(b.branchCode) === String(state.currentUser.AssignedBranchCode)); } return []; }
@@ -2260,15 +2201,13 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             if (!userCan('viewAllBranches')) {
                 ['branch-consumption-select', 'resupply-branch-filter', 'tx-filter-branch'].forEach(id => {
-                    const el = document.getElementById(id);
-                    if (el) { el.value = branchCode; el.disabled = true; }
+                    // This is handled by the new multi-select logic or removed
                 });
             }
         }
         if (sectionCode && !userCan('viewAllBranches')) {
             ['section-consumption-select', 'tx-filter-section'].forEach(id => {
-                const el = document.getElementById(id);
-                if(el) { el.value = sectionCode; el.disabled = true; }
+                // This is handled by the new multi-select logic or removed
             });
         }
     }
@@ -2280,7 +2219,7 @@ document.addEventListener('DOMContentLoaded', () => {
         switch(viewId) {
             case 'dashboard':
                 const stock = calculateStockLevels();
-                document.getElementById('dashboard-total-items').textContent = (state.items || []).length;
+                document.getElementById('dashboard-total-items').textContent = (state.items || []).length.toLocaleString();
                 document.getElementById('dashboard-total-suppliers').textContent = (state.suppliers || []).length;
                 document.getElementById('dashboard-total-branches').textContent = (state.branches || []).length;
                 let totalValue = 0;
@@ -2317,14 +2256,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('stock-adjustment-list-card').style.display = canAdjustStock ? 'block' : 'none';
                 document.getElementById('financial-adjustment-card').style.display = canAdjustFinance ? 'block' : 'none';
                 populateOptions(document.getElementById('receive-supplier'), state.suppliers, _t('select_supplier'), 'supplierCode', 'name');
-                populateOptions(document.getElementById('receive-branch'), state.branches, _t('select_a_branch'), 'branchCode', 'name');
-                populateOptions(document.getElementById('transfer-from-branch'), state.branches, _t('select_a_branch'), 'branchCode', 'name');
-                populateOptions(document.getElementById('transfer-to-branch'), state.branches, _t('select_a_branch'), 'branchCode', 'name');
-                populateOptions(document.getElementById('issue-from-branch'), state.branches, _t('select_a_branch'), 'branchCode', 'name');
-                populateOptions(document.getElementById('issue-to-section'), state.sections, _t('select_a_section'), 'sectionCode', 'name');
+                populateOptions(document.getElementById('receive-branch'), state.branches, _t('select_a_branch'), 'branchCode', 'branchName');
+                populateOptions(document.getElementById('transfer-from-branch'), state.branches, _t('select_a_branch'), 'branchCode', 'branchName');
+                populateOptions(document.getElementById('transfer-to-branch'), state.branches, _t('select_a_branch'), 'branchCode', 'branchName');
+                populateOptions(document.getElementById('issue-from-branch'), state.branches, _t('select_a_branch'), 'branchCode', 'branchName');
+                populateOptions(document.getElementById('issue-to-section'), state.sections, _t('select_a_section'), 'sectionCode', 'sectionName');
                 populateOptions(document.getElementById('return-supplier'), state.suppliers, _t('select_supplier'), 'supplierCode', 'name');
-                populateOptions(document.getElementById('return-branch'), state.branches, _t('select_a_branch'), 'branchCode', 'name');
-                populateOptions(document.getElementById('adjustment-branch'), state.branches, _t('select_a_branch'), 'branchCode', 'name');
+                populateOptions(document.getElementById('return-branch'), state.branches, _t('select_a_branch'), 'branchCode', 'branchName');
+                populateOptions(document.getElementById('adjustment-branch'), state.branches, _t('select_a_branch'), 'branchCode', 'branchName');
                 populateOptions(document.getElementById('fin-adj-supplier'), state.suppliers, _t('select_supplier'), 'supplierCode', 'name');
                 const openPOs = (state.purchaseOrders || []).filter(po => po.Status === 'Approved');
                 populateOptions(document.getElementById('receive-po-select'), openPOs, _t('select_a_po'), 'poId', 'poId', 'supplierCode');
@@ -2351,11 +2290,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 break;
             case 'reports':
                 populateOptions(document.getElementById('supplier-statement-select'), state.suppliers, _t('select_a_supplier'), 'supplierCode', 'name');
-                populateOptions(document.getElementById('branch-consumption-select'), getVisibleBranchesForCurrentUser(), _t('select_a_branch'), 'branchCode', 'name');
-                populateOptions(document.getElementById('section-consumption-select'), state.sections, _t('select_a_section'), 'sectionCode', 'name');
-                populateOptions(document.getElementById('resupply-branch-filter'), getVisibleBranchesForCurrentUser(), _t('all_branches'), 'branchCode', 'name');
-                populateOptions(document.getElementById('branch-consumption-item-filter'), state.items, _t('all_items'), 'code', 'name');
-                populateOptions(document.getElementById('section-consumption-item-filter'), state.items, _t('all_items'), 'code', 'name');
+                // For multi-select, we don't need a placeholder option
+                const branchSelect = document.getElementById('consumption-branch-filter');
+                branchSelect.innerHTML = '';
+                getVisibleBranchesForCurrentUser().forEach(b => branchSelect.innerHTML += `<option value="${b.branchCode}">${b.branchName}</option>`);
+                const sectionSelect = document.getElementById('consumption-section-filter');
+                sectionSelect.innerHTML = '';
+                state.sections.forEach(s => sectionSelect.innerHTML += `<option value="${s.sectionCode}">${s.sectionName}</option>`);
+                const itemSelect = document.getElementById('consumption-item-filter');
+                itemSelect.innerHTML = '';
+                state.items.forEach(i => itemSelect.innerHTML += `<option value="${i.code}">${i.name} (${i.code})</option>`);
                 break;
             case 'stock-levels':
                 document.getElementById('stock-levels-title').textContent = userCan('viewAllBranches') ? _t('stock_by_item_all_branches') : _t('stock_by_item_your_branch');
@@ -2364,8 +2308,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('stock-levels-search').value = '';
                 break;
             case 'transaction-history': 
-                populateOptions(document.getElementById('tx-filter-branch'), state.branches, _t('all_branches'), 'branchCode', 'name');
-                populateOptions(document.getElementById('tx-filter-section'), state.sections, _t('all_sections'), 'sectionCode', 'name');
+                populateOptions(document.getElementById('tx-filter-branch'), state.branches, _t('all_branches'), 'branchCode', 'branchName');
+                populateOptions(document.getElementById('tx-filter-section'), state.sections, _t('all_sections'), 'sectionCode', 'sectionName');
                 populateOptions(document.getElementById('tx-filter-supplier'), state.suppliers, _t('all_suppliers'), 'supplierCode', 'name');
                 const txTypes = ['receive', 'issue', 'transfer_out', 'transfer_in', 'return_out', 'po', 'adjustment_in', 'adjustment_out'];
                 const txTypeOptions = txTypes.map(t => ({'type': t, 'name': _t(t.replace(/_/g,''))}));
@@ -2375,7 +2319,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     endDate: document.getElementById('tx-filter-end-date').value,
                     type: document.getElementById('tx-filter-type').value,
                     branch: document.getElementById('tx-filter-branch').value,
-                    searchTerm: document.getElementById('transaction-search').value,
+                    searchTerm: document.getElementById('transaction-search').value
                 }); 
                 break;
             case 'user-management':
@@ -2422,7 +2366,7 @@ document.addEventListener('DOMContentLoaded', () => {
         usersTbody.innerHTML = '';
         (state.allUsers || []).forEach(user => {
             const tr = document.createElement('tr');
-            const assigned = findByKey(state.branches, 'branchCode', user.AssignedBranchCode)?.name || findByKey(state.sections, 'sectionCode', user.AssignedSectionCode)?.name || 'N/A';
+            const assigned = findByKey(state.branches, 'branchCode', user.AssignedBranchCode)?.branchName || findByKey(state.sections, 'sectionCode', user.AssignedSectionCode)?.sectionName || 'N/A';
             const isDisabled = user.isDisabled === true || String(user.isDisabled).toUpperCase() === 'TRUE';
             tr.innerHTML = `<td>${user.Username}</td><td>${user.Name}</td><td>${user.RoleName}</td><td>${assigned}</td><td><span class="status-tag ${isDisabled ? 'status-rejected' : 'status-approved'}">${isDisabled ? 'Disabled' : 'Active'}</span></td><td><button class="secondary small btn-edit" data-type="user" data-id="${user.Username}">${_t('edit')}</button></td>`;
             usersTbody.appendChild(tr);
@@ -2549,8 +2493,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         Object.values(grouped).forEach(group => {
             const first = group[0];
-            const fromSection = findByKey(state.sections, 'sectionCode', first.FromSection)?.name || first.FromSection;
-            const toBranch = findByKey(state.branches, 'branchCode', first.ToBranch)?.name || first.ToBranch;
+            const fromSection = findByKey(state.sections, 'sectionCode', first.FromSection)?.sectionName || first.FromSection;
+            const toBranch = findByKey(state.branches, 'branchCode', first.ToBranch)?.branchName || first.ToBranch;
             const itemsSummary = group.map(i => `${i.Quantity} x ${findByKey(state.items, 'code', i.ItemCode)?.name || i.ItemCode}`).join('<br>');
             const tr = document.createElement('tr');
             let canApprove = (first.Type === 'issue' && userCan('opApproveIssueRequest')) || (first.Type === 'resupply' && userCan('opApproveResupplyRequest'));
@@ -2591,7 +2535,7 @@ document.addEventListener('DOMContentLoaded', () => {
         tbody.innerHTML = '';
         visibleTransfers.forEach(t => {
             const tr = document.createElement('tr');
-            const fromBranch = findByKey(state.branches, 'branchCode', t.fromBranchCode)?.name || t.fromBranchCode;
+            const fromBranch = findByKey(state.branches, 'branchCode', t.fromBranchCode)?.branchName || t.fromBranchCode;
             tr.innerHTML = `<td>${new Date(t.date).toLocaleString()}</td><td>${fromBranch}</td><td>${t.ref}</td><td>${t.items.length}</td><td><button class="primary small btn-receive-transfer" data-batch-id="${t.batchId}">${_t('view_confirm')}</button></td>`;
             tbody.appendChild(tr);
         });
@@ -2610,8 +2554,8 @@ document.addEventListener('DOMContentLoaded', () => {
         
         visibleTransfers.forEach(t => {
             const tr = document.createElement('tr');
-            const fromBranch = findByKey(state.branches, 'branchCode', t.fromBranchCode)?.name || t.fromBranchCode;
-            const toBranch = findByKey(state.branches, 'branchCode', t.toBranchCode)?.name || t.toBranchCode;
+            const fromBranch = findByKey(state.branches, 'branchCode', t.fromBranchCode)?.branchName || t.fromBranchCode;
+            const toBranch = findByKey(state.branches, 'branchCode', t.toBranchCode)?.branchName || t.toBranchCode;
             const canManage = (userCan('viewAllBranches') || t.fromBranchCode === state.currentUser.AssignedBranchCode) && t.Status === 'In Transit';
             const actions = canManage ? `<div class="action-buttons"><button class="secondary small btn-edit-transfer" data-batch-id="${t.batchId}">${_t('edit')}</button><button class="danger small btn-cancel-transfer" data-batch-id="${t.batchId}">${_t('cancel')}</button></div>` : 'N/A';
             tr.innerHTML = `<td>${new Date(t.date).toLocaleString()}</td><td>${fromBranch}</td><td>${toBranch}</td><td>${t.ref}</td><td>${t.items.length}</td><td><span class="status-tag status-${t.Status.toLowerCase().replace(/ /g,'')}">${_t('status_' + t.Status.toLowerCase().replace(/ /g, ''))}</span></td><td>${actions}</td>`;
@@ -2639,7 +2583,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function setupSearch(inputId, renderFn, dataKey, searchKeys) { const searchInput = document.getElementById(inputId); if (!searchInput) return; searchInput.addEventListener('input', e => { const searchTerm = e.target.value.toLowerCase(); const dataToFilter = state[dataKey] || []; renderFn(searchTerm ? dataToFilter.filter(item => searchKeys.some(key => item[key] && String(item[key]).toLowerCase().includes(searchTerm))) : dataToFilter); }); }
     
-    function attachSubNavListeners() { document.querySelectorAll('.sub-nav').forEach(nav => { if(nav.closest('#history-modal')) return; nav.addEventListener('click', e => { if (!e.target.classList.contains('sub-nav-item')) return; const subviewId = e.target.dataset.subview; const parentView = e.target.closest('.view'); if (!parentView) return; parentView.querySelectorAll('.sub-nav-item').forEach(btn => btn.classList.remove('active')); e.target.classList.add('active'); parentView.querySelectorAll('.sub-view').forEach(view => view.classList.remove('active')); const subViewToShow = parentView.querySelector(`#subview-${subviewId}`); if (subViewToShow) subViewToShow.classList.add('active'); }); }); }
+    function attachSubNavListeners() { document.querySelectorAll('.sub-nav').forEach(nav => { if(nav.closest('#history-modal')) return; nav.addEventListener('click', e => { if (!e.target.classList.contains('sub-nav-item')) return; const subviewId = e.target.dataset.subview; const parentView = e.target.closest('.view'); if (!parentView) return; const currentActive = parentView.querySelector('.sub-nav-item.active'); if(currentActive) currentActive.classList.remove('active'); e.target.classList.add('active'); parentView.querySelectorAll('.sub-view').forEach(view => view.classList.remove('active')); const subViewToShow = parentView.querySelector(`#subview-${subviewId}`); if (subViewToShow) subViewToShow.classList.add('active'); refreshViewData(parentView.id.replace('view-','')); }); }); }
     
     function attachEventListeners() {
         btnLogout.addEventListener('click', logout);
@@ -2679,7 +2623,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const btn = e.target.closest('button');
             if (!btn) return;
             if (btn.dataset.context) { openItemSelectorModal(e); }
-            if (btn.id === 'btn-select-invoices') { openInvoiceSelectorModal(); }
+            if (btn.id === 'btn-select-invoices') { openInvoiceSelectorModal(); } 
             if (btn.classList.contains('btn-edit')) { openEditModal(btn.dataset.type, btn.dataset.id); }
             if (btn.classList.contains('btn-history')) { openHistoryModal(btn.dataset.id); }
             if (btn.id === 'btn-add-new-user') { openEditModal('user', null); }
@@ -2741,7 +2685,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         document.body.addEventListener('click', (e) => { 
             if (e.target.classList.contains('close-button') || e.target.classList.contains('modal-cancel')) { closeModal(); } 
-            
+             
             if (e.target.id === 'btn-confirm-receive-transfer') {
                 const btn = e.target;
                 const batchId = btn.dataset.batchId;
@@ -2767,16 +2711,16 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('btn-confirm-modal-selection').addEventListener('click', confirmModalSelection);
         document.getElementById('btn-confirm-invoice-selection').addEventListener('click', confirmModalSelection);
         
-        document.getElementById('payment-supplier-select').addEventListener('change', e => { document.getElementById('btn-select-invoices').disabled = !e.target.value; state.invoiceModalSelections.clear(); renderPaymentList(); });
+        document.getElementById('payment-supplier-select').addEventListener('change', e => { document.getElementById('btn-select-invoices').disabled = !e.target.value; state.invoiceModalSelections.clear(); renderPaymentList(); }); 
         document.getElementById('table-payment-list').addEventListener('input', handlePaymentInputChange);
         document.getElementById('invoice-selector-modal').addEventListener('change', handleInvoiceModalCheckboxChange);
         modalItemList.addEventListener('change', handleModalCheckboxChange);
-        modalSearchInput.addEventListener('input', e => renderItemsInModal(e.target.value));
+        modalSearchInput.addEventListener('input', e => renderItemsInModal(e.target.value)); 
         formEditRecord.addEventListener('submit', handleUpdateSubmit);
         document.getElementById('form-add-item').addEventListener('submit', async e => { e.preventDefault(); const btn = e.target.querySelector('button[type="submit"]'); const data = { code: document.getElementById('item-code').value, barcode: document.getElementById('item-barcode').value, name: document.getElementById('item-name').value, unit: document.getElementById('item-unit').value, category: document.getElementById('item-category').value, supplierCode: document.getElementById('item-supplier').value, cost: parseFloat(document.getElementById('item-cost').value) }; const result = await postData('addItem', data, btn); if (result) { showToast(_t('add_success_toast', {type: _t('item')}), 'success'); e.target.reset(); reloadDataAndRefreshUI(); } });
         document.getElementById('form-add-supplier').addEventListener('submit', async e => { e.preventDefault(); const btn = e.target.querySelector('button[type="submit"]'); const data = { supplierCode: document.getElementById('supplier-code').value, name: document.getElementById('supplier-name').value, contact: document.getElementById('supplier-contact').value }; const result = await postData('addSupplier', data, btn); if (result) { showToast(_t('add_success_toast', {type: _t('supplier')}), 'success'); e.target.reset(); reloadDataAndRefreshUI(); } });
-        document.getElementById('form-add-branch').addEventListener('submit', async e => { e.preventDefault(); const btn = e.target.querySelector('button[type="submit"]'); const data = { branchCode: document.getElementById('branch-code').value, name: document.getElementById('branch-name').value }; const result = await postData('addBranch', data, btn); if (result) { showToast(_t('add_success_toast', {type: _t('branch')}), 'success'); e.target.reset(); reloadDataAndRefreshUI(); } });
-        document.getElementById('form-add-section').addEventListener('submit', async e => { e.preventDefault(); const btn = e.target.querySelector('button[type="submit"]'); const data = { sectionCode: document.getElementById('section-code').value, name: document.getElementById('section-name').value }; const result = await postData('addSection', data, btn); if (result) { showToast(_t('add_success_toast', {type: _t('section')}), 'success'); e.target.reset(); reloadDataAndRefreshUI(); } });
+        document.getElementById('form-add-branch').addEventListener('submit', async e => { e.preventDefault(); const btn = e.target.querySelector('button[type="submit"]'); const data = { branchCode: document.getElementById('branch-code').value, branchName: document.getElementById('branch-name').value }; const result = await postData('addBranch', data, btn); if (result) { showToast(_t('add_success_toast', {type: _t('branch')}), 'success'); e.target.reset(); reloadDataAndRefreshUI(); } });
+        document.getElementById('form-add-section').addEventListener('submit', async e => { e.preventDefault(); const btn = e.target.querySelector('button[type="submit"]'); const data = { sectionCode: document.getElementById('section-code').value, sectionName: document.getElementById('section-name').value }; const result = await postData('addSection', data, btn); if (result) { showToast(_t('add_success_toast', {type: _t('section')}), 'success'); e.target.reset(); reloadDataAndRefreshUI(); } });
         document.getElementById('form-record-payment').addEventListener('submit', async e => {
             e.preventDefault(); 
             const btn = e.target.querySelector('button[type="submit"]');
@@ -2825,12 +2769,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 await reloadDataAndRefreshUI();
             }
         });
-        
-        document.getElementById('btn-submit-receive-batch').addEventListener('click', async (e) => { const btn = e.currentTarget; const supplierCode = document.getElementById('receive-supplier').value, branchCode = document.getElementById('receive-branch').value, invoiceNumber = document.getElementById('receive-invoice').value, notes = document.getElementById('receive-notes').value, poId = document.getElementById('receive-po-select').value; if (!userCan('opReceiveWithoutPO') && !poId) { showToast(_t('select_po_first_toast'), 'error'); return; } if (!supplierCode || !branchCode || !invoiceNumber || state.currentReceiveList.length === 0) { showToast(_t('fill_required_fields_toast'), 'error'); return; } const payload = { type: 'receive', batchId: `GRN-${Date.now()}`, supplierCode, branchCode, invoiceNumber, poId, date: new Date().toISOString(), items: state.currentReceiveList.map(i => ({...i, type: 'receive'})), notes }; await handleTransactionSubmit(payload, btn); });
-        document.getElementById('btn-submit-transfer-batch').addEventListener('click', async (e) => { const btn = e.currentTarget; const fromBranchCode = document.getElementById('transfer-from-branch').value, toBranchCode = document.getElementById('transfer-to-branch').value, notes = document.getElementById('transfer-notes').value, ref = document.getElementById('transfer-ref').value; if (!fromBranchCode || !toBranchCode || fromBranchCode === toBranchCode || state.currentTransferList.length === 0) { showToast('Please select valid branches and add at least one item.', 'error'); return; } const payload = { type: 'transfer_out', batchId: ref, ref: ref, fromBranchCode, toBranchCode, date: new Date().toISOString(), items: state.currentTransferList.map(i => ({...i, type: 'transfer_out'})), notes }; await handleTransactionSubmit(payload, btn); });
-        document.getElementById('btn-submit-issue-batch').addEventListener('click', async(e) => { const btn = e.currentTarget; const fromBranchCode = document.getElementById('issue-from-branch').value, sectionCode = document.getElementById('issue-to-section').value, ref = document.getElementById('issue-ref').value, notes = document.getElementById('issue-notes').value; if (!fromBranchCode || !sectionCode || !ref || state.currentIssueList.length === 0) { showToast('Please fill all issue details and select at least one item.', 'error'); return; } const payload = { type: 'issue', batchId: ref, ref: ref, fromBranchCode, sectionCode, date: new Date().toISOString(), items: state.currentIssueList.map(i => ({...i, type: 'issue'})), notes }; await handleTransactionSubmit(payload, btn); });
+
+        document.getElementById('btn-submit-receive-batch').addEventListener('click', async (e) => { const btn = e.currentTarget; let branchCode = document.getElementById('receive-branch').value; const supplierCode = document.getElementById('receive-supplier').value, invoiceNumber = document.getElementById('receive-invoice').value, notes = document.getElementById('receive-notes').value, poId = document.getElementById('receive-po-select').value; if(userCan('viewAllBranches') && !state.currentUser.AssignedBranchCode) { const context = await requestAdminContext({ branch: true }); branchCode = context.branch; } if (!userCan('opReceiveWithoutPO') && !poId) { showToast(_t('select_po_first_toast'), 'error'); return; } if (!supplierCode || !branchCode || !invoiceNumber || state.currentReceiveList.length === 0) { showToast(_t('fill_required_fields_toast'), 'error'); return; } const payload = { type: 'receive', batchId: `GRN-${Date.now()}`, supplierCode, branchCode, invoiceNumber, poId, date: new Date().toISOString(), items: state.currentReceiveList.map(i => ({...i, type: 'receive'})), notes }; await handleTransactionSubmit(payload, btn); });
+        document.getElementById('btn-submit-transfer-batch').addEventListener('click', async (e) => { const btn = e.currentTarget; let fromBranchCode = document.getElementById('transfer-from-branch').value, toBranchCode = document.getElementById('transfer-to-branch').value; const notes = document.getElementById('transfer-notes').value, ref = document.getElementById('transfer-ref').value; if(userCan('viewAllBranches') && !state.currentUser.AssignedBranchCode) { const context = await requestAdminContext({ fromBranch: true, toBranch: true }); fromBranchCode = context.fromBranch; toBranchCode = context.toBranch; } if (!fromBranchCode || !toBranchCode || fromBranchCode === toBranchCode || state.currentTransferList.length === 0) { showToast('Please select valid branches and add at least one item.', 'error'); return; } const payload = { type: 'transfer_out', batchId: ref, ref: ref, fromBranchCode, toBranchCode, date: new Date().toISOString(), items: state.currentTransferList.map(i => ({...i, type: 'transfer_out'})), notes }; await handleTransactionSubmit(payload, btn); });
+        document.getElementById('btn-submit-issue-batch').addEventListener('click', async(e) => { const btn = e.currentTarget; let fromBranchCode = document.getElementById('issue-from-branch').value, sectionCode = document.getElementById('issue-to-section').value; const ref = document.getElementById('issue-ref').value, notes = document.getElementById('issue-notes').value; if(userCan('viewAllBranches') && !state.currentUser.AssignedBranchCode) { const context = await requestAdminContext({ fromBranch: true, toSection: true }); fromBranchCode = context.fromBranch; sectionCode = context.toSection; } if (!fromBranchCode || !sectionCode || !ref || state.currentIssueList.length === 0) { showToast('Please fill all issue details and select at least one item.', 'error'); return; } const payload = { type: 'issue', batchId: ref, ref: ref, fromBranchCode, sectionCode, date: new Date().toISOString(), items: state.currentIssueList.map(i => ({...i, type: 'issue'})), notes }; await handleTransactionSubmit(payload, btn); });
         document.getElementById('btn-submit-po').addEventListener('click', async (e) => { const btn = e.currentTarget; const supplierCode = document.getElementById('po-supplier').value, poId = document.getElementById('po-ref').value, notes = document.getElementById('po-notes').value; if (!supplierCode || state.currentPOList.length === 0) { showToast('Please select a supplier and add items.', 'error'); return; } const totalValue = state.currentPOList.reduce((acc, item) => acc + (item.quantity * item.cost), 0); const payload = { type: 'po', poId, supplierCode, date: new Date().toISOString(), items: state.currentPOList, totalValue, notes }; await handleTransactionSubmit(payload, btn); });
-        document.getElementById('btn-submit-return').addEventListener('click', async (e) => { const btn = e.currentTarget; const supplierCode = document.getElementById('return-supplier').value, fromBranchCode = document.getElementById('return-branch').value, ref = document.getElementById('return-ref').value, notes = document.getElementById('return-notes').value; if (!supplierCode || !fromBranchCode || !ref || state.currentReturnList.length === 0) { showToast('Please fill all required fields and add items.', 'error'); return; } const payload = { type: 'return_out', batchId: `RTN-${Date.now()}`, ref: ref, supplierCode, fromBranchCode, date: new Date().toISOString(), items: state.currentReturnList.map(i => ({...i, type: 'return_out'})), notes }; await handleTransactionSubmit(payload, btn); });
+        document.getElementById('btn-submit-return').addEventListener('click', async (e) => { const btn = e.currentTarget; const supplierCode = document.getElementById('return-supplier').value; let fromBranchCode = document.getElementById('return-branch').value; const ref = document.getElementById('return-ref').value, notes = document.getElementById('return-notes').value; if(userCan('viewAllBranches') && !state.currentUser.AssignedBranchCode) { const context = await requestAdminContext({ fromBranch: true }); fromBranchCode = context.fromBranch; } if (!supplierCode || !fromBranchCode || !ref || state.currentReturnList.length === 0) { showToast('Please fill all required fields and add items.', 'error'); return; } const payload = { type: 'return_out', batchId: `RTN-${Date.now()}`, ref: ref, supplierCode, fromBranchCode, date: new Date().toISOString(), items: state.currentReturnList.map(i => ({...i, type: 'return_out'})), notes }; await handleTransactionSubmit(payload, btn); });
         document.getElementById('btn-submit-request').addEventListener('click', async(e) => { const btn = e.currentTarget; const requestType = document.getElementById('request-type').value; const notes = document.getElementById('request-notes').value; if(state.currentRequestList.length === 0){ showToast('Please select items for your request.', 'error'); return; } const payload = { requestId: `REQ-${Date.now()}`, requestType, notes, items: state.currentRequestList }; const result = await postData('addItemRequest', payload, btn); if(result){ showToast('Request submitted successfully!', 'success'); state.currentRequestList = []; document.getElementById('form-create-request').reset(); renderRequestListTable(); reloadDataAndRefreshUI(); }});
         
         const handleTableInputUpdate = (e, listName, updaterFn) => {
@@ -2849,8 +2793,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const handleTableRemove = (e, listName, rendererFn) => { 
             const btn = e.target.closest('button');
             if (btn && btn.classList.contains('danger') && btn.dataset.index) {
-                state[listName].splice(btn.dataset.index, 1); 
-                rendererFn(); 
+                state[listName].splice(btn.dataset.index, 1);
+                rendererFn();
             }
         };
         
@@ -2862,19 +2806,20 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         setupInputTableListeners('table-receive-list', 'currentReceiveList', renderReceiveListTable);
+        setupInputTableListeners('table-transfer-list', 'currentTransferList', renderTransferListTable);
+        setupInputTableListeners('table-issue-list', 'currentIssueList', renderIssueListTable);
         setupInputTableListeners('table-po-list', 'currentPOList', renderPOListTable);
         setupInputTableListeners('table-edit-po-list', 'currentEditingPOList', renderPOEditListTable);
         setupInputTableListeners('table-return-list', 'currentReturnList', renderReturnListTable);
-        setupInputTableListeners('table-transfer-list', 'currentTransferList', renderTransferListTable);
-        setupInputTableListeners('table-issue-list', 'currentIssueList', renderIssueListTable);
         setupInputTableListeners('table-request-list', 'currentRequestList', renderRequestListTable);
         setupInputTableListeners('table-adjustment-list', 'currentAdjustmentList', renderAdjustmentListTable);
         
         document.getElementById('btn-submit-adjustment').addEventListener('click', async (e) => {
             const btn = e.currentTarget;
-            const branchCode = document.getElementById('adjustment-branch').value;
+            let branchCode = document.getElementById('adjustment-branch').value;
             const ref = document.getElementById('adjustment-ref').value;
             const notes = document.getElementById('adjustment-notes').value;
+            if(userCan('viewAllBranches') && !state.currentUser.AssignedBranchCode) { const context = await requestAdminContext({ branch: true }); branchCode = context.branch; }
             if (!branchCode || !ref || !state.currentAdjustmentList || state.currentAdjustmentList.length === 0) {
                 showToast('Please select a branch, provide a reference, and add items to adjust.', 'error');
                 return;
@@ -2945,9 +2890,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         
         document.getElementById('btn-generate-supplier-statement').addEventListener('click', () => { const supplierCode = document.getElementById('supplier-statement-select').value; const startDate = document.getElementById('statement-start-date').value; const endDate = document.getElementById('statement-end-date').value; if(!supplierCode) { showToast('Please select a supplier.', 'error'); return; } renderSupplierStatement(supplierCode, startDate, endDate); });
-        document.getElementById('btn-generate-branch-consumption').addEventListener('click', () => { const branchCode = document.getElementById('branch-consumption-select').value; const startDate = document.getElementById('branch-consumption-start-date').value; const endDate = document.getElementById('branch-consumption-end-date').value; const itemFilter = document.getElementById('branch-consumption-item-filter').value; const categoryFilter = document.getElementById('branch-consumption-category-filter').value; if(!branchCode) { showToast('Please select a branch.', 'error'); return; } let filteredTx = state.transactions.filter(t => t.type === 'issue' && t.fromBranchCode === branchCode); const sDate = startDate ? new Date(startDate) : null; if(sDate) sDate.setHours(0,0,0,0); const eDate = endDate ? new Date(endDate) : null; if(eDate) eDate.setHours(23,59,59,999); if (sDate) filteredTx = filteredTx.filter(t => new Date(t.date) >= sDate); if (eDate) filteredTx = filteredTx.filter(t => new Date(t.date) <= eDate); if (itemFilter) filteredTx = filteredTx.filter(t => t.itemCode === itemFilter); if (categoryFilter) { const itemCodesInCategory = state.items.filter(i => i.category === categoryFilter).map(i => i.code); filteredTx = filteredTx.filter(t => itemCodesInCategory.includes(t.itemCode)); } const historicalCosts = calculateHistoricalCosts(); renderConsumptionReport({ resultsContainerId: 'branch-consumption-results', exportBtnId: 'btn-export-branch-consumption', data: filteredTx, title: 'branch_consumption', entityName: findByKey(state.branches, 'branchCode', branchCode).name, dateHeader: `${startDate || 'Start'} to ${endDate || 'End'}`, historicalCosts: historicalCosts }); });
-        document.getElementById('btn-generate-section-consumption').addEventListener('click', () => { const sectionCode = document.getElementById('section-consumption-select').value; const startDate = document.getElementById('section-consumption-start-date').value; const endDate = document.getElementById('section-consumption-end-date').value; const itemFilter = document.getElementById('section-consumption-item-filter').value; const categoryFilter = document.getElementById('section-consumption-category-filter').value; if(!sectionCode) { showToast('Please select a section.', 'error'); return; } let filteredTx = state.transactions.filter(t => t.type === 'issue' && t.sectionCode === sectionCode); const sDate = startDate ? new Date(startDate) : null; if(sDate) sDate.setHours(0,0,0,0); const eDate = endDate ? new Date(endDate) : null; if(eDate) eDate.setHours(23,59,59,999); if (sDate) filteredTx = filteredTx.filter(t => new Date(t.date) >= sDate); if (eDate) filteredTx = filteredTx.filter(t => new Date(t.date) <= eDate); if (itemFilter) filteredTx = filteredTx.filter(t => t.itemCode === itemFilter); if (categoryFilter) { const itemCodesInCategory = state.items.filter(i => i.category === categoryFilter).map(i => i.code); filteredTx = filteredTx.filter(t => itemCodesInCategory.includes(t.itemCode)); } const historicalCosts = calculateHistoricalCosts(); renderConsumptionReport({ resultsContainerId: 'section-consumption-results', exportBtnId: 'btn-export-section-consumption', data: filteredTx, title: 'section_usage', entityName: findByKey(state.sections, 'sectionCode', sectionCode).name, dateHeader: `${startDate || 'Start'} to ${endDate || 'End'}`, historicalCosts: historicalCosts }); });
-        document.getElementById('btn-generate-resupply-report').addEventListener('click', () => { const branchCode = document.getElementById('resupply-branch-filter').value; const startDate = document.getElementById('resupply-start-date').value; const endDate = document.getElementById('resupply-end-date').value; let filteredReqs = state.itemRequests.filter(r => r.Type === 'resupply'); const sDate = startDate ? new Date(startDate) : null; if(sDate) sDate.setHours(0,0,0,0); const eDate = endDate ? new Date(endDate) : null; if(eDate) eDate.setHours(23,59,59,999); if (branchCode) filteredReqs = filteredReqs.filter(r => r.ToBranch === branchCode); if (sDate) filteredReqs = filteredReqs.filter(r => new Date(r.Date) >= sDate); if (eDate) filteredReqs = filteredReqs.filter(r => new Date(r.Date) <= eDate); const entityName = branchCode ? findByKey(state.branches, 'branchCode', branchCode).name : _t('all_branches'); renderConsumptionReport({ resultsContainerId: 'resupply-report-results', exportBtnId: 'btn-export-resupply-report', data: filteredReqs.map(r => ({...r, fromBranchCode: r.ToBranch, itemCode: r.ItemCode, quantity: r.Quantity})), title: 'resupply_report', entityName: entityName, dateHeader: `${startDate || 'Start'} to ${endDate || 'End'}`, qtyColumnHeader: 'Total Qty Requested' }); });
+        document.getElementById('btn-generate-consumption-report').addEventListener('click', renderUnifiedConsumptionReport);
         
         document.getElementById('pending-requests-widget').addEventListener('click', () => showView('requests', 'pending-approval'));
 
@@ -2960,7 +2903,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     endDate: document.getElementById('tx-filter-end-date').value,
                     type: document.getElementById('tx-filter-type').value,
                     branch: document.getElementById('tx-filter-branch').value,
-                    searchTerm: document.getElementById('transaction-search').value,
+                    searchTerm: document.getElementById('transaction-search').value
                 };
                 renderTransactionHistory(filters);
             });
@@ -3006,12 +2949,12 @@ document.addEventListener('DOMContentLoaded', () => {
     function initializeAppUI() {
         Logger.info('Application UI initializing...');
         setupRoleBasedNav();
-        attachEventListeners();
-        attachSubNavListeners();
+        attachEventListeners(); // Must be before attachSubNavListeners
+        attachSubNavListeners(); 
         setupSearch('search-items', renderItemsTable, 'items', ['name', 'code', 'category']);
         setupSearch('search-suppliers', renderSuppliersTable, 'suppliers', ['name', 'supplierCode']);
-        setupSearch('search-branches', renderBranchesTable, 'branches', ['name', 'branchCode']);
-        setupSearch('search-sections', renderSectionsTable, 'sections', ['name', 'sectionCode']);
+        setupSearch('search-branches', renderBranchesTable, 'branches', ['branchName', 'branchCode']);
+        setupSearch('search-sections', renderSectionsTable, 'sections', ['sectionName', 'sectionCode']);
         setupSearch('stock-levels-search', renderItemCentricStockView, 'items', ['name', 'code']);
         document.getElementById('item-inquiry-search').addEventListener('input', e => renderItemInquiry(e.target.value.toLowerCase()));
         
@@ -3021,25 +2964,23 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('btn-export-sections').addEventListener('click', () => exportToExcel('table-sections', 'SectionList.xlsx'));
         document.getElementById('btn-export-stock').addEventListener('click', () => exportToExcel('table-stock-levels-by-item', 'StockLevels.xlsx'));
         document.getElementById('btn-export-supplier-statement').addEventListener('click', () => exportToExcel('table-supplier-statement-report', 'SupplierStatement.xlsx'));
-        document.getElementById('btn-export-branch-consumption').addEventListener('click', () => exportToExcel('table-branch-consumption-results-report', 'BranchConsumption.xlsx'));
-        document.getElementById('btn-export-section-consumption').addEventListener('click', () => exportToExcel('table-section-consumption-results-report', 'SectionConsumption.xlsx'));
-        document.getElementById('btn-export-resupply-report').addEventListener('click', () => exportToExcel('table-resupply-report-results-report', 'ResupplyReport.xlsx'));
-        
+        document.getElementById('btn-export-consumption-report').addEventListener('click', () => exportToExcel('table-consumption-report', 'ConsumptionReport.xlsx'));
+
         updateUserBranchDisplay();
         updatePendingRequestsWidget();
         const firstVisibleView = document.querySelector('#main-nav .nav-item:not([style*="display: none"]) a')?.dataset.view || 'dashboard';
-        showView(firstVisibleView);
+        showView(firstVisibleView, null);
         Logger.info('Application initialized successfully.');
     }
     
     function updateUserBranchDisplay() {
         const displayEl = document.getElementById('user-branch-display');
-        if (!state.currentUser) { displayEl.textContent = ''; return; }
+        if (!state.currentUser || !displayEl) { return; }
         const branch = findByKey(state.branches, 'branchCode', state.currentUser.AssignedBranchCode);
         const section = findByKey(state.sections, 'sectionCode', state.currentUser.AssignedSectionCode);
         let displayText = '';
-        if (branch) displayText += `${_t('branch')}: ${branch.name}`;
-        if (section) displayText += `${displayText ? ' / ' : ''}${_t('section')}: ${section.name}`;
+        if (branch) displayText += `${_t('branch')}: ${branch.branchName}`;
+        if (section) displayText += `${displayText ? ' / ' : ''}${_t('section')}: ${section.sectionName}`;
         displayEl.textContent = displayText;
     }
 
@@ -3127,7 +3068,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="form-grid">
                 <div class="form-group"><label>Batch ID</label><input type="text" value="${batchId}" readonly></div>
                 <div class="form-group"><label>${_t('supplier')}</label><input type="text" value="${supplier?.name || 'N/A'}" readonly></div>
-                <div class="form-group"><label>${_t('branch')}</label><input type="text" value="${branch?.name || 'N/A'}" readonly></div>
+                <div class="form-group"><label>${_t('branch')}</label><input type="text" value="${branch?.branchName || 'N/A'}" readonly></div>
                 <div class="form-group"><label for="edit-invoice-number">${_t('table_h_invoice_no')}</label><input type="text" id="edit-invoice-number" value="${firstTx.invoiceNumber || ''}" required></div>
                 <div class="form-group span-full"><label for="edit-invoice-notes">${_t('notes_optional')}</label><textarea id="edit-invoice-notes" rows="2">${firstTx.notes || ''}</textarea></div>
             </div>
@@ -3224,8 +3165,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         modalBody.innerHTML = `
-            <p><strong>${_t('from_section')}:</strong> ${findByKey(state.sections, 'sectionCode', first.FromSection)?.name}</p>
-            <p><strong>${_t('to_branch')}:</strong> ${findByKey(state.branches, 'branchCode', first.ToBranch)?.name}</p>
+            <p><strong>${_t('from_section')}:</strong> ${findByKey(state.sections, 'sectionCode', first.FromSection)?.sectionName}</p>
+            <p><strong>${_t('to_branch')}:</strong> ${findByKey(state.branches, 'branchCode', first.ToBranch)?.branchName}</p>
             <p><strong>${_t('notes_optional')}:</strong> ${first.Notes || 'N/A'}</p>
             <hr>
             <table id="table-approve-request-items">
@@ -3296,6 +3237,29 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Admin Context Selector
+    async function requestAdminContext(config) {
+        const modal = document.getElementById('context-selector-modal');
+        
+        // Hide all first
+        modal.querySelectorAll('.form-group').forEach(el => el.style.display = 'none');
+        
+        // Populate and show required dropdowns
+        if(config.fromBranch) populateOptions(document.getElementById('context-from-branch-select'), state.branches, 'Select From Branch', 'branchCode', 'branchName');
+        if(config.toBranch) populateOptions(document.getElementById('context-to-branch-select'), state.branches, 'Select To Branch', 'branchCode', 'branchName');
+        if(config.branch) populateOptions(document.getElementById('context-branch-select'), state.branches, 'Select Branch', 'branchCode', 'branchName');
+        if(config.toSection) populateOptions(document.getElementById('context-to-section-select'), state.sections, 'Select To Section', 'sectionCode', 'sectionName');
+
+        Object.keys(config).forEach(key => {
+            const group = document.getElementById(`context-modal-${key}-group`);
+            if(group) group.style.display = 'block';
+        });
+
+        modal.classList.add('active');
+        return new Promise((resolve, reject) => {
+            state.adminContextPromise = { resolve, reject };
+        });
+    }
     function init() {
         // Set up language switcher
         const langSwitcher = document.getElementById('lang-switcher');
@@ -3308,6 +3272,25 @@ document.addEventListener('DOMContentLoaded', () => {
             localStorage.setItem('userLanguage', selectedLang);
             state.currentLanguage = selectedLang;
             reloadDataAndRefreshUI();
+        });
+        
+        // Listener for the new admin context modal
+        document.getElementById('btn-confirm-context').addEventListener('click', () => {
+            const modal = document.getElementById('context-selector-modal');
+            const context = {
+                fromBranch: modal.querySelector('#context-modal-fromBranch-group').style.display === 'block' ? modal.querySelector('#context-from-branch-select').value : null,
+                toBranch: modal.querySelector('#context-modal-toBranch-group').style.display === 'block' ? modal.querySelector('#context-to-branch-select').value : null,
+                branch: modal.querySelector('#context-modal-branch-group').style.display === 'block' ? modal.querySelector('#context-branch-select').value : null,
+                toSection: modal.querySelector('#context-modal-toSection-group').style.display === 'block' ? modal.querySelector('#context-to-section-select').value : null,
+            };
+
+            // Check if any visible select is unselected
+            if (Object.entries(context).some(([key, value]) => modal.querySelector(`#context-modal-${key}-group`).style.display === 'block' && !value)) {
+                showToast('Please make a selection for all required fields.', 'error');
+                return;
+            }
+            if (state.adminContextPromise.resolve) state.adminContextPromise.resolve(context);
+            modal.classList.remove('active');
         });
 
 
