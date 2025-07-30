@@ -410,6 +410,8 @@ document.addEventListener('DOMContentLoaded', () => {
             'no_movements_found': 'No movements found for the selected filters.',
             'table_h_qty_in': 'Qty In',
             'table_h_qty_out': 'Qty Out',
+            'requested_by_section': 'Requesting Section',
+'fulfilling_branch': 'Fulfilling Branch',
             'movement_details_receive': 'From: {supplier} To: {branch}',
             'movement_details_issue': 'From: {branch} To: {section}',
             'movement_details_transfer_out': 'Sent from: {fromBranch} To: {toBranch}',
@@ -453,6 +455,8 @@ document.addEventListener('DOMContentLoaded', () => {
             'backup_restore': 'النسخ الاحتياطي',
             'activity_log': 'سجل النشاط',
             'logout': 'تسجيل الخروج',
+            'requested_by_section': 'القسم الطالب',
+'fulfilling_branch': 'الفرع المصدر',
             'pending_requests_widget': 'طلبات معلقة: {count}',
             'branch': 'الفرع',
             'section': 'القسم',
@@ -3253,7 +3257,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     async function confirmRequestApproval(e) {
-        const btn = e.currentTarget;
+        const btn = e.target; // Corrected from e.currentTarget
         const requestId = btn.dataset.requestId;
         if (!requestId) {
             showToast('Error: Request ID is missing.', 'error');
