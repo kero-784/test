@@ -844,7 +844,36 @@ document.addEventListener('DOMContentLoaded', () => {
     const editModalTitle = document.getElementById('edit-modal-title');
     const formEditRecord = document.getElementById('form-edit-record');
     const viewTransferModal = document.getElementById('view-transfer-modal');
-
+    
+    // --- MOVED FUNCTION TO FIX REFERENCE ERROR ---
+    function initializeAppUI() {
+        Logger.info('Application UI initializing...');
+        setupRoleBasedNav();
+        attachEventListeners();
+        attachSubNavListeners();
+        setupSearch('search-items', renderItemsTable, 'items', ['name', 'code', 'category']);
+        setupSearch('search-suppliers', renderSuppliersTable, 'suppliers', ['name', 'supplierCode']);
+        setupSearch('search-branches', renderBranchesTable, 'branches', ['name', 'branchCode']);
+        setupSearch('search-sections', renderSectionsTable, 'sections', ['name', 'sectionCode']);
+        setupSearch('stock-levels-search', renderItemCentricStockView, 'items', ['name', 'code']);
+        document.getElementById('item-inquiry-search').addEventListener('input', e => renderItemInquiry(e.target.value.toLowerCase()));
+        
+        document.getElementById('btn-export-items').addEventListener('click', () => exportToExcel('table-items', 'ItemList.xlsx'));
+        document.getElementById('btn-export-suppliers').addEventListener('click', () => exportToExcel('table-suppliers', 'SupplierList.xlsx'));
+        document.getElementById('btn-export-branches').addEventListener('click', () => exportToExcel('table-branches', 'BranchList.xlsx'));
+        document.getElementById('btn-export-sections').addEventListener('click', () => exportToExcel('table-sections', 'SectionList.xlsx'));
+        document.getElementById('btn-export-stock').addEventListener('click', () => exportToExcel('table-stock-levels-by-item', 'StockLevels.xlsx'));
+        document.getElementById('btn-export-supplier-statement').addEventListener('click', () => exportToExcel('table-supplier-statement-report', 'SupplierStatement.xlsx'));
+        document.getElementById('btn-export-branch-consumption').addEventListener('click', () => exportToExcel('table-branch-consumption-results-report', 'BranchConsumption.xlsx'));
+        document.getElementById('btn-export-section-consumption').addEventListener('click', () => exportToExcel('table-section-consumption-results-report', 'SectionConsumption.xlsx'));
+        document.getElementById('btn-export-resupply-report').addEventListener('click', () => exportToExcel('table-resupply-report-results-report', 'ResupplyReport.xlsx'));
+        
+        updateUserBranchDisplay();
+        updatePendingRequestsWidget();
+        const firstVisibleView = document.querySelector('#main-nav .nav-item:not([style*="display: none"]) a')?.dataset.view || 'dashboard';
+        showView(firstVisibleView);
+        Logger.info('Application initialized successfully.');
+    }
 
     async function attemptLogin(username, loginCode) {
         if (!username || !loginCode) return;
