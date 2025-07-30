@@ -12,7 +12,7 @@ window.printReport = function(elementId) {
 
 document.addEventListener('DOMContentLoaded', () => {
     // !!! IMPORTANT: PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL HERE
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw6ILWFJPd8gsFQY-h4ZVZSByQfSXIzl6OpKk2m488Ihu9u1TCFSxsWAjvkW5Ws65NU/exec';
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwFoXwc11HNh8OlhHdHx4tbYKdVlIx11ssMixZhozIwh7RUi_8_Lkyf2sVWqUkCMzS1/exec';
 
     const Logger = {
         info: (message, ...args) => console.log(`[StockWise INFO] ${message}`, ...args),
@@ -62,6 +62,8 @@ document.addEventListener('DOMContentLoaded', () => {
         'en': {
             'packing_stock': 'Packing Stock',
             'login_prompt': 'Please enter your credentials to continue.',
+            'loading': 'Loading...',
+            'alert_select_branch': 'Please select a branch.',
             'username': 'Username',
             'password_code': 'Password / Login Code',
             'login': 'Login',
@@ -174,6 +176,7 @@ document.addEventListener('DOMContentLoaded', () => {
             'supplier_statement': 'Supplier Statement',
             'branch_consumption': 'Branch Consumption',
             'section_usage': 'Section Usage',
+            'branch_section_consumption': 'Sections by Branch',
             'resupply_report': 'Resupply Report',
             'select_a_supplier': 'Select a Supplier',
             'generate': 'Generate',
@@ -339,8 +342,10 @@ document.addEventListener('DOMContentLoaded', () => {
             'tx_processed_approval_toast': '{txType} processed! Submitted for approval.',
             'select_po_first_toast': 'You must select a Purchase Order to receive stock.',
             'fill_required_fields_toast': 'Please fill all required fields and add items.',
-
-            // New from here
+            'approve_request': 'Approve Request',
+            'no_pending_requests': 'No pending requests.',
+            'approve_resupply_confirm': 'Are you sure you want to approve this resupply request?',
+            'alert_select_from_branch': 'Please select a "From Branch" before submitting.',
             'status_approved': 'Approved',
             'status_pending': 'Pending Approval',
             'status_rejected': 'Rejected',
@@ -418,6 +423,8 @@ document.addEventListener('DOMContentLoaded', () => {
         'ar': {
             'packing_stock': 'مخزون التعبئة',
             'login_prompt': 'الرجاء إدخال بيانات الاعتماد الخاصة بك للمتابعة.',
+            'loading': 'جاري التحميل...',
+            'alert_select_branch': 'الرجاء اختيار فرع.',
             'username': 'اسم المستخدم',
             'password_code': 'كلمة المرور / رمز الدخول',
             'login': 'تسجيل الدخول',
@@ -530,6 +537,7 @@ document.addEventListener('DOMContentLoaded', () => {
             'supplier_statement': 'كشف حساب مورد',
             'branch_consumption': 'استهلاك الفرع',
             'section_usage': 'استخدام القسم',
+            'branch_section_consumption': 'استهلاك الأقسام حسب الفرع',
             'resupply_report': 'تقرير إعادة التزويد',
             'select_a_supplier': 'اختر موردًا',
             'generate': 'إنشاء',
@@ -695,6 +703,10 @@ document.addEventListener('DOMContentLoaded', () => {
             'tx_processed_approval_toast': 'تمت معالجة {txType}! أُرسلت للموافقة.',
             'select_po_first_toast': 'يجب عليك تحديد طلب شراء لاستلام البضاعة.',
             'fill_required_fields_toast': 'يرجى ملء جميع الحقول المطلوبة وإضافة أصناف.',
+            'approve_request': 'الموافقة على الطلب',
+            'no_pending_requests': 'لا توجد طلبات معلقة.',
+            'approve_resupply_confirm': 'هل أنت متأكد من موافقتك على طلب إعادة التزويد هذا؟',
+            'alert_select_from_branch': 'الرجاء اختيار "من فرع" قبل الإرسال.',
             'status_approved': 'تمت الموافقة',
             'status_pending': 'قيد الموافقة',
             'status_rejected': 'مرفوض',
@@ -1364,7 +1376,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (existing) {
                 newList.push(existing);
             } else {
-                const newItem = { itemCode: item.code, itemName: item.name, quantity: 1, cost: item.cost };
+                const newItem = { itemCode: item.code, itemName: item.name, quantity: '', cost: item.cost };
                 if (modalContext === 'adjustment') {
                     newItem.physicalCount = 0;
                 }
@@ -1414,7 +1426,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isLoading) {
             buttonEl.disabled = true;
             buttonEl.dataset.originalText = buttonEl.innerHTML;
-            buttonEl.innerHTML = `<div class="button-spinner"></div><span>${_t('signing_in')}</span>`;
+            buttonEl.innerHTML = `<div class="button-spinner"></div><span>${_t('loading')}</span>`;
         } else {
             buttonEl.disabled = false;
             if (buttonEl.dataset.originalText) {
@@ -1504,7 +1516,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const availableStock = (stock[fromBranch]?.[item.itemCode]?.quantity || 0);
                 switch (col.type) {
                     case 'text': content = item[col.key]; break;
-                    case 'number_input': content = `<input type="number" class="table-input" value="${item[col.key] || 1}" min="${col.min || 0.01}" ${col.maxKey ? `max="${availableStock}"` : ''} step="${col.step || 0.01}" data-index="${index}" data-field="${col.key}">`; break;
+                    case 'number_input': content = `<input type="number" class="table-input" value="${item[col.key]}" placeholder="0.00" min="${col.min || 0}" ${col.maxKey ? `max="${availableStock}"` : ''} step="${col.step || 0.01}" data-index="${index}" data-field="${col.key}">`; break;
                     case 'cost_input': content = `<input type="number" class="table-input" value="${(item.cost || 0).toFixed(2)}" min="0" step="0.01" data-index="${index}" data-field="cost">`; break;
                     case 'calculated': content = `<span>${col.calculator(item)}</span>`; break;
                     case 'available_stock': content = availableStock.toFixed(2); break;
@@ -1721,6 +1733,54 @@ document.addEventListener('DOMContentLoaded', () => {
         exportBtn.disabled = false;
     }
     
+    function renderBranchSectionReport(branchCode, startDateStr, endDateStr) {
+        const resultsContainer = document.getElementById('bsc-results');
+        const exportBtn = document.getElementById('btn-export-bsc-report');
+        const branch = findByKey(state.branches, 'branchCode', branchCode);
+        if (!branch) {
+            exportBtn.disabled = true;
+            return;
+        }
+    
+        const sDate = startDateStr ? new Date(startDateStr) : null;
+        if (sDate) sDate.setHours(0, 0, 0, 0);
+        const eDate = endDateStr ? new Date(endDateStr) : null;
+        if (eDate) eDate.setHours(23, 59, 59, 999);
+    
+        let filteredTx = state.transactions.filter(t => t.type === 'issue' && t.fromBranchCode === branchCode);
+        if (sDate) filteredTx = filteredTx.filter(t => new Date(t.date) >= sDate);
+        if (eDate) filteredTx = filteredTx.filter(t => new Date(t.date) <= eDate);
+        
+        const historicalCosts = calculateHistoricalCosts();
+        const groupedBySection = {};
+    
+        filteredTx.forEach(t => {
+            if (!groupedBySection[t.sectionCode]) {
+                const section = findByKey(state.sections, 'sectionCode', t.sectionCode) || { name: t.sectionCode || 'Unspecified' };
+                groupedBySection[t.sectionCode] = { section, totalQty: 0, totalValue: 0 };
+            }
+            const quantity = parseFloat(t.quantity) || 0;
+            const costAtTransaction = historicalCosts[`${t.batchId}-${t.itemCode}`] || findByKey(state.items, 'code', t.itemCode)?.cost || 0;
+            
+            groupedBySection[t.sectionCode].totalQty += quantity;
+            groupedBySection[t.sectionCode].totalValue += quantity * costAtTransaction;
+        });
+    
+        const sortedGroups = Object.values(groupedBySection).sort((a, b) => a.section.name.localeCompare(b.section.name));
+        let tableBodyHtml = '';
+        sortedGroups.forEach(group => {
+            tableBodyHtml += `<tr><td>${group.section.name}</td><td style="text-align:right;">${group.totalQty.toFixed(2)}</td><td style="text-align:right;">${group.totalValue.toFixed(2)} EGP</td></tr>`;
+        });
+        
+        const grandTotalValue = sortedGroups.reduce((sum, group) => sum + group.totalValue, 0);
+        const grandTotalQty = sortedGroups.reduce((sum, group) => sum + group.totalQty, 0);
+        const dateHeader = `${startDateStr || 'Start'} to ${endDateStr || 'End'}`;
+
+        resultsContainer.innerHTML = `<div class="printable-document"><div class="printable-header"><div><h2>${_t('section_usage')} for ${branch.name}</h2><p style="margin:0; color: var(--text-light-color);">${dateHeader}</p></div><button class="secondary small no-print" onclick="printReport('bsc-results')">${_t('print_list')}</button></div><div class="report-area"><table id="table-bsc-report"><thead><tr><th>${_t('section_name')}</th><th style="text-align:right;">${_t('table_h_total_qty_consumed')}</th><th style="text-align:right;">${_t('table_h_total_value_consumed')}</th></tr></thead><tbody>${tableBodyHtml}</tbody><tfoot><tr style="font-weight:bold; background-color: var(--bg-color);"><td style="text-align:right;">${_t('grand_total')}</td><td style="text-align:right;">${grandTotalQty.toFixed(2)}</td><td style="text-align:right;">${grandTotalValue.toFixed(2)} EGP</td></tr></tfoot></table></div></div>`;
+        resultsContainer.style.display = 'block';
+        exportBtn.disabled = false;
+    }
+
     function renderPriceHistory(priceHistory) {
         const container = document.getElementById('subview-price-history');
         let html = `<h4>${_t('price_change_log')}</h4><table id="table-price-history"><thead><tr><th>${_t('table_h_date')}</th><th>${_t('table_h_old_cost')}</th><th>${_t('table_h_new_cost')}</th><th>${_t('table_h_change')}</th><th>${_t('table_h_source')}</th><th>${_t('table_h_updated_by')}</th></tr></thead><tbody>`;
@@ -2351,6 +2411,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 break;
             case 'reports':
                 populateOptions(document.getElementById('supplier-statement-select'), state.suppliers, _t('select_a_supplier'), 'supplierCode', 'name');
+                populateOptions(document.getElementById('bsc-branch-select'), getVisibleBranchesForCurrentUser(), _t('select_a_branch'), 'branchCode', 'name');
                 populateOptions(document.getElementById('branch-consumption-select'), getVisibleBranchesForCurrentUser(), _t('select_a_branch'), 'branchCode', 'name');
                 populateOptions(document.getElementById('section-consumption-select'), state.sections, _t('select_a_section'), 'sectionCode', 'name');
                 populateOptions(document.getElementById('resupply-branch-filter'), getVisibleBranchesForCurrentUser(), _t('all_branches'), 'branchCode', 'name');
@@ -2712,7 +2773,17 @@ document.addEventListener('DOMContentLoaded', () => {
             if (btn.classList.contains('btn-edit-transfer')) { openTransferEditModal(btn.dataset.batchId); }
             if (btn.classList.contains('btn-cancel-transfer')) { const batchId = btn.dataset.batchId; if (confirm(`Are you sure you want to cancel transfer ${batchId}?`)) { postData('cancelTransfer', { batchId }, btn).then(res => res && reloadDataAndRefreshUI()); } }
             if(btn.classList.contains('btn-approve-request')) { openApproveRequestModal(btn.dataset.id); } 
-            if (btn.classList.contains('btn-reject-request')) { const requestId = btn.dataset.id; if(confirm(`Are you sure you want to reject request ${requestId}?`)) { postData('rejectItemRequest', { requestId }, btn).then(res => res && reloadDataAndRefreshUI()); } }
+            if (btn.classList.contains('btn-reject-request')) { 
+                const requestId = btn.dataset.id; 
+                if(confirm(`Are you sure you want to reject request ${requestId}?`)) { 
+                    postData('rejectItemRequest', { requestId }, btn).then(res => {
+                        if(res) {
+                            showToast('Request rejected.', 'success');
+                            reloadDataAndRefreshUI();
+                        }
+                    }); 
+                } 
+            }
             if (btn.id === 'btn-print-pending-requests') {
                 const tableToPrint = document.getElementById('table-pending-requests');
                 if (tableToPrint) {
@@ -2827,10 +2898,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         
         document.getElementById('btn-submit-receive-batch').addEventListener('click', async (e) => { const btn = e.currentTarget; const supplierCode = document.getElementById('receive-supplier').value, branchCode = document.getElementById('receive-branch').value, invoiceNumber = document.getElementById('receive-invoice').value, notes = document.getElementById('receive-notes').value, poId = document.getElementById('receive-po-select').value; if (!userCan('opReceiveWithoutPO') && !poId) { showToast(_t('select_po_first_toast'), 'error'); return; } if (!supplierCode || !branchCode || !invoiceNumber || state.currentReceiveList.length === 0) { showToast(_t('fill_required_fields_toast'), 'error'); return; } const payload = { type: 'receive', batchId: `GRN-${Date.now()}`, supplierCode, branchCode, invoiceNumber, poId, date: new Date().toISOString(), items: state.currentReceiveList.map(i => ({...i, type: 'receive'})), notes }; await handleTransactionSubmit(payload, btn); });
-        document.getElementById('btn-submit-transfer-batch').addEventListener('click', async (e) => { const btn = e.currentTarget; const fromBranchCode = document.getElementById('transfer-from-branch').value, toBranchCode = document.getElementById('transfer-to-branch').value, notes = document.getElementById('transfer-notes').value, ref = document.getElementById('transfer-ref').value; if (!fromBranchCode || !toBranchCode || fromBranchCode === toBranchCode || state.currentTransferList.length === 0) { showToast('Please select valid branches and add at least one item.', 'error'); return; } const payload = { type: 'transfer_out', batchId: ref, ref: ref, fromBranchCode, toBranchCode, date: new Date().toISOString(), items: state.currentTransferList.map(i => ({...i, type: 'transfer_out'})), notes }; await handleTransactionSubmit(payload, btn); });
-        document.getElementById('btn-submit-issue-batch').addEventListener('click', async(e) => { const btn = e.currentTarget; const fromBranchCode = document.getElementById('issue-from-branch').value, sectionCode = document.getElementById('issue-to-section').value, ref = document.getElementById('issue-ref').value, notes = document.getElementById('issue-notes').value; if (!fromBranchCode || !sectionCode || !ref || state.currentIssueList.length === 0) { showToast('Please fill all issue details and select at least one item.', 'error'); return; } const payload = { type: 'issue', batchId: ref, ref: ref, fromBranchCode, sectionCode, date: new Date().toISOString(), items: state.currentIssueList.map(i => ({...i, type: 'issue'})), notes }; await handleTransactionSubmit(payload, btn); });
+        document.getElementById('btn-submit-transfer-batch').addEventListener('click', async (e) => { const btn = e.currentTarget; const fromBranchCode = document.getElementById('transfer-from-branch').value, toBranchCode = document.getElementById('transfer-to-branch').value, notes = document.getElementById('transfer-notes').value, ref = document.getElementById('transfer-ref').value; if (!fromBranchCode) { alert(_t('alert_select_from_branch')); return; } if (!toBranchCode) { alert('Please select a "To Branch" before submitting.'); return; } if (fromBranchCode === toBranchCode || state.currentTransferList.length === 0) { showToast('Please select valid, different branches and add at least one item.', 'error'); return; } const payload = { type: 'transfer_out', batchId: ref, ref: ref, fromBranchCode, toBranchCode, date: new Date().toISOString(), items: state.currentTransferList.map(i => ({...i, type: 'transfer_out'})), notes }; await handleTransactionSubmit(payload, btn); });
+        document.getElementById('btn-submit-issue-batch').addEventListener('click', async(e) => { const btn = e.currentTarget; const fromBranchCode = document.getElementById('issue-from-branch').value, sectionCode = document.getElementById('issue-to-section').value, ref = document.getElementById('issue-ref').value, notes = document.getElementById('issue-notes').value; if (!fromBranchCode) { alert(_t('alert_select_from_branch')); return; } if (!sectionCode || !ref || state.currentIssueList.length === 0) { showToast('Please fill all issue details and select at least one item.', 'error'); return; } const payload = { type: 'issue', batchId: ref, ref: ref, fromBranchCode, sectionCode, date: new Date().toISOString(), items: state.currentIssueList.map(i => ({...i, type: 'issue'})), notes }; await handleTransactionSubmit(payload, btn); });
         document.getElementById('btn-submit-po').addEventListener('click', async (e) => { const btn = e.currentTarget; const supplierCode = document.getElementById('po-supplier').value, poId = document.getElementById('po-ref').value, notes = document.getElementById('po-notes').value; if (!supplierCode || state.currentPOList.length === 0) { showToast('Please select a supplier and add items.', 'error'); return; } const totalValue = state.currentPOList.reduce((acc, item) => acc + (item.quantity * item.cost), 0); const payload = { type: 'po', poId, supplierCode, date: new Date().toISOString(), items: state.currentPOList, totalValue, notes }; await handleTransactionSubmit(payload, btn); });
-        document.getElementById('btn-submit-return').addEventListener('click', async (e) => { const btn = e.currentTarget; const supplierCode = document.getElementById('return-supplier').value, fromBranchCode = document.getElementById('return-branch').value, ref = document.getElementById('return-ref').value, notes = document.getElementById('return-notes').value; if (!supplierCode || !fromBranchCode || !ref || state.currentReturnList.length === 0) { showToast('Please fill all required fields and add items.', 'error'); return; } const payload = { type: 'return_out', batchId: `RTN-${Date.now()}`, ref: ref, supplierCode, fromBranchCode, date: new Date().toISOString(), items: state.currentReturnList.map(i => ({...i, type: 'return_out'})), notes }; await handleTransactionSubmit(payload, btn); });
+        document.getElementById('btn-submit-return').addEventListener('click', async (e) => { const btn = e.currentTarget; const supplierCode = document.getElementById('return-supplier').value, fromBranchCode = document.getElementById('return-branch').value, ref = document.getElementById('return-ref').value, notes = document.getElementById('return-notes').value; if (!fromBranchCode) { alert(_t('alert_select_from_branch')); return; } if (!supplierCode || !ref || state.currentReturnList.length === 0) { showToast('Please fill all required fields and add items.', 'error'); return; } const payload = { type: 'return_out', batchId: `RTN-${Date.now()}`, ref: ref, supplierCode, fromBranchCode, date: new Date().toISOString(), items: state.currentReturnList.map(i => ({...i, type: 'return_out'})), notes }; await handleTransactionSubmit(payload, btn); });
         document.getElementById('btn-submit-request').addEventListener('click', async(e) => { const btn = e.currentTarget; const requestType = document.getElementById('request-type').value; const notes = document.getElementById('request-notes').value; if(state.currentRequestList.length === 0){ showToast('Please select items for your request.', 'error'); return; } const payload = { requestId: `REQ-${Date.now()}`, requestType, notes, items: state.currentRequestList }; const result = await postData('addItemRequest', payload, btn); if(result){ showToast('Request submitted successfully!', 'success'); state.currentRequestList = []; document.getElementById('form-create-request').reset(); renderRequestListTable(); reloadDataAndRefreshUI(); }});
         
         const handleTableInputUpdate = (e, listName, updaterFn) => {
@@ -2873,7 +2944,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('btn-submit-adjustment').addEventListener('click', async (e) => {
             const btn = e.currentTarget;
             const branchCode = document.getElementById('adjustment-branch').value;
-            const ref = document.getElementById('adjustment-ref').value;
+            const ref = document.getElementById('adjustment-ref').value; if (!branchCode) { alert(_t('alert_select_branch')); return; }
             const notes = document.getElementById('adjustment-notes').value;
             if (!branchCode || !ref || !state.currentAdjustmentList || state.currentAdjustmentList.length === 0) {
                 showToast('Please select a branch, provide a reference, and add items to adjust.', 'error');
@@ -2945,6 +3016,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         
         document.getElementById('btn-generate-supplier-statement').addEventListener('click', () => { const supplierCode = document.getElementById('supplier-statement-select').value; const startDate = document.getElementById('statement-start-date').value; const endDate = document.getElementById('statement-end-date').value; if(!supplierCode) { showToast('Please select a supplier.', 'error'); return; } renderSupplierStatement(supplierCode, startDate, endDate); });
+        document.getElementById('btn-generate-bsc-report').addEventListener('click', () => { const branchCode = document.getElementById('bsc-branch-select').value; const startDate = document.getElementById('bsc-start-date').value; const endDate = document.getElementById('bsc-end-date').value; if (!branchCode) { showToast(_t('alert_select_branch'), 'error'); return; } renderBranchSectionReport(branchCode, startDate, endDate); });
         document.getElementById('btn-generate-branch-consumption').addEventListener('click', () => { const branchCode = document.getElementById('branch-consumption-select').value; const startDate = document.getElementById('branch-consumption-start-date').value; const endDate = document.getElementById('branch-consumption-end-date').value; const itemFilter = document.getElementById('branch-consumption-item-filter').value; const categoryFilter = document.getElementById('branch-consumption-category-filter').value; if(!branchCode) { showToast('Please select a branch.', 'error'); return; } let filteredTx = state.transactions.filter(t => t.type === 'issue' && t.fromBranchCode === branchCode); const sDate = startDate ? new Date(startDate) : null; if(sDate) sDate.setHours(0,0,0,0); const eDate = endDate ? new Date(endDate) : null; if(eDate) eDate.setHours(23,59,59,999); if (sDate) filteredTx = filteredTx.filter(t => new Date(t.date) >= sDate); if (eDate) filteredTx = filteredTx.filter(t => new Date(t.date) <= eDate); if (itemFilter) filteredTx = filteredTx.filter(t => t.itemCode === itemFilter); if (categoryFilter) { const itemCodesInCategory = state.items.filter(i => i.category === categoryFilter).map(i => i.code); filteredTx = filteredTx.filter(t => itemCodesInCategory.includes(t.itemCode)); } const historicalCosts = calculateHistoricalCosts(); renderConsumptionReport({ resultsContainerId: 'branch-consumption-results', exportBtnId: 'btn-export-branch-consumption', data: filteredTx, title: 'branch_consumption', entityName: findByKey(state.branches, 'branchCode', branchCode).name, dateHeader: `${startDate || 'Start'} to ${endDate || 'End'}`, historicalCosts: historicalCosts }); });
         document.getElementById('btn-generate-section-consumption').addEventListener('click', () => { const sectionCode = document.getElementById('section-consumption-select').value; const startDate = document.getElementById('section-consumption-start-date').value; const endDate = document.getElementById('section-consumption-end-date').value; const itemFilter = document.getElementById('section-consumption-item-filter').value; const categoryFilter = document.getElementById('section-consumption-category-filter').value; if(!sectionCode) { showToast('Please select a section.', 'error'); return; } let filteredTx = state.transactions.filter(t => t.type === 'issue' && t.sectionCode === sectionCode); const sDate = startDate ? new Date(startDate) : null; if(sDate) sDate.setHours(0,0,0,0); const eDate = endDate ? new Date(endDate) : null; if(eDate) eDate.setHours(23,59,59,999); if (sDate) filteredTx = filteredTx.filter(t => new Date(t.date) >= sDate); if (eDate) filteredTx = filteredTx.filter(t => new Date(t.date) <= eDate); if (itemFilter) filteredTx = filteredTx.filter(t => t.itemCode === itemFilter); if (categoryFilter) { const itemCodesInCategory = state.items.filter(i => i.category === categoryFilter).map(i => i.code); filteredTx = filteredTx.filter(t => itemCodesInCategory.includes(t.itemCode)); } const historicalCosts = calculateHistoricalCosts(); renderConsumptionReport({ resultsContainerId: 'section-consumption-results', exportBtnId: 'btn-export-section-consumption', data: filteredTx, title: 'section_usage', entityName: findByKey(state.sections, 'sectionCode', sectionCode).name, dateHeader: `${startDate || 'Start'} to ${endDate || 'End'}`, historicalCosts: historicalCosts }); });
         document.getElementById('btn-generate-resupply-report').addEventListener('click', () => { const branchCode = document.getElementById('resupply-branch-filter').value; const startDate = document.getElementById('resupply-start-date').value; const endDate = document.getElementById('resupply-end-date').value; let filteredReqs = state.itemRequests.filter(r => r.Type === 'resupply'); const sDate = startDate ? new Date(startDate) : null; if(sDate) sDate.setHours(0,0,0,0); const eDate = endDate ? new Date(endDate) : null; if(eDate) eDate.setHours(23,59,59,999); if (branchCode) filteredReqs = filteredReqs.filter(r => r.ToBranch === branchCode); if (sDate) filteredReqs = filteredReqs.filter(r => new Date(r.Date) >= sDate); if (eDate) filteredReqs = filteredReqs.filter(r => new Date(r.Date) <= eDate); const entityName = branchCode ? findByKey(state.branches, 'branchCode', branchCode).name : _t('all_branches'); renderConsumptionReport({ resultsContainerId: 'resupply-report-results', exportBtnId: 'btn-export-resupply-report', data: filteredReqs.map(r => ({...r, fromBranchCode: r.ToBranch, itemCode: r.ItemCode, quantity: r.Quantity})), title: 'resupply_report', entityName: entityName, dateHeader: `${startDate || 'Start'} to ${endDate || 'End'}`, qtyColumnHeader: 'Total Qty Requested' }); });
@@ -3024,6 +3096,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('btn-export-branch-consumption').addEventListener('click', () => exportToExcel('table-branch-consumption-results-report', 'BranchConsumption.xlsx'));
         document.getElementById('btn-export-section-consumption').addEventListener('click', () => exportToExcel('table-section-consumption-results-report', 'SectionConsumption.xlsx'));
         document.getElementById('btn-export-resupply-report').addEventListener('click', () => exportToExcel('table-resupply-report-results-report', 'ResupplyReport.xlsx'));
+        document.getElementById('btn-export-bsc-report').addEventListener('click', () => exportToExcel('table-bsc-report', 'BranchSectionConsumption.xlsx'));
         
         updateUserBranchDisplay();
         updatePendingRequestsWidget();
@@ -3200,8 +3273,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function openApproveRequestModal(requestId) {
         const requestGroup = state.itemRequests.filter(r => r.RequestID === requestId);
-        if (requestGroup.length === 0) return;
+        if (requestGroup.length === 0) {
+            showToast('Request not found.', 'error');
+            return;
+        }
         const first = requestGroup[0];
+
+        // Handle simple resupply approval
+        if (first.Type === 'resupply') {
+            if (confirm(_t('approve_resupply_confirm'))) {
+                const statusNotes = prompt(_t('notes_optional'), '');
+                const payload = { requestId, statusNotes: statusNotes || '' };
+                postData('approveItemRequest', payload, null).then(result => {
+                    if (result) { showToast('Request approved!', 'success'); reloadDataAndRefreshUI(); }
+                });
+            }
+            return; // End execution for resupply type
+        }
+
         const stock = calculateStockLevels();
         const branchStock = stock[first.ToBranch] || {};
         
@@ -3278,16 +3367,17 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         const statusNotes = document.getElementById('approve-status-notes').value;
-        const editedItems = [];
-        document.querySelectorAll('#table-approve-request-items tbody tr').forEach(tr => {
-            const input = tr.querySelector('input');
-            editedItems.push({
-                itemCode: input.dataset.itemCode,
-                issuedQuantity: parseFloat(input.value) || 0
+        const payload = { requestId, statusNotes };
+
+        // Only add editedItems for 'issue' type requests
+        if (document.getElementById('table-approve-request-items')) {
+            payload.editedItems = [];
+            document.querySelectorAll('#table-approve-request-items tbody tr').forEach(tr => {
+                const input = tr.querySelector('input');
+                payload.editedItems.push({ itemCode: input.dataset.itemCode, issuedQuantity: parseFloat(input.value) || 0 });
             });
-        });
+        }
         
-        const payload = { requestId, statusNotes, editedItems };
         const result = await postData('approveItemRequest', payload, btn);
         if (result) {
             showToast('Request approved and processed!', 'success');
@@ -3325,3 +3415,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
     init();
 });
+  
