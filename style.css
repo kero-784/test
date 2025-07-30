@@ -106,7 +106,11 @@ html[dir="rtl"] body {
 .report-generator-controls select { min-width: 150px; } 
 .report-generator-controls input { min-width: 120px; } 
 .report-generator-controls button { flex-shrink: 0; }
-
+.report-area select[multiple] {
+    background-color: var(--card-bg-color);
+    height: 150px;
+    padding: 8px;
+}
 /* --- Form Elements --- */
 .form-group { margin-bottom: 16px; }
 .form-group label { display: block; font-weight: 500; font-size: 14px; margin-bottom: 8px; color: var(--text-light-color); }
@@ -195,6 +199,10 @@ tbody tr:hover { background-color: #f7faff; }
 .status-unpaid, .status-rejected, .status-cancelled { background-color: #FDEDE9; color: var(--danger-color); }
 .status-partial { background-color: #FFF6E0; color: #E89500; }
 .status-pending, .status-intransit, .status-pendingapproval { background-color: #eaf2fc; color: var(--primary-dark); }
+.consumption-group-branch { background-color: #eaf2fc; font-weight: 700; font-size: 15px; }
+.consumption-group-section { background-color: #f8f9fa; font-weight: 600; }
+.consumption-group-section td:first-child { padding-left: 40px !important; }
+.consumption-item-row td:first-child { padding-left: 64px !important; }
 .report-area { overflow-x: auto; }
 #item-centric-stock-container table, .printable-area table { table-layout: auto; }
 #item-centric-stock-container td, .printable-area td, #history-modal-body td { white-space: normal; }
@@ -216,6 +224,10 @@ input:focus + .slider { box-shadow: 0 0 1px var(--primary-color); }
 input:checked + .slider:before { transform: translateX(26px); }
 .slider.round { border-radius: 34px; }
 .slider.round:before { border-radius: 50%; }
+
+/* --- Admin Context Modal --- */
+#context-modal-message { margin-bottom: 24px; color: var(--text-light-color); line-height: 1.6; }
+
 
 /*
 ====================================
@@ -311,6 +323,9 @@ html[dir="rtl"] .toast {
 }
 
 html[dir="rtl"] @keyframes slideIn { to { transform: translateX(0); } }
+
+html[dir="rtl"] .consumption-group-section td:first-child { padding-right: 40px !important; padding-left: 16px !important; }
+html[dir="rtl"] .consumption-item-row td:first-child { padding-right: 64px !important; padding-left: 16px !important; }
 
 /* --- Print & Responsive --- */
 @media print { body { background-color: #fff !important; } .app-container, .no-print { display: none !important; } #print-area { display: block !important; } .printable-document { display: block !important; box-shadow: none; border: none; padding:0; } .printable-document h2, .printable-document p { margin: 0 0 10px 0; } #print-area table { table-layout: auto; } #print-area th, #print-area td { white-space: normal !important; word-break: break-word !important; overflow: visible !important; text-overflow: clip !important; font-size: 10pt; padding: 8px; } }
