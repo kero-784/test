@@ -844,11 +844,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const editModalTitle = document.getElementById('edit-modal-title');
     const formEditRecord = document.getElementById('form-edit-record');
     const viewTransferModal = document.getElementById('view-transfer-modal');
-```
 
-#### PART 2 OF 4: MODAL & UI LOGIC
-
-```javascript
 // PART 2 OF 4: MODAL & UI LOGIC
     function showView(viewId, subViewId = null) {
         Logger.info(`Switching view to: ${viewId}` + (subViewId ? `/${subViewId}` : ''));
@@ -1326,11 +1322,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         closeModal();
     }
-```
 
-#### PART 3 OF 4: VIEW RENDERING & DOCUMENT GENERATION
-
-```javascript
 // PART 3 OF 4: VIEW RENDERING & DOCUMENT GENERATION
     function renderItemsTable(data = state.items) {
         const tbody = document.getElementById('table-items').querySelector('tbody');
@@ -2048,11 +2040,8 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>`;
         printContent(content);
     };
-```
 
-#### PART 4 OF 4: INITIALIZATION AND EVENT LISTENERS
 
-```javascript
 // PART 4 OF 4: INITIALIZATION AND EVENT LISTENERS
     function attachEventListeners() {
         btnLogout.addEventListener('click', logout);
