@@ -934,7 +934,7 @@ document.addEventListener('DOMContentLoaded', () => {
             setButtonLoading(false, buttonEl);
         }
     }
-// PART 2 OF 4: MODAL & UI LOGIC
+//  2 OF 4: MODAL & UI LOGIC
     function showView(viewId, subViewId = null) {
         Logger.info(`Switching view to: ${viewId}` + (subViewId ? `/${subViewId}` : ''));
         
@@ -1681,6 +1681,133 @@ document.addEventListener('DOMContentLoaded', () => {
         resultsContainer.style.display = 'block';
         exportBtn.disabled = false;
     }
+    
+    function renderAndGenerateConsumptionReport() {
+        const resultsContainer = document.getElementById('consumption-report-results');
+        const exportBtn = document.getElementById('btn-export-consumption-report');
+        
+        resultsContainer.innerHTML = '<div class="spinner"></div>';
+        resultsContainer.style.display = 'block';
+        exportBtn.disabled = true;
+
+        // 1. Get filter values
+        const selectedBranches = getSelectedOptions(document.getElementById('consumption-branch-filter'));
+        const selectedSections = getSelectedOptions(document.getElementById('consumption-section-filter'));
+        const selectedCategories = getSelectedOptions(document.getElementById('consumption-category-filter'));
+        const selectedItems = getSelectedOptions(document.getElementById('consumption-item-filter'));
+        const startDate = document.getElementById('consumption-start-date').value;
+        const endDate = document.getElementById('consumption-end-date').value;
+
+        const sDate = startDate ? new Date(startDate) : null;
+        if (sDate) sDate.setHours(0, 0, 0, 0);
+        const eDate = endDate ? new Date(endDate) : null;
+        if (eDate) eDate.setHours(23, 59, 59, 999);
+
+        // 2. Filter transactions
+        const historicalCosts = calculateHistoricalCosts();
+        
+        const consumptionData = (state.transactions || [])
+            .filter(t => {
+                if (t.type !== 'issue') return false;
+                
+                const txDate = new Date(t.date);
+                if (sDate && txDate < sDate) return false;
+                if (eDate && txDate > eDate) return false;
+                
+                if (selectedBranches.length > 0 && !selectedBranches.includes(t.fromBranchCode)) return false;
+                if (selectedSections.length > 0 && !selectedSections.includes(t.sectionCode)) return false;
+                
+                const item = findByKey(state.items, 'code', t.itemCode);
+                if (!item) return false;
+
+                if (selectedCategories.length > 0 && !selectedCategories.includes(item.category)) return false;
+                if (selectedItems.length > 0 && !selectedItems.includes(item.code)) return false;
+
+                return true;
+            })
+            .reduce((acc, t) => {
+                const itemCode = t.itemCode;
+                if (!acc[itemCode]) {
+                    const item = findByKey(state.items, 'code', itemCode);
+                    acc[itemCode] = {
+                        code: itemCode,
+                        name: item?.name || 'N/A',
+                        unit: item?.unit || 'N/A',
+                        totalQty: 0,
+                        totalValue: 0,
+                    };
+                }
+                const qty = parseFloat(t.quantity) || 0;
+                const cost = historicalCosts[`${t.batchId}-${t.itemCode}`] || findByKey(state.items, 'code', itemCode)?.cost || 0;
+                acc[itemCode].totalQty += qty;
+                acc[itemCode].totalValue += qty * cost;
+                return acc;
+            }, {});
+
+        const consumptionArray = Object.values(consumptionData);
+        
+        // 3. Render results
+        if (consumptionArray.length === 0) {
+            resultsContainer.innerHTML = `<p>No consumption data found for the selected filters.</p>`;
+            return;
+        }
+        
+        let grandTotalValue = 0;
+        let tableBodyHtml = '';
+        consumptionArray.sort((a,b) => a.name.localeCompare(b.name)).forEach(item => {
+            grandTotalValue += item.totalValue;
+            tableBodyHtml += `
+                <tr>
+                    <td>${item.code}</td>
+                    <td>${item.name}</td>
+                    <td>${item.unit}</td>
+                    <td>${item.totalQty.toFixed(2)}</td>
+                    <td>${item.totalValue.toFixed(2)} EGP</td>
+                </tr>
+            `;
+        });
+
+        let dateHeader = _t('report_period_all_time');
+        if (sDate && eDate) dateHeader = _t('report_period_from_to', {startDate: sDate.toLocaleDateString(), endDate: eDate.toLocaleDateString()});
+        else if (sDate) dateHeader = _t('report_period_from', {startDate: sDate.toLocaleDateString()});
+        else if (eDate) dateHeader = _t('report_period_until', {endDate: eDate.toLocaleDateString()});
+        
+        resultsContainer.innerHTML = `
+            <div class="printable-document">
+                <div class="printable-header">
+                    <div>
+                        <h2>${_t('consumption_report')}</h2>
+                        <p style="margin:0; color: var(--text-light-color);">${dateHeader}</p>
+                    </div>
+                    <button class="secondary small no-print" onclick="printReport('consumption-report-results')">${_t('print_list')}</button>
+                </div>
+                <p><strong>${_t('date_generated')}</strong> ${new Date().toLocaleString()}</p>
+                <div class="report-area">
+                    <table id="table-consumption-report">
+                        <thead>
+                            <tr>
+                                <th>${_t('table_h_code')}</th>
+                                <th>${_t('item_name')}</th>
+                                <th>${_t('unit')}</th>
+                                <th>${_t('table_h_total_qty_consumed')}</th>
+                                <th>${_t('table_h_total_value_consumed')}</th>
+                            </tr>
+                        </thead>
+                        <tbody>${tableBodyHtml}</tbody>
+                        <tfoot>
+                            <tr style="font-weight:bold; background-color: var(--bg-color);">
+                                <td colspan="4" style="text-align:right;">${_t('grand_total_value')}</td>
+                                <td>${grandTotalValue.toFixed(2)} EGP</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        `;
+
+        exportBtn.disabled = false;
+    }
+
 // PART 4 OF 4: CALCULATION ENGINES, EVENT LISTENERS & INITIALIZATION
     function updateReceiveGrandTotal() { let grandTotal = 0; (state.currentReceiveList || []).forEach(item => { grandTotal += (parseFloat(item.quantity) || 0) * (parseFloat(item.cost) || 0); }); document.getElementById('receive-grand-total').textContent = `${grandTotal.toFixed(2)} EGP`; }
     function updateTransferGrandTotal() { let grandTotalQty = 0; (state.currentTransferList || []).forEach(item => { grandTotalQty += (parseFloat(item.quantity) || 0); }); document.getElementById('transfer-grand-total').textContent = grandTotalQty.toFixed(2); }
@@ -2543,6 +2670,70 @@ document.addEventListener('DOMContentLoaded', () => {
             if (e.target.id === 'btn-save-po-changes') { savePOChanges(e); }
             if (e.target.id === 'btn-save-invoice-changes') { saveInvoiceChanges(e); }
         });
+
+        // Consumption Report filter controls
+        const consumptionReportView = document.getElementById('subview-consumption-report');
+        if (consumptionReportView) {
+            // Search listeners for multi-select boxes
+            ['branch', 'section', 'item'].forEach(type => {
+                const searchInput = document.getElementById(`consumption-${type}-search`);
+                const selectElement = document.getElementById(`consumption-${type}-filter`);
+                let sourceData;
+                let valueKey, textKey;
+                
+                switch(type) {
+                    case 'branch': 
+                        sourceData = getVisibleBranchesForCurrentUser();
+                        valueKey = 'branchCode';
+                        textKey = 'name';
+                        break;
+                    case 'section': 
+                        sourceData = state.sections;
+                        valueKey = 'sectionCode';
+                        textKey = 'name';
+                        break;
+                    case 'item': 
+                        sourceData = state.items;
+                        valueKey = 'code';
+                        textKey = 'name';
+                        break;
+                }
+
+                if (searchInput && selectElement && sourceData) {
+                    searchInput.addEventListener('input', e => {
+                        const searchTerm = e.target.value.toLowerCase();
+                        const filteredData = sourceData.filter(item => {
+                            return item[textKey].toLowerCase().includes(searchTerm) || (item[valueKey] && String(item[valueKey]).toLowerCase().includes(searchTerm));
+                        });
+                        const selected = getSelectedOptions(selectElement); // Preserve selections
+                        populateMultiSelect(selectElement, filteredData, valueKey, textKey);
+                        Array.from(selectElement.options).forEach(opt => {
+                            if (selected.includes(opt.value)) {
+                                opt.selected = true;
+                            }
+                        });
+                    });
+                }
+            });
+
+            // Select All / Deselect All button listeners
+            consumptionReportView.addEventListener('click', e => {
+                const button = e.target.closest('button[data-action]');
+                if (button) {
+                    e.preventDefault();
+                    const action = button.dataset.action;
+                    const targetId = button.dataset.target;
+                    const selectElement = document.getElementById(targetId);
+                    if (selectElement) {
+                        const shouldSelect = action === 'select-all';
+                        Array.from(selectElement.options).forEach(option => {
+                            option.selected = shouldSelect;
+                        });
+                    }
+                }
+            });
+        }
+        
         document.getElementById('btn-confirm-modal-selection').addEventListener('click', confirmModalSelection);
         document.getElementById('btn-confirm-invoice-selection').addEventListener('click', confirmModalSelection);
         
