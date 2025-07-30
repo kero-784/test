@@ -1,4 +1,4 @@
-/ PART 1 OF 4: CORE SETUP & API
+// PART 1 OF 4: CORE SETUP & API
 window.printReport = function(elementId) {
     const reportContent = document.querySelector(`#${elementId} .printable-document`);
     if (reportContent) {
