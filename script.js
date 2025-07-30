@@ -818,7 +818,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return p === true || String(p).toUpperCase() === 'TRUE';
     };
 
-    // --- DOM ELEMENT REFERENCES ---
+    // --- DOM ELEMENT REFERENCES (defined globally within the scope) ---
     const loginContainer = document.getElementById('login-container');
     const loginForm = document.getElementById('login-form');
     const loginUsernameInput = document.getElementById('login-username');
@@ -844,129 +844,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const editModalTitle = document.getElementById('edit-modal-title');
     const formEditRecord = document.getElementById('form-edit-record');
     const viewTransferModal = document.getElementById('view-transfer-modal');
-    
-    // --- MOVED FUNCTION TO FIX REFERENCE ERROR ---
-    function initializeAppUI() {
-        Logger.info('Application UI initializing...');
-        setupRoleBasedNav();
-        attachEventListeners();
-        attachSubNavListeners();
-        setupSearch('search-items', renderItemsTable, 'items', ['name', 'code', 'category']);
-        setupSearch('search-suppliers', renderSuppliersTable, 'suppliers', ['name', 'supplierCode']);
-        setupSearch('search-branches', renderBranchesTable, 'branches', ['name', 'branchCode']);
-        setupSearch('search-sections', renderSectionsTable, 'sections', ['name', 'sectionCode']);
-        setupSearch('stock-levels-search', renderItemCentricStockView, 'items', ['name', 'code']);
-        document.getElementById('item-inquiry-search').addEventListener('input', e => renderItemInquiry(e.target.value.toLowerCase()));
-        
-        document.getElementById('btn-export-items').addEventListener('click', () => exportToExcel('table-items', 'ItemList.xlsx'));
-        document.getElementById('btn-export-suppliers').addEventListener('click', () => exportToExcel('table-suppliers', 'SupplierList.xlsx'));
-        document.getElementById('btn-export-branches').addEventListener('click', () => exportToExcel('table-branches', 'BranchList.xlsx'));
-        document.getElementById('btn-export-sections').addEventListener('click', () => exportToExcel('table-sections', 'SectionList.xlsx'));
-        document.getElementById('btn-export-stock').addEventListener('click', () => exportToExcel('table-stock-levels-by-item', 'StockLevels.xlsx'));
-        document.getElementById('btn-export-supplier-statement').addEventListener('click', () => exportToExcel('table-supplier-statement-report', 'SupplierStatement.xlsx'));
-        document.getElementById('btn-export-branch-consumption').addEventListener('click', () => exportToExcel('table-branch-consumption-results-report', 'BranchConsumption.xlsx'));
-        document.getElementById('btn-export-section-consumption').addEventListener('click', () => exportToExcel('table-section-consumption-results-report', 'SectionConsumption.xlsx'));
-        document.getElementById('btn-export-resupply-report').addEventListener('click', () => exportToExcel('table-resupply-report-results-report', 'ResupplyReport.xlsx'));
-        
-        updateUserBranchDisplay();
-        updatePendingRequestsWidget();
-        const firstVisibleView = document.querySelector('#main-nav .nav-item:not([style*="display: none"]) a')?.dataset.view || 'dashboard';
-        showView(firstVisibleView);
-        Logger.info('Application initialized successfully.');
-    }
+```
 
-    async function attemptLogin(username, loginCode) {
-        if (!username || !loginCode) return;
-        loginForm.style.display = 'none';
-        loginError.textContent = '';
-        loginLoader.style.display = 'flex';
-        setButtonLoading(true, loginForm.querySelector('button'), 'signing_in');
-        Logger.info(`Attempting to login...`);
-        if (!SCRIPT_URL || !SCRIPT_URL.includes('macros/s')) {
-            const errorMsg = 'SCRIPT_URL is not set or invalid in script.js.';
-            Logger.error(errorMsg);
-            loginError.textContent = errorMsg;
-            loginLoader.style.display = 'none';
-            loginForm.style.display = 'block';
-            return;
-        }
-        try {
-            const response = await fetch(`${SCRIPT_URL}?username=${encodeURIComponent(username)}&loginCode=${encodeURIComponent(loginCode)}`);
-            if (!response.ok) throw new Error(`Network error: ${response.status} ${response.statusText}`);
-            const data = await response.json();
-            if (data.status === 'error' || !data.user) {
-                throw new Error(data.message || 'Invalid username or login code.');
-            }
-            if (data.user.isDisabled === true || String(data.user.isDisabled).toUpperCase() === 'TRUE') {
-                throw new Error('This user account has been disabled. Please contact an administrator.');
-            }
-            state.username = username;
-            state.loginCode = loginCode;
-            state.currentUser = data.user;
-            Object.keys(data).forEach(key => {
-                if (key !== 'user') state[key] = data[key] || [];
-            });
-            Logger.info(`Login successful for user: ${state.currentUser.Name} (Role: ${state.currentUser.RoleName})`);
-            
-            const savedLang = localStorage.getItem('userLanguage') || 'en';
-            state.currentLanguage = savedLang;
-            document.getElementById('lang-switcher').value = savedLang;
+#### PART 2 OF 4: MODAL & UI LOGIC
 
-            loginContainer.style.display = 'none';
-            appContainer.style.display = 'flex';
-            initializeAppUI();
-        } catch (error) {
-            const userMsg = error.message.includes('Network error') ? 'Failed to connect to server.' : error.message;
-            Logger.error('Login failed:', error);
-            loginError.textContent = userMsg;
-            loginLoader.style.display = 'none';
-            loginForm.style.display = 'block';
-            loginCodeInput.value = '';
-            loginUsernameInput.value = '';
-        } finally {
-             setButtonLoading(false, loginForm.querySelector('button'));
-        }
-    }
-
-    async function postData(action, data, buttonEl) {
-        setButtonLoading(true, buttonEl, 'processing');
-        Logger.debug(`POSTing action: ${action}`, data);
-        const {
-            username,
-            loginCode
-        } = state;
-        if (!username || !loginCode) {
-            Logger.error("Authentication token missing. Cannot perform action.");
-            showToast(_t('session_error_toast'), 'error');
-            setButtonLoading(false, buttonEl);
-            return null;
-        }
-
-        try {
-            const response = await fetch(SCRIPT_URL, {
-                method: 'POST',
-                mode: 'cors',
-                body: JSON.stringify({
-                    username,
-                    loginCode,
-                    action,
-                    data
-                })
-            });
-            const result = await response.json();
-            if (result.status !== 'success') throw new Error(result.message || 'An unknown error occurred on the server.');
-            Logger.info(`POST successful for ${action}`, result);
-            return result;
-        } catch (error) {
-            const userMsg = _t('action_failed_toast', {errorMessage: error.message});
-            Logger.error(userMsg, error);
-            showToast(userMsg, 'error');
-            return null;
-        } finally {
-            setButtonLoading(false, buttonEl);
-        }
-    }
-
+```javascript
 // PART 2 OF 4: MODAL & UI LOGIC
     function showView(viewId, subViewId = null) {
         Logger.info(`Switching view to: ${viewId}` + (subViewId ? `/${subViewId}` : ''));
@@ -1444,35 +1326,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         closeModal();
     }
-    
-    function showToast(message, type = 'success') {
-        if (type === 'error') Logger.error(`User Toast: ${message}`);
-        const container = document.getElementById('toast-container');
-        if (!container) {
-            console.error("Toast container not found! Message:", message);
-            return;
-        }
-        const toast = document.createElement('div');
-        toast.className = `toast ${type}`;
-        toast.textContent = message;
-        container.appendChild(toast);
-        setTimeout(() => toast.remove(), 3500);
-    }
+```
 
-    function setButtonLoading(isLoading, buttonEl, loadingTextKey = 'signing_in') {
-        if (!buttonEl) return;
-        if (isLoading) {
-            buttonEl.disabled = true;
-            buttonEl.dataset.originalText = buttonEl.innerHTML;
-            buttonEl.innerHTML = `<div class="button-spinner"></div><span>${_t(loadingTextKey)}</span>`;
-        } else {
-            buttonEl.disabled = false;
-            if (buttonEl.dataset.originalText) {
-                buttonEl.innerHTML = buttonEl.dataset.originalText;
-            }
-        }
-    }
+#### PART 3 OF 4: VIEW RENDERING & DOCUMENT GENERATION
 
+```javascript
 // PART 3 OF 4: VIEW RENDERING & DOCUMENT GENERATION
     function renderItemsTable(data = state.items) {
         const tbody = document.getElementById('table-items').querySelector('tbody');
@@ -2190,6 +2048,406 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>`;
         printContent(content);
     };
+```
+
+#### PART 4 OF 4: INITIALIZATION AND EVENT LISTENERS
+
+```javascript
+// PART 4 OF 4: INITIALIZATION AND EVENT LISTENERS
+    function attachEventListeners() {
+        btnLogout.addEventListener('click', logout);
+        globalRefreshBtn.addEventListener('click', reloadDataAndRefreshUI);
+        
+        document.getElementById('btn-create-backup').addEventListener('click', async (e) => {
+            const btn = e.currentTarget;
+            if (confirm(_t('backup_confirm_prompt'))) {
+                const result = await postData('createBackup', {}, btn);
+                if (result && result.data) {
+                    showToast(_t('backup_created_toast', {fileName: result.data.fileName}), 'success');
+                    await loadAndRenderBackups();
+                }
+            }
+        });
+
+        document.getElementById('backup-list-container').addEventListener('click', (e) => {
+            const btn = e.target.closest('button');
+            if (btn && btn.classList.contains('btn-restore')) {
+                const backupFileId = findByKey(state.backups, 'url', btn.dataset.url)?.id;
+                const backupFileName = findByKey(state.backups, 'url', btn.dataset.url)?.name;
+                if (backupFileId) {
+                    openRestoreModal(backupFileId, backupFileName);
+                } else {
+                    showToast(_t('restore_find_id_fail_toast'), 'error');
+                }
+            }
+        });
+        
+        document.getElementById('auto-backup-toggle').addEventListener('change', handleAutoBackupToggle);
+        document.getElementById('auto-backup-frequency').addEventListener('change', handleAutoBackupToggle);
+        document.getElementById('btn-confirm-restore').addEventListener('click', handleConfirmRestore);
+
+        document.querySelectorAll('#main-nav a:not(#btn-logout)').forEach(link => { link.addEventListener('click', e => { e.preventDefault(); showView(link.dataset.view); }); });
+        
+        mainContent.addEventListener('click', e => {
+            const btn = e.target.closest('button');
+            if (!btn) return;
+            if (btn.dataset.context) { openItemSelectorModal(e); }
+            if (btn.id === 'btn-select-invoices') { openInvoiceSelectorModal(); }
+            if (btn.classList.contains('btn-edit')) { openEditModal(btn.dataset.type, btn.dataset.id); }
+            if (btn.classList.contains('btn-history')) { openHistoryModal(btn.dataset.id); }
+            if (btn.id === 'btn-add-new-user') { openEditModal('user', null); }
+            if (btn.id === 'btn-add-new-role') { const roleName = prompt(_t('add_role_prompt')); if(roleName) { postData('addRole', { RoleName: roleName }, btn).then(res => res && reloadDataAndRefreshUI()); } }
+            if (btn.classList.contains('btn-view-tx')) {
+                 const batchId = btn.dataset.batchId;
+                 const type = btn.dataset.type;
+                 let data, items;
+                 
+                 switch(type) {
+                     case 'po':
+                         data = findByKey(state.purchaseOrders, 'poId', batchId);
+                         items = (state.purchaseOrderItems || []).filter(i => i.poId === batchId);
+                         if (data && items) generatePODocument({ ...data, items });
+                         break;
+                     default:
+                         const transactionGroup = state.transactions.filter(t => t.batchId === batchId);
+                         if (transactionGroup.length > 0) {
+                             const first = transactionGroup[0];
+                             data = { ...first, items: transactionGroup.map(t => ({...t, itemName: findByKey(state.items, 'code', t.itemCode)?.name })) };
+                             if (type === 'receive') generateReceiveDocument(data);
+                             else if (type.startsWith('transfer')) generateTransferDocument(data);
+                             else if (type === 'issue') generateIssueDocument(data);
+                             else if (type === 'return_out') generateReturnDocument(data);
+                         }
+                         break;
+                 }
+            }
+            if (btn.classList.contains('btn-receive-transfer')) { openViewTransferModal(btn.dataset.batchId); }
+            if (btn.classList.contains('btn-edit-transfer')) { openTransferEditModal(btn.dataset.batchId); }
+            if (btn.classList.contains('btn-cancel-transfer')) { const batchId = btn.dataset.batchId; if (confirm(`Are you sure you want to cancel transfer ${batchId}?`)) { postData('cancelTransfer', { batchId }, btn).then(res => res && reloadDataAndRefreshUI()); } }
+             if (btn.classList.contains('btn-approve-request')) {
+                const requestId = btn.dataset.id;
+                const requestGroup = state.itemRequests.filter(r => r.RequestID == requestId);
+                if (requestGroup.length > 0) {
+                    if (requestGroup[0].Type === 'issue') {
+                        openApproveRequestModal(requestId);
+                    } else if (requestGroup[0].Type === 'resupply') {
+                        const notes = prompt(_t('approve_resupply_notes_prompt'));
+                        if (notes !== null) { // Handle cancel
+                            postData('approveItemRequest', { requestId, statusNotes: notes, editedItems: [] }, btn)
+                                .then(res => res && reloadDataAndRefreshUI());
+                        }
+                    }
+                }
+            }
+            if (btn.classList.contains('btn-reject-request')) { const requestId = btn.dataset.id; if(confirm(`Are you sure you want to reject request ${requestId}?`)) { postData('rejectItemRequest', { requestId }, btn).then(res => res && reloadDataAndRefreshUI()); } }
+            if (btn.id === 'btn-print-pending-requests') {
+                const tableToPrint = document.getElementById('table-pending-requests');
+                if (tableToPrint) {
+                    const printableDoc = `<div class="printable-document"><h2>${_t('req_pending_approval')}</h2><p>Date: ${new Date().toLocaleString()}</p>${tableToPrint.outerHTML}</div>`;
+                    printContent(printableDoc);
+                }
+            }
+            if (btn.classList.contains('btn-edit-po')) { openPOEditModal(btn.dataset.poId); }
+            if (btn.classList.contains('btn-edit-invoice')) { openInvoiceEditModal(btn.dataset.batchId); }
+            if (btn.classList.contains('btn-approve-financial') || btn.classList.contains('btn-reject-financial')) {
+                const id = btn.dataset.id;
+                const type = btn.dataset.type;
+                const action = btn.classList.contains('btn-approve-financial') ? 'approveFinancial' : 'rejectFinancial';
+                const confirmationText = action === 'approveFinancial' ? _t('approve_confirm_prompt', {type: _t(type)}) : _t('reject_confirm_prompt', {type: _t(type)});
+                
+                if (confirm(confirmationText)) {
+                    postData(action, { id, type }, btn).then(result => {
+                        if (result) {
+                            showToast(action.includes('approve') ? _t('approved_toast', {type: _t(type)}) : _t('rejected_toast', {type: _t(type)}), 'success');
+                            reloadDataAndRefreshUI();
+                        }
+                    });
+                }
+            }
+        });
+        
+        document.body.addEventListener('click', (e) => { 
+            if (e.target.classList.contains('close-button') || e.target.classList.contains('modal-cancel')) { 
+                if (contextPromiseResolver) {
+                    contextPromiseResolver(null); // Resolve with null if modal is cancelled
+                    contextPromiseResolver = null;
+                }
+                closeModal(); 
+            } 
+            
+            if (e.target.id === 'btn-confirm-receive-transfer') {
+                const btn = e.target;
+                const batchId = btn.dataset.batchId;
+                const transferGroup = state.transactions.filter(t => t.batchId === batchId);
+                const payload = { originalBatchId: batchId, ref: transferGroup[0].ref, fromBranchCode: transferGroup[0].fromBranchCode, toBranchCode: transferGroup[0].toBranchCode, items: transferGroup.map(t => ({ itemCode: t.itemCode, quantity: t.quantity })), notes: `Received from ${batchId}` };
+                postData('receiveTransfer', payload, btn).then(result => {
+                    if (result) { showToast('Transfer received!', 'success'); closeModal(); reloadDataAndRefreshUI(); }
+                });
+            }
+            if (e.target.id === 'btn-reject-transfer') {
+                const btn = e.target;
+                const batchId = btn.dataset.batchId;
+                if(confirm('Are you sure you want to reject this transfer? This action cannot be undone.')) {
+                    postData('rejectTransfer', { batchId }, btn).then(result => {
+                        if (result) { showToast('Transfer rejected.', 'success'); closeModal(); reloadDataAndRefreshUI(); }
+                    });
+                }
+            }
+            if (e.target.id === 'btn-confirm-request-approval') { confirmRequestApproval(e); }
+            if (e.target.id === 'btn-save-po-changes') { savePOChanges(e); }
+            if (e.target.id === 'btn-save-invoice-changes') { saveInvoiceChanges(e); }
+        });
+        document.getElementById('btn-confirm-modal-selection').addEventListener('click', confirmModalSelection);
+        document.getElementById('btn-confirm-invoice-selection').addEventListener('click', confirmModalSelection);
+        document.getElementById('btn-confirm-context').addEventListener('click', handleContextSelection);
+        
+        document.getElementById('payment-supplier-select').addEventListener('change', e => { document.getElementById('btn-select-invoices').disabled = !e.target.value; state.invoiceModalSelections.clear(); renderPaymentList(); });
+        document.getElementById('table-payment-list').addEventListener('input', handlePaymentInputChange);
+        document.getElementById('invoice-selector-modal').addEventListener('change', handleInvoiceModalCheckboxChange);
+        modalItemList.addEventListener('change', handleModalCheckboxChange);
+        modalSearchInput.addEventListener('input', e => renderItemsInModal(e.target.value));
+        formEditRecord.addEventListener('submit', handleUpdateSubmit);
+        document.getElementById('form-add-item').addEventListener('submit', async e => { e.preventDefault(); const btn = e.target.querySelector('button[type="submit"]'); const data = { code: document.getElementById('item-code').value, barcode: document.getElementById('item-barcode').value, name: document.getElementById('item-name').value, unit: document.getElementById('item-unit').value, category: document.getElementById('item-category').value, supplierCode: document.getElementById('item-supplier').value, cost: parseFloat(document.getElementById('item-cost').value) }; const result = await postData('addItem', data, btn); if (result) { showToast(_t('add_success_toast', {type: _t('item')}), 'success'); e.target.reset(); reloadDataAndRefreshUI(); } });
+        document.getElementById('form-add-supplier').addEventListener('submit', async e => { e.preventDefault(); const btn = e.target.querySelector('button[type="submit"]'); const data = { supplierCode: document.getElementById('supplier-code').value, name: document.getElementById('supplier-name').value, contact: document.getElementById('supplier-contact').value }; const result = await postData('addSupplier', data, btn); if (result) { showToast(_t('add_success_toast', {type: _t('supplier')}), 'success'); e.target.reset(); reloadDataAndRefreshUI(); } });
+        document.getElementById('form-add-branch').addEventListener('submit', async e => { e.preventDefault(); const btn = e.target.querySelector('button[type="submit"]'); const data = { branchCode: document.getElementById('branch-code').value, name: document.getElementById('branch-name').value }; const result = await postData('addBranch', data, btn); if (result) { showToast(_t('add_success_toast', {type: _t('branch')}), 'success'); e.target.reset(); reloadDataAndRefreshUI(); } });
+        document.getElementById('form-add-section').addEventListener('submit', async e => { e.preventDefault(); const btn = e.target.querySelector('button[type="submit"]'); const data = { sectionCode: document.getElementById('section-code').value, name: document.getElementById('section-name').value }; const result = await postData('addSection', data, btn); if (result) { showToast(_t('add_success_toast', {type: _t('section')}), 'success'); e.target.reset(); reloadDataAndRefreshUI(); } });
+        document.getElementById('form-record-payment').addEventListener('submit', async e => {
+            e.preventDefault(); 
+            const btn = e.target.querySelector('button[type="submit"]');
+            const supplierCode = document.getElementById('payment-supplier-select').value;
+            const method = document.getElementById('payment-method').value;
+            if (!supplierCode || state.invoiceModalSelections.size === 0) {
+                showToast('Please select a supplier and at least one invoice to pay.', 'error');
+                return;
+            }
+            const paymentId = `PAY-${Date.now()}`;
+            let totalAmount = 0;
+            const payments = [];
+            document.querySelectorAll('.payment-amount-input').forEach(input => {
+                const amount = parseFloat(input.value) || 0;
+                if (amount > 0) {
+                    totalAmount += amount;
+                    payments.push({
+                        paymentId: paymentId,
+                        date: new Date().toISOString(),
+                        supplierCode: supplierCode,
+                        invoiceNumber: input.dataset.invoice,
+                        amount: amount,
+                        method: method
+                    });
+                }
+            });
+            if (payments.length === 0) {
+                showToast('Payment amount must be greater than zero.', 'error');
+                return;
+            }
+            const payload = {
+                supplierCode: supplierCode,
+                method: method,
+                date: new Date().toISOString(),
+                totalAmount: totalAmount,
+                payments: payments
+            };
+            const result = await postData('addPaymentBatch', payload, btn);
+            if (result) {
+                showToast('Payment recorded successfully!', 'success');
+                generatePaymentVoucher(payload); 
+                state.invoiceModalSelections.clear();
+                document.getElementById('form-record-payment').reset();
+                document.getElementById('btn-select-invoices').disabled = true;
+                renderPaymentList();
+                await reloadDataAndRefreshUI();
+            }
+        });
+        
+        document.getElementById('btn-submit-receive-batch').addEventListener('click', async (e) => { const btn = e.currentTarget; const supplierCode = document.getElementById('receive-supplier').value, branchCode = document.getElementById('receive-branch').value, invoiceNumber = document.getElementById('receive-invoice').value, notes = document.getElementById('receive-notes').value, poId = document.getElementById('receive-po-select').value; if (!userCan('opReceiveWithoutPO') && !poId) { showToast(_t('select_po_first_toast'), 'error'); return; } if (!supplierCode || !branchCode || !invoiceNumber || state.currentReceiveList.length === 0) { showToast(_t('fill_required_fields_toast'), 'error'); return; } const payload = { type: 'receive', batchId: `GRN-${Date.now()}`, supplierCode, branchCode, invoiceNumber, poId, date: new Date().toISOString(), items: state.currentReceiveList.map(i => ({...i, type: 'receive'})), notes }; await handleTransactionSubmit(payload, btn); });
+        document.getElementById('btn-submit-transfer-batch').addEventListener('click', async (e) => { const btn = e.currentTarget; let fromBranchCode = document.getElementById('transfer-from-branch').value; const toBranchCode = document.getElementById('transfer-to-branch').value, notes = document.getElementById('transfer-notes').value, ref = document.getElementById('transfer-ref').value; if (!fromBranchCode) { const context = await getOperationContext({ branch: true }); if (!context) return; fromBranchCode = context.branch; } if (!fromBranchCode || !toBranchCode || fromBranchCode === toBranchCode || state.currentTransferList.length === 0) { showToast('Please select valid branches and add at least one item.', 'error'); return; } const payload = { type: 'transfer_out', batchId: ref, ref: ref, fromBranchCode, toBranchCode, date: new Date().toISOString(), items: state.currentTransferList.map(i => ({...i, type: 'transfer_out'})), notes }; await handleTransactionSubmit(payload, btn); });
+        document.getElementById('btn-submit-issue-batch').addEventListener('click', async(e) => { const btn = e.currentTarget; let fromBranchCode = document.getElementById('issue-from-branch').value; let sectionCode = document.getElementById('issue-to-section').value; const ref = document.getElementById('issue-ref').value, notes = document.getElementById('issue-notes').value; if (!fromBranchCode || !sectionCode) { const context = await getOperationContext({ branch: !fromBranchCode, section: !sectionCode }); if (!context) return; if(context.branch) fromBranchCode = context.branch; if(context.section) sectionCode = context.section; } if (!fromBranchCode || !sectionCode || !ref || state.currentIssueList.length === 0) { showToast('Please fill all issue details and select at least one item.', 'error'); return; } const payload = { type: 'issue', batchId: ref, ref: ref, fromBranchCode, sectionCode, date: new Date().toISOString(), items: state.currentIssueList.map(i => ({...i, type: 'issue'})), notes }; await handleTransactionSubmit(payload, btn); });
+        document.getElementById('btn-submit-po').addEventListener('click', async (e) => { const btn = e.currentTarget; const supplierCode = document.getElementById('po-supplier').value, poId = document.getElementById('po-ref').value, notes = document.getElementById('po-notes').value; if (!supplierCode || state.currentPOList.length === 0) { showToast('Please select a supplier and add items.', 'error'); return; } const totalValue = state.currentPOList.reduce((acc, item) => acc + (item.quantity * item.cost), 0); const payload = { type: 'po', poId, supplierCode, date: new Date().toISOString(), items: state.currentPOList, totalValue, notes }; await handleTransactionSubmit(payload, btn); });
+        document.getElementById('btn-submit-return').addEventListener('click', async (e) => { const btn = e.currentTarget; const supplierCode = document.getElementById('return-supplier').value, fromBranchCode = document.getElementById('return-branch').value, ref = document.getElementById('return-ref').value, notes = document.getElementById('return-notes').value; if (!supplierCode || !fromBranchCode || !ref || state.currentReturnList.length === 0) { showToast('Please fill all required fields and add items.', 'error'); return; } const payload = { type: 'return_out', batchId: `RTN-${Date.now()}`, ref: ref, supplierCode, fromBranchCode, date: new Date().toISOString(), items: state.currentReturnList.map(i => ({...i, type: 'return_out'})), notes }; await handleTransactionSubmit(payload, btn); });
+        document.getElementById('btn-submit-request').addEventListener('click', async(e) => { const btn = e.currentTarget; const requestType = document.getElementById('request-type').value; const notes = document.getElementById('request-notes').value; if(state.currentRequestList.length === 0){ showToast('Please select items for your request.', 'error'); return; } const payload = { requestId: `REQ-${Date.now()}`, requestType, notes, items: state.currentRequestList }; const result = await postData('addItemRequest', payload, btn); if(result){ showToast('Request submitted successfully!', 'success'); state.currentRequestList = []; document.getElementById('form-create-request').reset(); renderRequestListTable(); reloadDataAndRefreshUI(); }});
+        
+        const handleTableInputUpdate = (e, listName, updaterFn) => {
+            if (e.target.classList.contains('table-input')) {
+                const index = parseInt(e.target.dataset.index);
+                const field = e.target.dataset.field;
+                const value = e.target.type === 'number' ? parseFloat(e.target.value) : e.target.value;
+                if (state[listName] && state[listName][index]) {
+                   if (!isNaN(value)) {
+                       state[listName][index][field] = value;
+                   }
+                   if (updaterFn) updaterFn();
+                }
+            }
+        };
+        const handleTableRemove = (e, listName, rendererFn) => { 
+            const btn = e.target.closest('button');
+            if (btn && btn.classList.contains('danger') && btn.dataset.index) {
+                state[listName].splice(btn.dataset.index, 1); 
+                rendererFn(); 
+            }
+        };
+        
+        const setupInputTableListeners = (tableId, listName, rendererFn) => {
+            const table = document.getElementById(tableId);
+            if (!table) return;
+            table.addEventListener('change', e => handleTableInputUpdate(e, listName, rendererFn));
+            table.addEventListener('click', e => handleTableRemove(e, listName, rendererFn));
+        };
+
+        setupInputTableListeners('table-receive-list', 'currentReceiveList', renderReceiveListTable);
+        setupInputTableListeners('table-po-list', 'currentPOList', renderPOListTable);
+        setupInputTableListeners('table-edit-po-list', 'currentEditingPOList', renderPOEditListTable);
+        setupInputTableListeners('table-return-list', 'currentReturnList', renderReturnListTable);
+        setupInputTableListeners('table-transfer-list', 'currentTransferList', renderTransferListTable);
+        setupInputTableListeners('table-issue-list', 'currentIssueList', renderIssueListTable);
+        setupInputTableListeners('table-request-list', 'currentRequestList', renderRequestListTable);
+        setupInputTableListeners('table-adjustment-list', 'currentAdjustmentList', renderAdjustmentListTable);
+        
+        document.getElementById('btn-submit-adjustment').addEventListener('click', async (e) => {
+            const btn = e.currentTarget;
+            const branchCode = document.getElementById('adjustment-branch').value;
+            const ref = document.getElementById('adjustment-ref').value;
+            const notes = document.getElementById('adjustment-notes').value;
+            if (!branchCode || !ref || !state.currentAdjustmentList || state.currentAdjustmentList.length === 0) {
+                showToast('Please select a branch, provide a reference, and add items to adjust.', 'error');
+                return;
+            }
+
+            const stock = calculateStockLevels();
+            const adjustmentItems = state.currentAdjustmentList.map(item => {
+                const systemQty = (stock[branchCode]?.[item.itemCode]?.quantity) || 0;
+                const physicalCount = item.physicalCount || 0;
+                const adjustmentQty = physicalCount - systemQty;
+                
+                if (Math.abs(adjustmentQty) < 0.01) return null;
+
+                return {
+                    itemCode: item.itemCode,
+                    quantity: Math.abs(adjustmentQty),
+                    type: adjustmentQty > 0 ? 'adjustment_in' : 'adjustment_out',
+                    cost: findByKey(state.items, 'code', item.itemCode)?.cost || 0
+                };
+            }).filter(Boolean);
+
+            if (adjustmentItems.length === 0) {
+                showToast('No adjustments needed for the entered counts.', 'info');
+                return;
+            }
+
+            const payload = {
+                type: 'stock_adjustment',
+                batchId: `ADJ-${Date.now()}`,
+                ref: ref,
+                fromBranchCode: branchCode,
+                notes: notes,
+                items: adjustmentItems
+            };
+            await handleTransactionSubmit(payload, btn);
+            state.currentAdjustmentList = [];
+            renderAdjustmentListTable();
+            document.getElementById('form-adjustment-details').reset();
+        });
+
+        document.getElementById('form-financial-adjustment').addEventListener('submit', async(e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]');
+            const supplierCode = document.getElementById('fin-adj-supplier').value;
+            const balance = parseFloat(document.getElementById('fin-adj-balance').value);
+            
+            if (!supplierCode || isNaN(balance) || balance < 0) {
+                showToast('Please select a supplier and enter a valid opening balance.', 'error');
+                return;
+            }
+            
+            if (!confirm(`Are you sure you want to set the opening balance for this supplier to ${balance.toFixed(2)} EGP? This should only be done once.`)) {
+                return;
+            }
+
+            const payload = {
+                supplierCode: supplierCode,
+                balance: balance,
+                ref: `OB-${supplierCode}`
+            };
+            
+            const result = await postData('financialAdjustment', payload, btn);
+            if (result) {
+                showToast('Supplier opening balance set successfully!', 'success');
+                e.target.reset();
+                await reloadDataAndRefreshUI();
+            }
+        });
+        
+        document.getElementById('btn-generate-supplier-statement').addEventListener('click', () => { const supplierCode = document.getElementById('supplier-statement-select').value; const startDate = document.getElementById('statement-start-date').value; const endDate = document.getElementById('statement-end-date').value; if(!supplierCode) { showToast('Please select a supplier.', 'error'); return; } renderSupplierStatement(supplierCode, startDate, endDate); });
+        document.getElementById('btn-generate-branch-consumption').addEventListener('click', () => { 
+            const branchCode = document.getElementById('branch-consumption-select').value; 
+            const reportType = document.getElementById('branch-consumption-report-type').value;
+            const startDate = document.getElementById('branch-consumption-start-date').value; 
+            const endDate = document.getElementById('branch-consumption-end-date').value; 
+            const itemFilter = document.getElementById('branch-consumption-item-filter').value; 
+            const categoryFilter = document.getElementById('branch-consumption-category-filter').value; 
+            if(!branchCode) { showToast('Please select a branch.', 'error'); return; } 
+            
+            let filteredTx = state.transactions.filter(t => t.type === 'issue' && t.fromBranchCode === branchCode); 
+            const sDate = startDate ? new Date(startDate) : null; if(sDate) sDate.setHours(0,0,0,0); 
+            const eDate = endDate ? new Date(endDate) : null; if(eDate) eDate.setHours(23,59,59,999); 
+            
+            if (sDate) filteredTx = filteredTx.filter(t => new Date(t.date) >= sDate); 
+            if (eDate) filteredTx = filteredTx.filter(t => new Date(t.date) <= eDate); 
+            if (itemFilter) filteredTx = filteredTx.filter(t => t.itemCode === itemFilter); 
+            if (categoryFilter) { const itemCodesInCategory = state.items.filter(i => i.category === categoryFilter).map(i => i.code); filteredTx = filteredTx.filter(t => itemCodesInCategory.includes(t.itemCode)); } 
+            
+            const historicalCosts = calculateHistoricalCosts(); 
+            const reportConfig = { 
+                resultsContainerId: 'branch-consumption-results', 
+                exportBtnId: 'btn-export-branch-consumption', 
+                data: filteredTx, 
+                title: 'branch_consumption', 
+                entityName: findByKey(state.branches, 'branchCode', branchCode).name, 
+                dateHeader: `${startDate || 'Start'} to ${endDate || 'End'}`, 
+                historicalCosts: historicalCosts,
+                breakdownBy: reportType === 'detailed' ? 'sectionCode' : null
+            };
+            renderConsumptionReport(reportConfig); 
+        });
+        document.getElementById('btn-generate-section-consumption').addEventListener('click', () => { const sectionCode = document.getElementById('section-consumption-select').value; const startDate = document.getElementById('section-consumption-start-date').value; const endDate = document.getElementById('section-consumption-end-date').value; const itemFilter = document.getElementById('section-consumption-item-filter').value; const categoryFilter = document.getElementById('section-consumption-category-filter').value; if(!sectionCode) { showToast('Please select a section.', 'error'); return; } let filteredTx = state.transactions.filter(t => t.type === 'issue' && t.sectionCode === sectionCode); const sDate = startDate ? new Date(startDate) : null; if(sDate) sDate.setHours(0,0,0,0); const eDate = endDate ? new Date(endDate) : null; if(eDate) eDate.setHours(23,59,59,999); if (sDate) filteredTx = filteredTx.filter(t => new Date(t.date) >= sDate); if (eDate) filteredTx = filteredTx.filter(t => new Date(t.date) <= eDate); if (itemFilter) filteredTx = filteredTx.filter(t => t.itemCode === itemFilter); if (categoryFilter) { const itemCodesInCategory = state.items.filter(i => i.category === categoryFilter).map(i => i.code); filteredTx = filteredTx.filter(t => itemCodesInCategory.includes(t.itemCode)); } const historicalCosts = calculateHistoricalCosts(); renderConsumptionReport({ resultsContainerId: 'section-consumption-results', exportBtnId: 'btn-export-section-consumption', data: filteredTx, title: 'section_usage', entityName: findByKey(state.sections, 'sectionCode', sectionCode).name, dateHeader: `${startDate || 'Start'} to ${endDate || 'End'}`, historicalCosts: historicalCosts }); });
+        document.getElementById('btn-generate-resupply-report').addEventListener('click', () => { const branchCode = document.getElementById('resupply-branch-filter').value; const startDate = document.getElementById('resupply-start-date').value; const endDate = document.getElementById('resupply-end-date').value; let filteredReqs = state.itemRequests.filter(r => r.Type === 'resupply'); const sDate = startDate ? new Date(startDate) : null; if(sDate) sDate.setHours(0,0,0,0); const eDate = endDate ? new Date(endDate) : null; if(eDate) eDate.setHours(23,59,59,999); if (branchCode) filteredReqs = filteredReqs.filter(r => r.ToBranch === branchCode); if (sDate) filteredReqs = filteredReqs.filter(r => new Date(r.Date) >= sDate); if (eDate) filteredReqs = filteredReqs.filter(r => new Date(r.Date) <= eDate); const entityName = branchCode ? findByKey(state.branches, 'branchCode', branchCode).name : _t('all_branches'); renderConsumptionReport({ resultsContainerId: 'resupply-report-results', exportBtnId: 'btn-export-resupply-report', data: filteredReqs.map(r => ({...r, fromBranchCode: r.ToBranch, itemCode: r.ItemCode, quantity: r.Quantity})), title: 'resupply_report', entityName: entityName, dateHeader: `${startDate || 'Start'} to ${endDate || 'End'}`, qtyColumnHeader: 'Total Qty Requested' }); });
+        
+        document.getElementById('pending-requests-widget').addEventListener('click', () => showView('requests', 'pending-approval'));
+
+        ['tx-filter-start-date', 'tx-filter-end-date', 'tx-filter-type', 'tx-filter-branch', 'transaction-search'].forEach(id => {
+            const el = document.getElementById(id);
+            const eventType = (el.tagName === 'SELECT' || el.type === 'date') ? 'change' : 'input';
+            el.addEventListener(eventType, () => {
+                const filters = {
+                    startDate: document.getElementById('tx-filter-start-date').value,
+                    endDate: document.getElementById('tx-filter-end-date').value,
+                    type: document.getElementById('tx-filter-type').value,
+                    branch: document.getElementById('tx-filter-branch').value,
+                    searchTerm: document.getElementById('transaction-search').value,
+                };
+                renderTransactionHistory(filters);
+            });
+        });
+
+        document.getElementById('receive-po-select').addEventListener('change', e => {
+            const poId = e.target.value;
+            if(!poId) {
+                state.currentReceiveList = [];
+                renderReceiveListTable();
+                document.getElementById('receive-supplier').value = '';
+                return;
+            }
+            const po = findByKey(state.purchaseOrders, 'poId', poId);
+            const poItems = state.purchaseOrderItems.filter(i => i.poId === poId);
+            document.getElementById('receive-supplier').value = po.supplierCode;
+            state.currentReceiveList = poItems.map(item => {
+                const masterItem = findByKey(state.items, 'code', item.itemCode);
+                return { itemCode: item.itemCode, itemName: masterItem?.name || 'Unknown Item', quantity: parseFloat(item.quantity), cost: parseFloat(item.cost) }
+            });
+            renderReceiveListTable();
+        });
+    }
 
     function init() {
         // Set up language switcher
@@ -2218,5 +2476,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // --- START THE APP ---
     init();
 });
