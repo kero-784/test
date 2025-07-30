@@ -41,6 +41,7 @@ html[dir="rtl"] body {
     font-family: 'Tajawal', sans-serif;
 }
 
+
 .app-container { display: flex; }
 
 /* --- Login Screen --- */
@@ -196,6 +197,8 @@ tbody tr:hover { background-color: #f7faff; }
 .status-partial { background-color: #FFF6E0; color: #E89500; }
 .status-pending, .status-intransit, .status-pendingapproval { background-color: #eaf2fc; color: var(--primary-dark); }
 .report-area { overflow-x: auto; }
+.report-group-header { margin-top: 30px; padding-bottom: 8px; border-bottom: 2px solid var(--primary-color); }
+.report-sub-table { margin-bottom: 20px; }
 #item-centric-stock-container table, .printable-area table { table-layout: auto; }
 #item-centric-stock-container td, .printable-area td, #history-modal-body td { white-space: normal; }
 #table-activity-log td:nth-child(4) { white-space: normal; word-break: break-word; }
