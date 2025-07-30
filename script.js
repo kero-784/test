@@ -12,7 +12,7 @@ window.printReport = function(elementId) {
 
 document.addEventListener('DOMContentLoaded', () => {
     // !!! IMPORTANT: PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL HERE
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw2Gs-9bzCtYQlXTQQVVAG8PPfKOcJkylJI71stIvppsgsJKH_81Pr6ypNT9HCzWiR0/exec';
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw6ILWFJPd8gsFQY-h4ZVZSByQfSXIzl6OpKk2m488Ihu9u1TCFSxsWAjvkW5Ws65NU/exec';
 
     const Logger = {
         info: (message, ...args) => console.log(`[StockWise INFO] ${message}`, ...args),
@@ -1663,6 +1663,71 @@ document.addEventListener('DOMContentLoaded', () => {
         exportBtn.disabled = false;
     }
 
+    function renderUnifiedConsumptionReport() {
+        const resultsContainer = document.getElementById('consumption-report-results');
+        const exportBtn = document.getElementById('btn-export-consumption-report');
+        
+        const selectedBranches = Array.from(document.getElementById('consumption-branch-filter').selectedOptions).map(o => o.value);
+        const selectedSections = Array.from(document.getElementById('consumption-section-filter').selectedOptions).map(o => o.value);
+        const selectedItems = Array.from(document.getElementById('consumption-item-filter').selectedOptions).map(o => o.value);
+        const startDate = document.getElementById('consumption-start-date').value;
+        const endDate = document.getElementById('consumption-end-date').value;
+
+        let filteredTx = (state.transactions || []).filter(t => t.type === 'issue');
+
+        const sDate = startDate ? new Date(startDate) : null; if(sDate) sDate.setHours(0,0,0,0);
+        const eDate = endDate ? new Date(endDate) : null; if(eDate) eDate.setHours(23,59,59,999);
+
+        if(selectedBranches.length > 0) filteredTx = filteredTx.filter(t => selectedBranches.includes(t.fromBranchCode));
+        if(selectedSections.length > 0) filteredTx = filteredTx.filter(t => selectedSections.includes(t.sectionCode));
+        if(selectedItems.length > 0) filteredTx = filteredTx.filter(t => selectedItems.includes(t.itemCode));
+        if(sDate) filteredTx = filteredTx.filter(t => new Date(t.date) >= sDate);
+        if(eDate) filteredTx = filteredTx.filter(t => new Date(t.date) <= eDate);
+
+        const historicalCosts = calculateHistoricalCosts();
+        const reportData = {};
+        let grandTotalValue = 0;
+
+        filteredTx.forEach(t => {
+            const branch = findByKey(state.branches, 'branchCode', t.fromBranchCode);
+            const section = findByKey(state.sections, 'sectionCode', t.sectionCode);
+            const item = findByKey(state.items, 'code', t.itemCode);
+            if (!branch || !section || !item) return;
+            
+            const cost = historicalCosts[`${t.batchId}-${t.itemCode}`] || item.cost;
+            const value = (parseFloat(t.quantity) || 0) * (parseFloat(cost) || 0);
+            grandTotalValue += value;
+
+            if (!reportData[branch.branchName]) reportData[branch.branchName] = { totalValue: 0, sections: {} };
+            if (!reportData[branch.branchName].sections[section.sectionName]) reportData[branch.branchName].sections[section.sectionName] = { totalValue: 0, items: {} };
+            if (!reportData[branch.branchName].sections[section.sectionName].items[item.name]) reportData[branch.branchName].sections[section.sectionName].items[item.name] = { totalValue: 0, totalQty: 0, item: item };
+
+            reportData[branch.branchName].totalValue += value;
+            reportData[branch.branchName].sections[section.sectionName].totalValue += value;
+            reportData[branch.branchName].sections[section.sectionName].items[item.name].totalValue += value;
+            reportData[branch.branchName].sections[section.sectionName].items[item.name].totalQty += parseFloat(t.quantity) || 0;
+        });
+
+        let tableHtml = `<table id="table-consumption-report"><thead><tr><th>Name</th><th style="text-align:right;">Total Qty</th><th style="text-align:right;">Total Value</th><th style="text-align:right;">% of Parent</th><th style="text-align:right;">% of Total</th></tr></thead><tbody>`;
+        for (const branchName in reportData) {
+            const branchData = reportData[branchName];
+            tableHtml += `<tr class="consumption-group-branch"><td>${branchName}</td><td colspan="1"></td><td style="text-align:right;">${branchData.totalValue.toFixed(2)}</td><td style="text-align:right;">-</td><td style="text-align:right;">${(branchData.totalValue / grandTotalValue * 100).toFixed(2)}%</td></tr>`;
+            for(const sectionName in branchData.sections) {
+                const sectionData = branchData.sections[sectionName];
+                tableHtml += `<tr class="consumption-group-section"><td>${sectionName}</td><td colspan="1"></td><td style="text-align:right;">${sectionData.totalValue.toFixed(2)}</td><td style="text-align:right;">${(sectionData.totalValue / branchData.totalValue * 100).toFixed(2)}%</td><td style="text-align:right;">${(sectionData.totalValue / grandTotalValue * 100).toFixed(2)}%</td></tr>`;
+                 for(const itemName in sectionData.items) {
+                    const itemData = sectionData.items[itemName];
+                    tableHtml += `<tr class="consumption-item-row"><td>${itemName} (${itemData.item.code})</td><td style="text-align:right;">${itemData.totalQty.toFixed(2)} ${itemData.item.unit}</td><td style="text-align:right;">${itemData.totalValue.toFixed(2)}</td><td style="text-align:right;">${(itemData.totalValue / sectionData.totalValue * 100).toFixed(2)}%</td><td style="text-align:right;">${(itemData.totalValue / grandTotalValue * 100).toFixed(2)}%</td></tr>`;
+                 }
+            }
+        }
+        tableHtml += `</tbody><tfoot><tr style="font-weight:bold; background-color:var(--bg-color);"><td colspan="2" style="text-align:right;">Grand Total</td><td style="text-align:right;">${grandTotalValue.toFixed(2)} EGP</td><td colspan="2"></td></tr></tfoot></table>`;
+
+        resultsContainer.innerHTML = `<div class="printable-document">${tableHtml}</div>`;
+        resultsContainer.style.display = 'block';
+        exportBtn.disabled = false;
+    }
+
     function renderPriceHistory(priceHistory) {
         const container = document.getElementById('subview-price-history');
         let html = `<h4>${_t('price_change_log')}</h4><table id="table-price-history"><thead><tr><th>${_t('table_h_date')}</th><th>${_t('table_h_old_cost')}</th><th>${_t('table_h_new_cost')}</th><th>${_t('table_h_change')}</th><th>${_t('table_h_source')}</th><th>${_t('table_h_updated_by')}</th></tr></thead><tbody>`;
@@ -2770,12 +2835,12 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        document.getElementById('btn-submit-receive-batch').addEventListener('click', async (e) => { const btn = e.currentTarget; let branchCode = document.getElementById('receive-branch').value; const supplierCode = document.getElementById('receive-supplier').value, invoiceNumber = document.getElementById('receive-invoice').value, notes = document.getElementById('receive-notes').value, poId = document.getElementById('receive-po-select').value; if(userCan('viewAllBranches') && !state.currentUser.AssignedBranchCode) { const context = await requestAdminContext({ branch: true }); branchCode = context.branch; } if (!userCan('opReceiveWithoutPO') && !poId) { showToast(_t('select_po_first_toast'), 'error'); return; } if (!supplierCode || !branchCode || !invoiceNumber || state.currentReceiveList.length === 0) { showToast(_t('fill_required_fields_toast'), 'error'); return; } const payload = { type: 'receive', batchId: `GRN-${Date.now()}`, supplierCode, branchCode, invoiceNumber, poId, date: new Date().toISOString(), items: state.currentReceiveList.map(i => ({...i, type: 'receive'})), notes }; await handleTransactionSubmit(payload, btn); });
-        document.getElementById('btn-submit-transfer-batch').addEventListener('click', async (e) => { const btn = e.currentTarget; let fromBranchCode = document.getElementById('transfer-from-branch').value, toBranchCode = document.getElementById('transfer-to-branch').value; const notes = document.getElementById('transfer-notes').value, ref = document.getElementById('transfer-ref').value; if(userCan('viewAllBranches') && !state.currentUser.AssignedBranchCode) { const context = await requestAdminContext({ fromBranch: true, toBranch: true }); fromBranchCode = context.fromBranch; toBranchCode = context.toBranch; } if (!fromBranchCode || !toBranchCode || fromBranchCode === toBranchCode || state.currentTransferList.length === 0) { showToast('Please select valid branches and add at least one item.', 'error'); return; } const payload = { type: 'transfer_out', batchId: ref, ref: ref, fromBranchCode, toBranchCode, date: new Date().toISOString(), items: state.currentTransferList.map(i => ({...i, type: 'transfer_out'})), notes }; await handleTransactionSubmit(payload, btn); });
-        document.getElementById('btn-submit-issue-batch').addEventListener('click', async(e) => { const btn = e.currentTarget; let fromBranchCode = document.getElementById('issue-from-branch').value, sectionCode = document.getElementById('issue-to-section').value; const ref = document.getElementById('issue-ref').value, notes = document.getElementById('issue-notes').value; if(userCan('viewAllBranches') && !state.currentUser.AssignedBranchCode) { const context = await requestAdminContext({ fromBranch: true, toSection: true }); fromBranchCode = context.fromBranch; sectionCode = context.toSection; } if (!fromBranchCode || !sectionCode || !ref || state.currentIssueList.length === 0) { showToast('Please fill all issue details and select at least one item.', 'error'); return; } const payload = { type: 'issue', batchId: ref, ref: ref, fromBranchCode, sectionCode, date: new Date().toISOString(), items: state.currentIssueList.map(i => ({...i, type: 'issue'})), notes }; await handleTransactionSubmit(payload, btn); });
+        document.getElementById('btn-submit-receive-batch').addEventListener('click', async (e) => { const btn = e.currentTarget; let branchCode = document.getElementById('receive-branch').value; const supplierCode = document.getElementById('receive-supplier').value, invoiceNumber = document.getElementById('receive-invoice').value, notes = document.getElementById('receive-notes').value, poId = document.getElementById('receive-po-select').value; if(userCan('viewAllBranches') && !state.currentUser.AssignedBranchCode) { const context = await requestAdminContext({ branch: true }); if(!context) return; branchCode = context.branch; } if (!userCan('opReceiveWithoutPO') && !poId) { showToast(_t('select_po_first_toast'), 'error'); return; } if (!supplierCode || !branchCode || !invoiceNumber || state.currentReceiveList.length === 0) { showToast(_t('fill_required_fields_toast'), 'error'); return; } const payload = { type: 'receive', batchId: `GRN-${Date.now()}`, supplierCode, branchCode, invoiceNumber, poId, date: new Date().toISOString(), items: state.currentReceiveList.map(i => ({...i, type: 'receive'})), notes }; await handleTransactionSubmit(payload, btn); });
+        document.getElementById('btn-submit-transfer-batch').addEventListener('click', async (e) => { const btn = e.currentTarget; let fromBranchCode = document.getElementById('transfer-from-branch').value, toBranchCode = document.getElementById('transfer-to-branch').value; const notes = document.getElementById('transfer-notes').value, ref = document.getElementById('transfer-ref').value; if(userCan('viewAllBranches') && !state.currentUser.AssignedBranchCode) { const context = await requestAdminContext({ fromBranch: true, toBranch: true }); if(!context) return; fromBranchCode = context.fromBranch; toBranchCode = context.toBranch; } if (!fromBranchCode || !toBranchCode || fromBranchCode === toBranchCode || state.currentTransferList.length === 0) { showToast('Please select valid branches and add at least one item.', 'error'); return; } const payload = { type: 'transfer_out', batchId: ref, ref: ref, fromBranchCode, toBranchCode, date: new Date().toISOString(), items: state.currentTransferList.map(i => ({...i, type: 'transfer_out'})), notes }; await handleTransactionSubmit(payload, btn); });
+        document.getElementById('btn-submit-issue-batch').addEventListener('click', async(e) => { const btn = e.currentTarget; let fromBranchCode = document.getElementById('issue-from-branch').value, sectionCode = document.getElementById('issue-to-section').value; const ref = document.getElementById('issue-ref').value, notes = document.getElementById('issue-notes').value; if(userCan('viewAllBranches') && !state.currentUser.AssignedBranchCode) { const context = await requestAdminContext({ fromBranch: true, toSection: true }); if(!context) return; fromBranchCode = context.fromBranch; sectionCode = context.toSection; } if (!fromBranchCode || !sectionCode || !ref || state.currentIssueList.length === 0) { showToast('Please fill all issue details and select at least one item.', 'error'); return; } const payload = { type: 'issue', batchId: ref, ref: ref, fromBranchCode, sectionCode, date: new Date().toISOString(), items: state.currentIssueList.map(i => ({...i, type: 'issue'})), notes }; await handleTransactionSubmit(payload, btn); });
         document.getElementById('btn-submit-po').addEventListener('click', async (e) => { const btn = e.currentTarget; const supplierCode = document.getElementById('po-supplier').value, poId = document.getElementById('po-ref').value, notes = document.getElementById('po-notes').value; if (!supplierCode || state.currentPOList.length === 0) { showToast('Please select a supplier and add items.', 'error'); return; } const totalValue = state.currentPOList.reduce((acc, item) => acc + (item.quantity * item.cost), 0); const payload = { type: 'po', poId, supplierCode, date: new Date().toISOString(), items: state.currentPOList, totalValue, notes }; await handleTransactionSubmit(payload, btn); });
-        document.getElementById('btn-submit-return').addEventListener('click', async (e) => { const btn = e.currentTarget; const supplierCode = document.getElementById('return-supplier').value; let fromBranchCode = document.getElementById('return-branch').value; const ref = document.getElementById('return-ref').value, notes = document.getElementById('return-notes').value; if(userCan('viewAllBranches') && !state.currentUser.AssignedBranchCode) { const context = await requestAdminContext({ fromBranch: true }); fromBranchCode = context.fromBranch; } if (!supplierCode || !fromBranchCode || !ref || state.currentReturnList.length === 0) { showToast('Please fill all required fields and add items.', 'error'); return; } const payload = { type: 'return_out', batchId: `RTN-${Date.now()}`, ref: ref, supplierCode, fromBranchCode, date: new Date().toISOString(), items: state.currentReturnList.map(i => ({...i, type: 'return_out'})), notes }; await handleTransactionSubmit(payload, btn); });
-        document.getElementById('btn-submit-request').addEventListener('click', async(e) => { const btn = e.currentTarget; const requestType = document.getElementById('request-type').value; const notes = document.getElementById('request-notes').value; if(state.currentRequestList.length === 0){ showToast('Please select items for your request.', 'error'); return; } const payload = { requestId: `REQ-${Date.now()}`, requestType, notes, items: state.currentRequestList }; const result = await postData('addItemRequest', payload, btn); if(result){ showToast('Request submitted successfully!', 'success'); state.currentRequestList = []; document.getElementById('form-create-request').reset(); renderRequestListTable(); reloadDataAndRefreshUI(); }});
+        document.getElementById('btn-submit-return').addEventListener('click', async (e) => { const btn = e.currentTarget; const supplierCode = document.getElementById('return-supplier').value; let fromBranchCode = document.getElementById('return-branch').value; const ref = document.getElementById('return-ref').value, notes = document.getElementById('return-notes').value; if(userCan('viewAllBranches') && !state.currentUser.AssignedBranchCode) { const context = await requestAdminContext({ fromBranch: true }); if(!context) return; fromBranchCode = context.fromBranch; } if (!supplierCode || !fromBranchCode || !ref || state.currentReturnList.length === 0) { showToast('Please fill all required fields and add items.', 'error'); return; } const payload = { type: 'return_out', batchId: `RTN-${Date.now()}`, ref: ref, supplierCode, fromBranchCode, date: new Date().toISOString(), items: state.currentReturnList.map(i => ({...i, type: 'return_out'})), notes }; await handleTransactionSubmit(payload, btn); });
+        document.getElementById('btn-submit-request').addEventListener('click', async(e) => { const btn = e.currentTarget; const requestType = document.getElementById('request-type').value; const notes = document.getElementById('request-notes').value; if(state.currentRequestList.length === 0){ showToast('Please select items for your request.', 'error'; return; } const payload = { requestId: `REQ-${Date.now()}`, requestType, notes, items: state.currentRequestList }; const result = await postData('addItemRequest', payload, btn); if(result){ showToast('Request submitted successfully!', 'success'); state.currentRequestList = []; document.getElementById('form-create-request').reset(); renderRequestListTable(); reloadDataAndRefreshUI(); }});
         
         const handleTableInputUpdate = (e, listName, updaterFn) => {
             if (e.target.classList.contains('table-input')) {
@@ -2819,7 +2884,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let branchCode = document.getElementById('adjustment-branch').value;
             const ref = document.getElementById('adjustment-ref').value;
             const notes = document.getElementById('adjustment-notes').value;
-            if(userCan('viewAllBranches') && !state.currentUser.AssignedBranchCode) { const context = await requestAdminContext({ branch: true }); branchCode = context.branch; }
+            if(userCan('viewAllBranches') && !state.currentUser.AssignedBranchCode) { const context = await requestAdminContext({ branch: true }); if(!context) return; branchCode = context.branch; }
             if (!branchCode || !ref || !state.currentAdjustmentList || state.currentAdjustmentList.length === 0) {
                 showToast('Please select a branch, provide a reference, and add items to adjust.', 'error');
                 return;
@@ -3260,6 +3325,7 @@ document.addEventListener('DOMContentLoaded', () => {
             state.adminContextPromise = { resolve, reject };
         });
     }
+
     function init() {
         // Set up language switcher
         const langSwitcher = document.getElementById('lang-switcher');
