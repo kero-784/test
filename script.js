@@ -1,4 +1,4 @@
-// PART 1 OF 4: CORE SETUP & API
+/ PART 1 OF 4: CORE SETUP & API
 window.printReport = function(elementId) {
     const reportContent = document.querySelector(`#${elementId} .printable-document`);
     if (reportContent) {
@@ -56,6 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
         backups: []
     };
     let modalContext = null;
+    let contextPromiseResolver = null;
 
     // --- INTERNATIONALIZATION (i18n) ---
     const translations = {
@@ -66,6 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
             'password_code': 'Password / Login Code',
             'login': 'Login',
             'signing_in': 'Signing in...',
+            'processing': 'Processing...',
             'hi_user': 'Hi, {userFirstName}',
             'refresh_all_data': 'Refresh All Data',
             'dashboard': 'Dashboard',
@@ -175,6 +177,9 @@ document.addEventListener('DOMContentLoaded', () => {
             'branch_consumption': 'Branch Consumption',
             'section_usage': 'Section Usage',
             'resupply_report': 'Resupply Report',
+            'report_type': 'Report Type',
+            'summary_by_branch': 'Summary by Branch',
+            'detailed_by_section': 'Detailed by Section',
             'select_a_supplier': 'Select a Supplier',
             'generate': 'Generate',
             'select_a_branch': 'Select a Branch',
@@ -339,6 +344,10 @@ document.addEventListener('DOMContentLoaded', () => {
             'tx_processed_approval_toast': '{txType} processed! Submitted for approval.',
             'select_po_first_toast': 'You must select a Purchase Order to receive stock.',
             'fill_required_fields_toast': 'Please fill all required fields and add items.',
+            'context_modal_title': 'Select Operational Context',
+            'context_modal_message': 'Before you can proceed, please select the branch or section you are operating on behalf of for this session.',
+            'context_modal_confirm': 'Confirm Selection',
+            'approve_resupply_notes_prompt': 'Enter optional notes for approving this resupply request:',
 
             // New from here
             'status_approved': 'Approved',
@@ -422,6 +431,7 @@ document.addEventListener('DOMContentLoaded', () => {
             'password_code': 'كلمة المرور / رمز الدخول',
             'login': 'تسجيل الدخول',
             'signing_in': 'جاري تسجيل الدخول...',
+            'processing': 'جاري المعالجة...',
             'hi_user': 'مرحباً، {userFirstName}',
             'refresh_all_data': 'تحديث كل البيانات',
             'dashboard': 'لوحة التحكم',
@@ -531,6 +541,9 @@ document.addEventListener('DOMContentLoaded', () => {
             'branch_consumption': 'استهلاك الفرع',
             'section_usage': 'استخدام القسم',
             'resupply_report': 'تقرير إعادة التزويد',
+            'report_type': 'نوع التقرير',
+            'summary_by_branch': 'ملخص حسب الفرع',
+            'detailed_by_section': 'مفصل حسب القسم',
             'select_a_supplier': 'اختر موردًا',
             'generate': 'إنشاء',
             'select_a_branch': 'اختر فرعًا',
@@ -683,7 +696,7 @@ document.addEventListener('DOMContentLoaded', () => {
             'session_error_toast': 'خطأ في الجلسة. يرجى تسجيل الخروج والدخول مرة أخرى.',
             'action_failed_toast': 'فشل الإجراء: {errorMessage}',
             'data_refreshed_toast': 'تم تحديث البيانات!',
-            'data_refresh_fail_toast': 'ไม่สามารถ تحديث البيانات. يرجى المحاولة مرة أخرى.',
+            'data_refresh_fail_toast': 'لا يمكن تحديث البيانات. يرجى المحاولة مرة أخرى.',
             'backup_created_toast': 'تم إنشاء النسخة الاحتياطية: {fileName}',
             'backup_confirm_prompt': 'سيؤدي هذا إلى إنشاء نسخة احتياطية يدوية كاملة من جدول البيانات الحالي. هل تريد المتابعة؟',
             'auto_backup_updated_toast': 'تم تحديث إعدادات النسخ الاحتياطي التلقائي!',
@@ -695,6 +708,10 @@ document.addEventListener('DOMContentLoaded', () => {
             'tx_processed_approval_toast': 'تمت معالجة {txType}! أُرسلت للموافقة.',
             'select_po_first_toast': 'يجب عليك تحديد طلب شراء لاستلام البضاعة.',
             'fill_required_fields_toast': 'يرجى ملء جميع الحقول المطلوبة وإضافة أصناف.',
+            'context_modal_title': 'اختر سياق العملية',
+            'context_modal_message': 'قبل المتابعة، يرجى تحديد الفرع أو القسم الذي تعمل نيابة عنه لهذه العملية.',
+            'context_modal_confirm': 'تأكيد الاختيار',
+            'approve_resupply_notes_prompt': 'أدخل ملاحظات اختيارية للموافقة على طلب إعادة التزويد هذا:',
             'status_approved': 'تمت الموافقة',
             'status_pending': 'قيد الموافقة',
             'status_rejected': 'مرفوض',
@@ -812,6 +829,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnLogout = document.getElementById('btn-logout');
     const globalRefreshBtn = document.getElementById('global-refresh-button');
     const mainContent = document.querySelector('.main-content');
+    const contextSelectorModal = document.getElementById('context-selector-modal');
 
     const itemSelectorModal = document.getElementById('item-selector-modal');
     const invoiceSelectorModal = document.getElementById('invoice-selector-modal');
@@ -833,6 +851,7 @@ document.addEventListener('DOMContentLoaded', () => {
         loginForm.style.display = 'none';
         loginError.textContent = '';
         loginLoader.style.display = 'flex';
+        setButtonLoading(true, loginForm.querySelector('button'), 'signing_in');
         Logger.info(`Attempting to login...`);
         if (!SCRIPT_URL || !SCRIPT_URL.includes('macros/s')) {
             const errorMsg = 'SCRIPT_URL is not set or invalid in script.js.';
@@ -875,11 +894,13 @@ document.addEventListener('DOMContentLoaded', () => {
             loginForm.style.display = 'block';
             loginCodeInput.value = '';
             loginUsernameInput.value = '';
+        } finally {
+             setButtonLoading(false, loginForm.querySelector('button'));
         }
     }
 
     async function postData(action, data, buttonEl) {
-        setButtonLoading(true, buttonEl);
+        setButtonLoading(true, buttonEl, 'processing');
         Logger.debug(`POSTing action: ${action}`, data);
         const {
             username,
@@ -1364,7 +1385,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (existing) {
                 newList.push(existing);
             } else {
-                const newItem = { itemCode: item.code, itemName: item.name, quantity: 1, cost: item.cost };
+                const newItem = { itemCode: item.code, itemName: item.name, quantity: '', cost: item.cost }; // Changed quantity to empty
                 if (modalContext === 'adjustment') {
                     newItem.physicalCount = 0;
                 }
@@ -1409,12 +1430,12 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => toast.remove(), 3500);
     }
 
-    function setButtonLoading(isLoading, buttonEl) {
+    function setButtonLoading(isLoading, buttonEl, loadingTextKey = 'signing_in') {
         if (!buttonEl) return;
         if (isLoading) {
             buttonEl.disabled = true;
             buttonEl.dataset.originalText = buttonEl.innerHTML;
-            buttonEl.innerHTML = `<div class="button-spinner"></div><span>${_t('signing_in')}</span>`;
+            buttonEl.innerHTML = `<div class="button-spinner"></div><span>${_t(loadingTextKey)}</span>`;
         } else {
             buttonEl.disabled = false;
             if (buttonEl.dataset.originalText) {
@@ -1504,7 +1525,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const availableStock = (stock[fromBranch]?.[item.itemCode]?.quantity || 0);
                 switch (col.type) {
                     case 'text': content = item[col.key]; break;
-                    case 'number_input': content = `<input type="number" class="table-input" value="${item[col.key] || 1}" min="${col.min || 0.01}" ${col.maxKey ? `max="${availableStock}"` : ''} step="${col.step || 0.01}" data-index="${index}" data-field="${col.key}">`; break;
+                    case 'number_input': content = `<input type="number" class="table-input" value="${item[col.key] || ''}" min="${col.min || 0.01}" ${col.maxKey ? `max="${availableStock}"` : ''} step="${col.step || 0.01}" data-index="${index}" data-field="${col.key}">`; break;
                     case 'cost_input': content = `<input type="number" class="table-input" value="${(item.cost || 0).toFixed(2)}" min="0" step="0.01" data-index="${index}" data-field="cost">`; break;
                     case 'calculated': content = `<span>${col.calculator(item)}</span>`; break;
                     case 'available_stock': content = availableStock.toFixed(2); break;
@@ -1667,56 +1688,75 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderConsumptionReport(config) {
-        const { resultsContainerId, exportBtnId, data, title, entityName, dateHeader, historicalCosts, qtyColumnHeader = 'table_h_total_qty_consumed' } = config;
+        const { resultsContainerId, exportBtnId, data, title, entityName, dateHeader, historicalCosts, qtyColumnHeader = 'table_h_total_qty_consumed', breakdownBy = null } = config;
         const resultsContainer = document.getElementById(resultsContainerId);
         const exportBtn = document.getElementById(exportBtnId);
-    
         const hasValue = !!historicalCosts;
     
-        const groupedByItem = {};
+        const groupedData = {};
         (data || []).forEach(t => {
-            if (!groupedByItem[t.itemCode]) {
-                const item = findByKey(state.items, 'code', t.itemCode) || { name: 'N/A', unit: 'N/A', category: 'N/A' };
-                groupedByItem[t.itemCode] = { item, totalQty: 0, totalValue: 0 };
+            const groupKey = breakdownBy ? t[breakdownBy] : 'summary';
+            if (!groupKey) return;
+    
+            if (!groupedData[groupKey]) {
+                const section = findByKey(state.sections, 'sectionCode', groupKey);
+                groupedData[groupKey] = {
+                    name: section ? section.name : _t(title),
+                    items: {}
+                };
             }
-            
+            if (!groupedData[groupKey].items[t.itemCode]) {
+                const item = findByKey(state.items, 'code', t.itemCode) || { name: 'N/A', unit: 'N/A', category: 'N/A' };
+                groupedData[groupKey].items[t.itemCode] = { item, totalQty: 0, totalValue: 0 };
+            }
+            const itemGroup = groupedData[groupKey].items[t.itemCode];
             const quantity = parseFloat(t.quantity) || 0;
-            groupedByItem[t.itemCode].totalQty += quantity;
+            itemGroup.totalQty += quantity;
     
             if (hasValue) {
                 const costAtTransaction = historicalCosts[`${t.batchId}-${t.itemCode}`] || findByKey(state.items, 'code', t.itemCode)?.cost || 0;
-                groupedByItem[t.itemCode].totalValue += quantity * costAtTransaction;
+                itemGroup.totalValue += quantity * costAtTransaction;
             }
         });
     
-        let tableBodyHtml = '';
-        const sortedGroups = Object.values(groupedByItem).sort((a, b) => a.item.name.localeCompare(b.item.name));
-    
-        sortedGroups.forEach(group => {
-            tableBodyHtml += `<tr>
-                <td>${group.item.code}</td>
-                <td>${group.item.name}</td>
-                <td>${_t(group.item.category?.toLowerCase()) || group.item.category || 'N/A'}</td>
-                <td style="text-align:right;">${group.totalQty.toFixed(2)} ${group.item.unit}</td>
-                ${hasValue ? `<td style="text-align:right;">${group.totalValue.toFixed(2)} EGP</td>` : ''}
-            </tr>`;
-        });
+        let overallHtml = '';
+        let grandTotalValue = 0;
         
-        const grandTotalValue = sortedGroups.reduce((sum, group) => sum + group.totalValue, 0);
+        Object.keys(groupedData).sort().forEach(groupKey => {
+            const group = groupedData[groupKey];
+            if (breakdownBy) {
+                overallHtml += `<h3 class="report-group-header">${group.name}</h3>`;
+            }
+            
+            let tableBodyHtml = '';
+            let groupTotalValue = 0;
+            const sortedItems = Object.values(group.items).sort((a, b) => a.item.name.localeCompare(b.item.name));
+            
+            sortedItems.forEach(itemData => {
+                groupTotalValue += itemData.totalValue;
+                tableBodyHtml += `<tr>
+                    <td>${itemData.item.code}</td>
+                    <td>${itemData.item.name}</td>
+                    <td>${_t(itemData.item.category?.toLowerCase()) || itemData.item.category || 'N/A'}</td>
+                    <td style="text-align:right;">${itemData.totalQty.toFixed(2)} ${itemData.item.unit}</td>
+                    ${hasValue ? `<td style="text-align:right;">${itemData.totalValue.toFixed(2)} EGP</td>` : ''}
+                </tr>`;
+            });
+            
+            grandTotalValue += groupTotalValue;
+            
+            const headerHtml = `<thead><tr><th>${_t('table_h_code')}</th><th>${_t('table_h_name')}</th><th>${_t('table_h_category')}</th><th style="text-align:right;">${_t(qtyColumnHeader)}</th>${hasValue ? `<th style="text-align:right;">${_t('table_h_total_value_consumed')}</th>` : ''}</tr></thead>`;
+            const groupFooterHtml = hasValue && breakdownBy ? `<tfoot><tr style="font-weight:bold; background-color: var(--bg-color);"><td colspan="4" style="text-align:right;">${_t('total_value')} for ${group.name}:</td><td style="text-align:right;">${groupTotalValue.toFixed(2)} EGP</td></tr></tfoot>` : '';
+            
+            overallHtml += `<table class="report-sub-table">${headerHtml}<tbody>${tableBodyHtml}</tbody>${groupFooterHtml}</table>`;
+        });
     
-        const headerHtml = `<thead><tr><th>${_t('table_h_code')}</th><th>${_t('table_h_name')}</th><th>${_t('table_h_category')}</th><th style="text-align:right;">${_t(qtyColumnHeader)}</th>${hasValue ? `<th style="text-align:right;">${_t('table_h_total_value_consumed')}</th>` : ''}</tr></thead>`;
-        const footerHtml = hasValue ? `<tfoot><tr style="font-weight:bold; background-color: var(--bg-color);">
-            <td colspan="4" style="text-align:right;">${_t('grand_total_value')}</td>
-            <td style="text-align:right;">${grandTotalValue.toFixed(2)} EGP</td>
-        </tr></tfoot>` : '';
+        const grandTotalFooterHtml = hasValue ? `<table class="report-grand-total"><tfoot><tr style="font-weight:bold; background-color: var(--bg-color);"><td colspan="4" style="text-align:right;">${_t('grand_total_value')}:</td><td style="text-align:right;">${grandTotalValue.toFixed(2)} EGP</td></tr></tfoot></table>` : '';
     
         resultsContainer.innerHTML = `<div class="printable-document">
             <div class="printable-header"><div><h2>${_t('consumption_report_title', {title: _t(title), entityName})}</h2><p style="margin:0; color: var(--text-light-color);">${dateHeader}</p></div><button class="secondary small no-print" onclick="printReport('${resultsContainerId}')">${_t('print_list')}</button></div>
-            <div class="report-area"><table id="table-${resultsContainerId}-report">
-                ${headerHtml}
-                <tbody>${tableBodyHtml}</tbody>
-                ${footerHtml}
-            </table></div></div>`;
+            <div class="report-area">${overallHtml}${grandTotalFooterHtml}</div>
+        </div>`;
         resultsContainer.style.display = 'block';
         exportBtn.disabled = false;
     }
@@ -2080,909 +2120,48 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    const findByKey = (array, key, value) => (array || []).find(el => el && String(el[key]) === String(value));
-    const generateId = (prefix) => `${prefix}-${Date.now()}`;
-    const printContent = (content) => { document.getElementById('print-area').innerHTML = content; setTimeout(() => window.print(), 100); };
-    const exportToExcel = (tableId, filename) => { try { const table = document.getElementById(tableId); if (!table) { showToast('Please generate a report first.', 'error'); return; } const wb = XLSX.utils.table_to_book(table, {sheet: "Sheet1"}); XLSX.writeFile(wb, filename); showToast('Exporting to Excel...', 'success'); } catch (err) { showToast('Excel export failed.', 'error'); Logger.error('Export Error:', err); } };
-    
-    const calculateStockLevels = () => {
-        const stock = {};
-        (state.branches || []).forEach(branch => { stock[branch.branchCode] = {}; });
-        const sortedTransactions = [...(state.transactions || [])].sort((a, b) => new Date(a.date) - new Date(b.date));
-        const tempAvgCosts = {};
-        sortedTransactions.forEach(t => {
-            const isApproved = t.isApproved === true || String(t.isApproved).toUpperCase() === 'TRUE';
-            if (t.type === 'receive' && !isApproved) return;
+    // --- OPERATIONAL CONTEXT MODAL ---
+    function getOperationContext(requiredContexts = { branch: false, section: false }) {
+        return new Promise(resolve => {
+            contextPromiseResolver = resolve;
             
-            const item = findByKey(state.items, 'code', t.itemCode);
-            if (!item) return;
-            const processStockUpdate = (branchCode, qtyChange, cost) => {
-                if (!branchCode || !stock.hasOwnProperty(branchCode)) return;
-                const current = stock[branchCode][t.itemCode] || { quantity: 0, avgCost: parseFloat(item.cost) || 0, itemName: item.name };
-                if(qtyChange > 0) {
-                    const totalValue = (current.quantity * current.avgCost) + (qtyChange * cost);
-                    const totalQty = current.quantity + qtyChange;
-                    const newAvgCost = totalQty > 0 ? totalValue / totalQty : current.avgCost;
-                    stock[branchCode][t.itemCode] = { itemCode: t.itemCode, quantity: totalQty, avgCost: newAvgCost, itemName: item.name };
-                    if (!tempAvgCosts[branchCode]) tempAvgCosts[branchCode] = {};
-                    tempAvgCosts[branchCode][t.itemCode] = newAvgCost;
-                } else {
-                    current.quantity += qtyChange;
-                    stock[branchCode][t.itemCode] = current;
-                }
-            };
-            const qty = parseFloat(t.quantity) || 0;
-            switch (t.type) {
-                case 'receive': processStockUpdate(t.branchCode, qty, parseFloat(t.cost) || 0); break;
-                case 'transfer_out': processStockUpdate(t.fromBranchCode, -qty); break;
-                case 'issue': processStockUpdate(t.fromBranchCode, -qty); break;
-                case 'return_out': processStockUpdate(t.fromBranchCode, -qty); break;
-                case 'adjustment_out': processStockUpdate(t.fromBranchCode, -qty); break;
-                case 'transfer_in':
-                    const fromAvgCost = tempAvgCosts[t.fromBranchCode]?.[t.itemCode] || findByKey(state.items, 'code', t.itemCode)?.cost || 0;
-                    processStockUpdate(t.toBranchCode, qty, parseFloat(fromAvgCost));
-                    break;
-                case 'adjustment_in':
-                    processStockUpdate(t.fromBranchCode, qty, parseFloat(t.cost) || 0);
-                    break;
-            }
-        });
-        return stock;
-    };
-
-    const calculateSupplierFinancials = () => {
-        const financials = {};
-        (state.suppliers || []).forEach(s => { financials[s.supplierCode] = { supplierCode: s.supplierCode, supplierName: s.name, totalBilled: 0, totalPaid: 0, totalCredited: 0, balance: 0, invoices: {}, events: [] }; });
-        (state.transactions || []).forEach(t => {
-            const isApproved = t.isApproved === true || String(t.isApproved).toUpperCase() === 'TRUE';
-            if (!t.supplierCode || !financials[t.supplierCode] || t.cost === undefined) return;
-            const value = (parseFloat(t.quantity) || 0) * (parseFloat(t.cost) || 0);
-            if (t.type === 'receive' && isApproved) {
-                financials[t.supplierCode].totalBilled += value;
-                const invNum = t.invoiceNumber;
-                if (!financials[t.supplierCode].invoices[invNum]) { financials[t.supplierCode].invoices[invNum] = { number: invNum, date: t.date, total: 0, paid: 0 }; }
-                financials[t.supplierCode].invoices[invNum].total += value;
-            } else if (t.type === 'return_out') {
-                financials[t.supplierCode].totalCredited += value;
-            }
-        });
-        (state.payments || []).forEach(p => { 
-            if (financials[p.supplierCode]) { 
-                const amount = parseFloat(p.amount) || 0;
-                if (p.method === 'OPENING BALANCE') {
-                    financials[p.supplierCode].totalBilled += amount;
-                } else {
-                    financials[p.supplierCode].totalPaid += amount;
-                }
-                
-                if (p.invoiceNumber && financials[p.supplierCode].invoices[p.invoiceNumber]) { 
-                    financials[p.supplierCode].invoices[p.invoiceNumber].paid += amount;
-                } else if (p.method === 'OPENING BALANCE') {
-                    financials[p.supplierCode].invoices[p.invoiceNumber] = { number: p.invoiceNumber, date: p.date, total: amount, paid: 0 };
-                }
-            } 
-        });
-        Object.values(financials).forEach(s => {
-            s.balance = s.totalBilled - s.totalPaid - s.totalCredited;
-            Object.values(s.invoices).forEach(inv => { inv.balance = inv.total - inv.paid; if (Math.abs(inv.balance) < 0.01) { inv.status = 'Paid'; } else if (inv.paid > 0) { inv.status = 'Partial'; } else { inv.status = 'Unpaid'; } });
-            const allEvents = [
-                ...Object.values(s.invoices).map(i => ({ date: i.date, type: 'Invoice/OB', ref: i.number, debit: i.total, credit: 0 })),
-                ...(state.transactions || []).filter(t => t.type === 'return_out' && t.supplierCode === s.supplierCode).map(t => ({ date: t.date, type: 'Return (Credit)', ref: t.ref, debit: 0, credit: (parseFloat(t.quantity) || 0) * (parseFloat(t.cost) || 0) })),
-                ...(state.payments || []).filter(p => p.supplierCode === s.supplierCode && p.method !== 'OPENING BALANCE').map(p => ({ date: p.date, type: 'Payment', ref: p.paymentId, debit: 0, credit: (parseFloat(p.amount) || 0) }))
-            ];
-            s.events = allEvents.sort((a,b) => new Date(a.date) - new Date(b.date));
-        });
-        financials.allInvoices = {}; Object.values(financials).forEach(s => { Object.assign(financials.allInvoices, s.invoices); }); return financials;
-    };
-    
-    const calculateHistoricalCosts = () => {
-        const costSnapshots = {}; 
-        const stock = {}; 
-        
-        (state.branches || []).forEach(branch => { stock[branch.branchCode] = {}; });
-        
-        const sortedTransactions = [...(state.transactions || [])]
-            .filter(t => t.type) 
-            .sort((a, b) => new Date(a.date) - new Date(b.date));
-    
-        sortedTransactions.forEach(t => {
-            const isApproved = t.isApproved === true || String(t.isApproved).toUpperCase() === 'TRUE';
-            if (t.type === 'receive' && !isApproved) return;
-
-            const item = findByKey(state.items, 'code', t.itemCode);
-            if (!item) return;
-    
-            const qty = parseFloat(t.quantity) || 0;
-            let branchCode, costForUpdate, costForSnapshot;
-    
-            switch (t.type) {
-                case 'receive':
-                case 'adjustment_in':
-                    branchCode = t.branchCode || t.fromBranchCode;
-                    costForUpdate = parseFloat(t.cost) || 0;
-                    costForSnapshot = costForUpdate;
-                    break;
-                case 'transfer_in':
-                    branchCode = t.toBranchCode;
-                    costForUpdate = costSnapshots[`${t.batchId}-${t.itemCode}`] || (stock[t.fromBranchCode]?.[t.itemCode]?.avgCost) || item.cost;
-                    costForSnapshot = costForUpdate;
-                    break;
-                case 'issue':
-                case 'return_out':
-                case 'transfer_out':
-                case 'adjustment_out':
-                    branchCode = t.fromBranchCode;
-                    costForUpdate = null; 
-                    costForSnapshot = stock[branchCode]?.[t.itemCode]?.avgCost || parseFloat(item.cost) || 0;
-                    break;
-                default:
-                    return;
-            }
+            const branchGroup = document.getElementById('context-modal-branch-group');
+            const sectionGroup = document.getElementById('context-modal-section-group');
             
-            if (!branchCode || !stock[branchCode]) return;
-            
-            costSnapshots[`${t.batchId}-${t.itemCode}`] = costForSnapshot;
-    
-            const currentStock = stock[branchCode][t.itemCode] || { quantity: 0, avgCost: parseFloat(item.cost) || 0 };
-    
-            if (t.type === 'receive' || t.type === 'transfer_in' || t.type === 'adjustment_in') {
-                const totalValue = (currentStock.quantity * currentStock.avgCost) + (qty * costForUpdate);
-                const totalQty = currentStock.quantity + qty;
-                const newAvgCost = totalQty > 0 ? totalValue / totalQty : currentStock.avgCost;
-                stock[branchCode][t.itemCode] = { quantity: totalQty, avgCost: newAvgCost };
-            } else {
-                stock[branchCode][t.itemCode] = { quantity: currentStock.quantity - qty, avgCost: currentStock.avgCost };
+            branchGroup.style.display = requiredContexts.branch ? 'block' : 'none';
+            sectionGroup.style.display = requiredContexts.section ? 'block' : 'none';
+
+            if (requiredContexts.branch) {
+                populateOptions(document.getElementById('context-branch-select'), state.branches, _t('select_a_branch'), 'branchCode', 'name');
             }
-        });
-    
-        return costSnapshots;
-    };
-
-    const populateOptions = (el, data, ph, valueKey, textKey, textKey2) => { 
-        if (!el) {
-            console.warn(`populateOptions failed: element is null for placeholder "${ph}"`);
-            return;
-        }
-        el.innerHTML = `<option value="">${ph}</option>`; 
-        (data || []).forEach(item => { el.innerHTML += `<option value="${item[valueKey]}">${item[textKey]}${textKey2 && item[textKey2] ? ' (' + item[textKey2] + ')' : ''}</option>`; }); 
-    };
-    
-    function getVisibleBranchesForCurrentUser() { if (!state.currentUser) return []; if (userCan('viewAllBranches')) { return state.branches; } if (state.currentUser.AssignedBranchCode) { return state.branches.filter(b => String(b.branchCode) === String(state.currentUser.AssignedBranchCode)); } return []; }
-    
-    function applyUserUIConstraints() {
-        if (!state.currentUser) return;
-        const branchCode = state.currentUser.AssignedBranchCode;
-        const sectionCode = state.currentUser.AssignedSectionCode;
-        if (branchCode) {
-            ['receive-branch', 'issue-from-branch', 'transfer-from-branch', 'return-branch', 'adjustment-branch'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el && !userCan('viewAllBranches')) { el.value = branchCode; el.disabled = true; el.dispatchEvent(new Event('change')); }
-            });
-            if (!userCan('viewAllBranches')) {
-                ['branch-consumption-select', 'resupply-branch-filter', 'tx-filter-branch'].forEach(id => {
-                    const el = document.getElementById(id);
-                    if (el) { el.value = branchCode; el.disabled = true; }
-                });
+            if (requiredContexts.section) {
+                populateOptions(document.getElementById('context-section-select'), state.sections, _t('select_a_section'), 'sectionCode', 'name');
             }
-        }
-        if (sectionCode && !userCan('viewAllBranches')) {
-            ['section-consumption-select', 'tx-filter-section'].forEach(id => {
-                const el = document.getElementById(id);
-                if(el) { el.value = sectionCode; el.disabled = true; }
-            });
-        }
-    }
 
-    const refreshViewData = async (viewId) => {
-        if (!state.currentUser) return;
-        Logger.debug(`Refreshing view: ${viewId}`);
-
-        switch(viewId) {
-            case 'dashboard':
-                const stock = calculateStockLevels();
-                document.getElementById('dashboard-total-items').textContent = (state.items || []).length;
-                document.getElementById('dashboard-total-suppliers').textContent = (state.suppliers || []).length;
-                document.getElementById('dashboard-total-branches').textContent = (state.branches || []).length;
-                let totalValue = 0;
-                Object.values(stock).forEach(bs => Object.values(bs).forEach(i => totalValue += i.quantity * i.avgCost));
-                document.getElementById('dashboard-total-value').textContent = `${totalValue.toFixed(2)} EGP`;
-                break;
-            case 'setup':
-                document.getElementById('form-add-item').parentElement.style.display = userCan('createItem') ? 'block' : 'none';
-                document.getElementById('form-add-supplier').parentElement.style.display = userCan('createSupplier') ? 'block' : 'none';
-                document.getElementById('form-add-branch').parentElement.style.display = userCan('createBranch') ? 'block' : 'none';
-                document.getElementById('form-add-section').parentElement.style.display = userCan('createSection') ? 'block' : 'none';
-                populateOptions(document.getElementById('item-supplier'), state.suppliers, _t('select_supplier'), 'supplierCode', 'name');
-                break;
-            case 'backup':
-                 loadAndRenderBackups();
-                 loadAutoBackupSettings();
-                 break;
-            case 'master-data':
-                document.querySelector('[data-subview="items"]').style.display = userCan('editItem') || userCan('createItem') ? 'inline-block' : 'none';
-                document.querySelector('[data-subview="suppliers"]').style.display = userCan('editSupplier') || userCan('createSupplier') ? 'inline-block' : 'none';
-                document.querySelector('[data-subview="branches"]').style.display = userCan('editBranch') || userCan('createBranch') ? 'inline-block' : 'none';
-                document.querySelector('[data-subview="sections"]').style.display = userCan('editSection') || userCan('createSection') ? 'inline-block' : 'none';
-                renderItemsTable(); renderSuppliersTable(); renderBranchesTable(); renderSectionsTable();
-                break;
-            case 'operations':
-                document.querySelector('[data-subview="receive"]').style.display = userCan('opReceive') ? 'inline-block' : 'none';
-                document.querySelector('[data-subview="issue"]').style.display = userCan('opIssue') ? 'inline-block' : 'none';
-                document.querySelector('[data-subview="transfer"]').style.display = userCan('opTransfer') ? 'inline-block' : 'none';
-                document.querySelector('[data-subview="return"]').style.display = userCan('opReturn') ? 'inline-block' : 'none';
-                const canAdjustStock = userCan('opStockAdjustment');
-                const canAdjustFinance = userCan('opFinancialAdjustment');
-                document.querySelector('[data-subview="adjustments"]').style.display = canAdjustStock || canAdjustFinance ? 'inline-block' : 'none';
-                document.getElementById('stock-adjustment-card').style.display = canAdjustStock ? 'block' : 'none';
-                document.getElementById('stock-adjustment-list-card').style.display = canAdjustStock ? 'block' : 'none';
-                document.getElementById('financial-adjustment-card').style.display = canAdjustFinance ? 'block' : 'none';
-                populateOptions(document.getElementById('receive-supplier'), state.suppliers, _t('select_supplier'), 'supplierCode', 'name');
-                populateOptions(document.getElementById('receive-branch'), state.branches, _t('select_a_branch'), 'branchCode', 'name');
-                populateOptions(document.getElementById('transfer-from-branch'), state.branches, _t('select_a_branch'), 'branchCode', 'name');
-                populateOptions(document.getElementById('transfer-to-branch'), state.branches, _t('select_a_branch'), 'branchCode', 'name');
-                populateOptions(document.getElementById('issue-from-branch'), state.branches, _t('select_a_branch'), 'branchCode', 'name');
-                populateOptions(document.getElementById('issue-to-section'), state.sections, _t('select_a_section'), 'sectionCode', 'name');
-                populateOptions(document.getElementById('return-supplier'), state.suppliers, _t('select_supplier'), 'supplierCode', 'name');
-                populateOptions(document.getElementById('return-branch'), state.branches, _t('select_a_branch'), 'branchCode', 'name');
-                populateOptions(document.getElementById('adjustment-branch'), state.branches, _t('select_a_branch'), 'branchCode', 'name');
-                populateOptions(document.getElementById('fin-adj-supplier'), state.suppliers, _t('select_supplier'), 'supplierCode', 'name');
-                const openPOs = (state.purchaseOrders || []).filter(po => po.Status === 'Approved');
-                populateOptions(document.getElementById('receive-po-select'), openPOs, _t('select_a_po'), 'poId', 'poId', 'supplierCode');
-                document.getElementById('issue-ref').value = generateId('ISN'); document.getElementById('transfer-ref').value = generateId('TRN');
-                renderReceiveListTable(); renderIssueListTable(); renderTransferListTable(); renderReturnListTable(); renderPendingTransfers(); renderInTransitReport(); renderAdjustmentListTable();
-                break;
-            case 'purchasing':
-                 document.querySelector('[data-subview="create-po"]').style.display = userCan('opCreatePO') ? 'inline-block' : 'none';
-                 document.querySelector('[data-subview="view-pos"]').style.display = userCan('opCreatePO') || userCan('opApproveFinancials') ? 'inline-block' : 'none';
-                 document.querySelector('[data-subview="pending-financial-approval"]').style.display = userCan('opApproveFinancials') ? 'inline-block' : 'none';
-                 populateOptions(document.getElementById('po-supplier'), state.suppliers, _t('select_supplier'), 'supplierCode', 'name');
-                 document.getElementById('po-ref').value = generateId('PO');
-                 renderPOListTable(); renderPurchaseOrdersViewer(); renderPendingFinancials();
-                 break;
-            case 'requests':
-                document.querySelector('[data-subview="my-requests"]').style.display = userCan('opRequestItems') ? 'inline-block' : 'none';
-                document.querySelector('[data-subview="pending-approval"]').style.display = userCan('opApproveIssueRequest') || userCan('opApproveResupplyRequest') ? 'inline-block' : 'none';
-                renderRequestListTable(); renderMyRequests(); renderPendingRequests();
-                break;
-            case 'payments':
-                populateOptions(document.getElementById('payment-supplier-select'), state.suppliers, _t('select_supplier'), 'supplierCode', 'name');
-                renderPaymentList();
-                document.getElementById('btn-select-invoices').disabled = true;
-                break;
-            case 'reports':
-                populateOptions(document.getElementById('supplier-statement-select'), state.suppliers, _t('select_a_supplier'), 'supplierCode', 'name');
-                populateOptions(document.getElementById('branch-consumption-select'), getVisibleBranchesForCurrentUser(), _t('select_a_branch'), 'branchCode', 'name');
-                populateOptions(document.getElementById('section-consumption-select'), state.sections, _t('select_a_section'), 'sectionCode', 'name');
-                populateOptions(document.getElementById('resupply-branch-filter'), getVisibleBranchesForCurrentUser(), _t('all_branches'), 'branchCode', 'name');
-                populateOptions(document.getElementById('branch-consumption-item-filter'), state.items, _t('all_items'), 'code', 'name');
-                populateOptions(document.getElementById('section-consumption-item-filter'), state.items, _t('all_items'), 'code', 'name');
-                break;
-            case 'stock-levels':
-                document.getElementById('stock-levels-title').textContent = userCan('viewAllBranches') ? _t('stock_by_item_all_branches') : _t('stock_by_item_your_branch');
-                renderItemCentricStockView();
-                document.getElementById('item-inquiry-search').value = ''; renderItemInquiry('');
-                document.getElementById('stock-levels-search').value = '';
-                break;
-            case 'transaction-history': 
-                populateOptions(document.getElementById('tx-filter-branch'), state.branches, _t('all_branches'), 'branchCode', 'name');
-                populateOptions(document.getElementById('tx-filter-section'), state.sections, _t('all_sections'), 'sectionCode', 'name');
-                populateOptions(document.getElementById('tx-filter-supplier'), state.suppliers, _t('all_suppliers'), 'supplierCode', 'name');
-                const txTypes = ['receive', 'issue', 'transfer_out', 'transfer_in', 'return_out', 'po', 'adjustment_in', 'adjustment_out'];
-                const txTypeOptions = txTypes.map(t => ({'type': t, 'name': _t(t.replace(/_/g,''))}));
-                populateOptions(document.getElementById('tx-filter-type'), txTypeOptions, _t('all_types'), 'type', 'name');
-                renderTransactionHistory({
-                    startDate: document.getElementById('tx-filter-start-date').value,
-                    endDate: document.getElementById('tx-filter-end-date').value,
-                    type: document.getElementById('tx-filter-type').value,
-                    branch: document.getElementById('tx-filter-branch').value,
-                    searchTerm: document.getElementById('transaction-search').value,
-                }); 
-                break;
-            case 'user-management':
-                const result = await postData('getAllUsersAndRoles', {}, null);
-                if (result) { state.allUsers = result.data.users; state.allRoles = result.data.roles; renderUserManagementUI(); }
-                break;
-            case 'activity-log':
-                renderActivityLog();
-                break;
-        }
-        applyUserUIConstraints();
-        applyTranslations();
-    };
-
-    async function reloadDataAndRefreshUI() { 
-        Logger.info('Reloading data...'); 
-        const { username, loginCode } = state; 
-        if (!username || !loginCode) { logout(); return; } 
-        const currentView = document.querySelector('.nav-item a.active')?.dataset.view || 'dashboard'; 
-        setButtonLoading(true, globalRefreshBtn); 
-        try { 
-            const response = await fetch(`${SCRIPT_URL}?username=${encodeURIComponent(username)}&loginCode=${encodeURIComponent(loginCode)}`); 
-            if (!response.ok) throw new Error('Failed to reload data.'); 
-            const data = await response.json(); 
-            if (data.status === 'error') throw new Error(data.message); 
-            Object.keys(data).forEach(key => { 
-                if(key !== 'user') state[key] = data[key] || state[key]; 
-            }); 
-            updateUserBranchDisplay(); 
-            updatePendingRequestsWidget(); 
-            await refreshViewData(currentView); 
-            Logger.info('Reload complete.'); 
-            showToast(_t('data_refreshed_toast'), 'success'); 
-        } catch (err) { 
-            Logger.error('Data reload failed:', err); 
-            showToast(_t('data_refresh_fail_toast'), 'error'); 
-        } finally { 
-            setButtonLoading(false, globalRefreshBtn); 
-        } 
-    }
-    
-    function renderUserManagementUI() {
-        const usersTbody = document.getElementById('table-users').querySelector('tbody');
-        usersTbody.innerHTML = '';
-        (state.allUsers || []).forEach(user => {
-            const tr = document.createElement('tr');
-            const assigned = findByKey(state.branches, 'branchCode', user.AssignedBranchCode)?.name || findByKey(state.sections, 'sectionCode', user.AssignedSectionCode)?.name || 'N/A';
-            const isDisabled = user.isDisabled === true || String(user.isDisabled).toUpperCase() === 'TRUE';
-            tr.innerHTML = `<td>${user.Username}</td><td>${user.Name}</td><td>${user.RoleName}</td><td>${assigned}</td><td><span class="status-tag ${isDisabled ? 'status-rejected' : 'status-approved'}">${isDisabled ? 'Disabled' : 'Active'}</span></td><td><button class="secondary small btn-edit" data-type="user" data-id="${user.Username}">${_t('edit')}</button></td>`;
-            usersTbody.appendChild(tr);
-        });
-        const rolesTbody = document.getElementById('table-roles').querySelector('tbody');
-        rolesTbody.innerHTML = '';
-        (state.allRoles || []).forEach(role => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `<td>${role.RoleName}</td><td><button class="secondary small btn-edit" data-type="role" data-id="${role.RoleName}">${_t('edit')}</button></td>`;
-            rolesTbody.appendChild(tr);
+            contextSelectorModal.classList.add('active');
         });
     }
 
-    function renderPurchaseOrdersViewer() {
-        const tbody = document.getElementById('table-po-viewer').querySelector('tbody');
-        tbody.innerHTML = '';
-        (state.purchaseOrders || []).slice().reverse().forEach(po => {
-            const supplier = findByKey(state.suppliers, 'supplierCode', po.supplierCode);
-            const items = (state.purchaseOrderItems || []).filter(item => item.poId === po.poId);
-            const tr = document.createElement('tr');
-            const canEditPO = po.Status === 'Pending Approval' && userCan('opCreatePO');
-            tr.innerHTML = `
-                <td>${po.poId}</td>
-                <td>${new Date(po.date).toLocaleDateString()}</td>
-                <td>${supplier?.name || po.supplierCode}</td>
-                <td>${items.length}</td>
-                <td>${(parseFloat(po.totalValue) || 0).toFixed(2)} EGP</td>
-                <td><span class="status-tag status-${(po.Status || 'pending').toLowerCase().replace(/ /g,'')}">${po.Status}</span></td>
-                <td><div class="action-buttons">
-                    <button class="secondary small btn-view-tx" data-batch-id="${po.poId}" data-type="po">${_t('view_print')}</button>
-                    ${canEditPO ? `<button class="secondary small btn-edit-po" data-po-id="${po.poId}">${_t('edit')}</button>` : ''}
-                </div></td>
-            `;
-            tbody.appendChild(tr);
-        });
-    }
-
-    function renderPendingFinancials() {
-        const tbody = document.getElementById('table-pending-financial-approval').querySelector('tbody');
-        tbody.innerHTML = '';
+    function handleContextSelection() {
+        const selectedBranch = document.getElementById('context-branch-select').value;
+        const selectedSection = document.getElementById('context-section-select').value;
         
-        const pendingPOs = (state.purchaseOrders || []).filter(po => po.Status === 'Pending Approval');
+        const branchVisible = document.getElementById('context-modal-branch-group').style.display !== 'none';
+        const sectionVisible = document.getElementById('context-modal-section-group').style.display !== 'none';
         
-        const pendingReceivesGroups = {};
-        (state.transactions || []).filter(t => t.type === 'receive' && (t.isApproved === false || String(t.isApproved).toUpperCase() === 'FALSE')).forEach(t => {
-            if (!pendingReceivesGroups[t.batchId]) {
-                pendingReceivesGroups[t.batchId] = {
-                    date: t.date,
-                    txType: 'receive',
-                    ref: t.invoiceNumber,
-                    batchId: t.batchId,
-                    details: `GRN from ${findByKey(state.suppliers, 'supplierCode', t.supplierCode)?.name || 'N/A'}`,
-                    totalValue: 0
-                };
-            }
-            pendingReceivesGroups[t.batchId].totalValue += (parseFloat(t.quantity) || 0) * (parseFloat(t.cost) || 0);
-        });
-
-        let allPending = [
-            ...pendingPOs.map(po => ({...po, txType: 'po', ref: po.poId, value: po.totalValue, details: `PO for ${findByKey(state.suppliers, 'supplierCode', po.supplierCode)?.name || 'N/A'}`})),
-            ...Object.values(pendingReceivesGroups).map(rcv => ({...rcv, value: rcv.totalValue}))
-        ];
-
-        if (allPending.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">${_t('no_pending_financial_approval')}</td></tr>`;
+        if ((branchVisible && !selectedBranch) || (sectionVisible && !selectedSection)) {
+            showToast(_t('fill_required_fields_toast'), 'error');
             return;
         }
 
-        allPending.sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(item => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>${new Date(item.date).toLocaleDateString()}</td>
-                <td>${_t(item.txType)}</td>
-                <td>${item.ref}</td>
-                <td>${item.details}</td>
-                <td>${(parseFloat(item.value) || 0).toFixed(2)} EGP</td>
-                <td>
-                    <div class="action-buttons">
-                        <button class="primary small btn-approve-financial" data-id="${item.txType === 'po' ? item.poId : item.batchId}" data-type="${item.txType}">${_t('approve')}</button>
-                        <button class="danger small btn-reject-financial" data-id="${item.txType === 'po' ? item.poId : item.batchId}" data-type="${item.txType}">${_t('reject')}</button>
-                    </div>
-                </td>
-            `;
-            tbody.appendChild(tr);
-        });
-    }
-    
-    function renderMyRequests() {
-        const tbody = document.getElementById('table-my-requests-history').querySelector('tbody');
-        tbody.innerHTML = '';
-        const myRequests = (state.itemRequests || []).filter(r => r.RequestedBy === state.currentUser.Name);
-        const grouped = myRequests.reduce((acc, req) => {
-            if (!acc[req.RequestID]) acc[req.RequestID] = { ...req, items: [] };
-            acc[req.RequestID].items.push(req);
-            return acc;
-        }, {});
-        
-        Object.values(grouped).reverse().forEach(group => {
-            const first = group;
-            const tr = document.createElement('tr');
-            const itemsSummary = group.items.map(i => `${i.Quantity} / ${i.IssuedQuantity !== '' && i.IssuedQuantity !== null ? i.IssuedQuantity : 'N/A'}`).join(', ');
-
-            tr.innerHTML = `
-                <td>${first.RequestID}</td>
-                <td>${new Date(first.Date).toLocaleDateString()}</td>
-                <td>${_t(first.Type)}</td>
-                <td>${itemsSummary}</td>
-                <td><span class="status-tag status-${first.Status.toLowerCase()}">${_t('status_' + first.Status.toLowerCase())}</span></td>
-                <td>${first.StatusNotes || ''}</td>
-            `;
-            tbody.appendChild(tr);
-        });
-    }
-
-    function renderPendingRequests() {
-        const tbody = document.getElementById('table-pending-requests').querySelector('tbody');
-        tbody.innerHTML = '';
-        const pending = (state.itemRequests || []).filter(r => r.Status === 'Pending' && (userCan('viewAllBranches') || r.ToBranch === state.currentUser.AssignedBranchCode));
-        const grouped = pending.reduce((acc, req) => {
-            if (!acc[req.RequestID]) acc[req.RequestID] = [];
-            acc[req.RequestID].push(req);
-            return acc;
-        }, {});
-
-        Object.values(grouped).forEach(group => {
-            const first = group[0];
-            const fromSection = findByKey(state.sections, 'sectionCode', first.FromSection)?.name || first.FromSection;
-            const toBranch = findByKey(state.branches, 'branchCode', first.ToBranch)?.name || first.ToBranch;
-            const itemsSummary = group.map(i => `${i.Quantity} x ${findByKey(state.items, 'code', i.ItemCode)?.name || i.ItemCode}`).join('<br>');
-            const tr = document.createElement('tr');
-            let canApprove = (first.Type === 'issue' && userCan('opApproveIssueRequest')) || (first.Type === 'resupply' && userCan('opApproveResupplyRequest'));
-            let approveBtnText = first.Type === 'issue' ? 'Edit & Approve' : 'Approve';
-
-            tr.innerHTML = `
-                <td>${first.RequestID}</td>
-                <td>${new Date(first.Date).toLocaleString()}</td>
-                <td>${_t(first.Type)}</td>
-                <td>${first.RequestedBy}</td>
-                <td>${_t('from_branch')}: ${fromSection}<br>${_t('to_branch')}: ${toBranch}</td>
-                <td>${itemsSummary}</td>
-                <td>
-                    <div class="action-buttons">
-                        <button class="primary small btn-approve-request" data-id="${first.RequestID}" ${!canApprove ? 'disabled' : ''}>${approveBtnText}</button>
-                        <button class="danger small btn-reject-request" data-id="${first.RequestID}" ${!canApprove ? 'disabled' : ''}>${_t('reject')}</button>
-                    </div>
-                </td>
-            `;
-            tbody.appendChild(tr);
-        });
-    }
-
-    function renderPendingTransfers() {
-        const container = document.getElementById('pending-transfers-card');
-        const tbody = document.getElementById('table-pending-transfers').querySelector('tbody');
-        tbody.innerHTML = '';
-        const groupedTransfers = {};
-        (state.transactions || []).filter(t => t.type === 'transfer_out' && t.Status === 'In Transit').forEach(t => {
-            if (!groupedTransfers[t.batchId]) groupedTransfers[t.batchId] = { ...t, items: [] };
-            groupedTransfers[t.batchId].items.push(t);
-        });
-        const visibleTransfers = Object.values(groupedTransfers).filter(t => userCan('viewAllBranches') || t.toBranchCode === state.currentUser.AssignedBranchCode);
-        
-        if (visibleTransfers.length === 0) {
-            container.style.display = 'none'; return;
-        }
-        tbody.innerHTML = '';
-        visibleTransfers.forEach(t => {
-            const tr = document.createElement('tr');
-            const fromBranch = findByKey(state.branches, 'branchCode', t.fromBranchCode)?.name || t.fromBranchCode;
-            tr.innerHTML = `<td>${new Date(t.date).toLocaleString()}</td><td>${fromBranch}</td><td>${t.ref}</td><td>${t.items.length}</td><td><button class="primary small btn-receive-transfer" data-batch-id="${t.batchId}">${_t('view_confirm')}</button></td>`;
-            tbody.appendChild(tr);
-        });
-        container.style.display = 'block';
-    }
-
-    function renderInTransitReport() {
-        const tbody = document.getElementById('table-in-transit').querySelector('tbody');
-        tbody.innerHTML = '';
-        const groupedTransfers = {};
-        (state.transactions || []).filter(t => t.type === 'transfer_out').forEach(t => {
-            if (!groupedTransfers[t.batchId]) groupedTransfers[t.batchId] = { ...t, items: [] };
-            groupedTransfers[t.batchId].items.push(t);
-        });
-        const visibleTransfers = Object.values(groupedTransfers).filter(t => userCan('viewAllBranches') || t.toBranchCode === state.currentUser.AssignedBranchCode || t.fromBranchCode === state.currentUser.AssignedBranchCode);
-        
-        visibleTransfers.forEach(t => {
-            const tr = document.createElement('tr');
-            const fromBranch = findByKey(state.branches, 'branchCode', t.fromBranchCode)?.name || t.fromBranchCode;
-            const toBranch = findByKey(state.branches, 'branchCode', t.toBranchCode)?.name || t.toBranchCode;
-            const canManage = (userCan('viewAllBranches') || t.fromBranchCode === state.currentUser.AssignedBranchCode) && t.Status === 'In Transit';
-            const actions = canManage ? `<div class="action-buttons"><button class="secondary small btn-edit-transfer" data-batch-id="${t.batchId}">${_t('edit')}</button><button class="danger small btn-cancel-transfer" data-batch-id="${t.batchId}">${_t('cancel')}</button></div>` : 'N/A';
-            tr.innerHTML = `<td>${new Date(t.date).toLocaleString()}</td><td>${fromBranch}</td><td>${toBranch}</td><td>${t.ref}</td><td>${t.items.length}</td><td><span class="status-tag status-${t.Status.toLowerCase().replace(/ /g,'')}">${_t('status_' + t.Status.toLowerCase().replace(/ /g, ''))}</span></td><td>${actions}</td>`;
-            tbody.appendChild(tr);
-        });
-    }
-    
-    function updatePendingRequestsWidget() {
-        const widget = document.getElementById('pending-requests-widget');
-        if (!userCan('opApproveIssueRequest') && !userCan('opApproveResupplyRequest')) {
-            widget.style.display = 'none';
-            return;
-        }
-        const pendingRequests = (state.itemRequests || []).filter(r => r.Status === 'Pending' && (userCan('viewAllBranches') || r.ToBranch === state.currentUser.AssignedBranchCode));
-        const count = new Set(pendingRequests.map(r => r.RequestID)).size;
-        
-        if(count > 0) {
-            document.getElementById('pending-requests-count').textContent = count;
-            document.getElementById('pending-requests-widget-text').textContent = _t('pending_requests_widget', {count: ''}); // update text, leave number separate
-            widget.style.display = 'flex';
-        } else {
-            widget.style.display = 'none';
-        }
-    }
-
-    function setupSearch(inputId, renderFn, dataKey, searchKeys) { const searchInput = document.getElementById(inputId); if (!searchInput) return; searchInput.addEventListener('input', e => { const searchTerm = e.target.value.toLowerCase(); const dataToFilter = state[dataKey] || []; renderFn(searchTerm ? dataToFilter.filter(item => searchKeys.some(key => item[key] && String(item[key]).toLowerCase().includes(searchTerm))) : dataToFilter); }); }
-    
-    function attachSubNavListeners() { document.querySelectorAll('.sub-nav').forEach(nav => { if(nav.closest('#history-modal')) return; nav.addEventListener('click', e => { if (!e.target.classList.contains('sub-nav-item')) return; const subviewId = e.target.dataset.subview; const parentView = e.target.closest('.view'); if (!parentView) return; parentView.querySelectorAll('.sub-nav-item').forEach(btn => btn.classList.remove('active')); e.target.classList.add('active'); parentView.querySelectorAll('.sub-view').forEach(view => view.classList.remove('active')); const subViewToShow = parentView.querySelector(`#subview-${subviewId}`); if (subViewToShow) subViewToShow.classList.add('active'); }); }); }
-    
-    function attachEventListeners() {
-        btnLogout.addEventListener('click', logout);
-        globalRefreshBtn.addEventListener('click', reloadDataAndRefreshUI);
-        
-        document.getElementById('btn-create-backup').addEventListener('click', async (e) => {
-            const btn = e.currentTarget;
-            if (confirm(_t('backup_confirm_prompt'))) {
-                const result = await postData('createBackup', {}, btn);
-                if (result && result.data) {
-                    showToast(_t('backup_created_toast', {fileName: result.data.fileName}), 'success');
-                    await loadAndRenderBackups();
-                }
-            }
-        });
-
-        document.getElementById('backup-list-container').addEventListener('click', (e) => {
-            const btn = e.target.closest('button');
-            if (btn && btn.classList.contains('btn-restore')) {
-                const backupFileId = findByKey(state.backups, 'url', btn.dataset.url)?.id;
-                const backupFileName = findByKey(state.backups, 'url', btn.dataset.url)?.name;
-                if (backupFileId) {
-                    openRestoreModal(backupFileId, backupFileName);
-                } else {
-                    showToast(_t('restore_find_id_fail_toast'), 'error');
-                }
-            }
-        });
-        
-        document.getElementById('auto-backup-toggle').addEventListener('change', handleAutoBackupToggle);
-        document.getElementById('auto-backup-frequency').addEventListener('change', handleAutoBackupToggle);
-        document.getElementById('btn-confirm-restore').addEventListener('click', handleConfirmRestore);
-
-        document.querySelectorAll('#main-nav a:not(#btn-logout)').forEach(link => { link.addEventListener('click', e => { e.preventDefault(); showView(link.dataset.view); }); });
-        
-        mainContent.addEventListener('click', e => {
-            const btn = e.target.closest('button');
-            if (!btn) return;
-            if (btn.dataset.context) { openItemSelectorModal(e); }
-            if (btn.id === 'btn-select-invoices') { openInvoiceSelectorModal(); }
-            if (btn.classList.contains('btn-edit')) { openEditModal(btn.dataset.type, btn.dataset.id); }
-            if (btn.classList.contains('btn-history')) { openHistoryModal(btn.dataset.id); }
-            if (btn.id === 'btn-add-new-user') { openEditModal('user', null); }
-            if (btn.id === 'btn-add-new-role') { const roleName = prompt(_t('add_role_prompt')); if(roleName) { postData('addRole', { RoleName: roleName }, btn).then(res => res && reloadDataAndRefreshUI()); } }
-            if (btn.classList.contains('btn-view-tx')) {
-                 const batchId = btn.dataset.batchId;
-                 const type = btn.dataset.type;
-                 let data, items;
-                 
-                 switch(type) {
-                     case 'po':
-                         data = findByKey(state.purchaseOrders, 'poId', batchId);
-                         items = (state.purchaseOrderItems || []).filter(i => i.poId === batchId);
-                         if (data && items) generatePODocument({ ...data, items });
-                         break;
-                     default:
-                         const transactionGroup = state.transactions.filter(t => t.batchId === batchId);
-                         if (transactionGroup.length > 0) {
-                             const first = transactionGroup[0];
-                             data = { ...first, items: transactionGroup.map(t => ({...t, itemName: findByKey(state.items, 'code', t.itemCode)?.name })) };
-                             if (type === 'receive') generateReceiveDocument(data);
-                             else if (type.startsWith('transfer')) generateTransferDocument(data);
-                             else if (type === 'issue') generateIssueDocument(data);
-                             else if (type === 'return_out') generateReturnDocument(data);
-                         }
-                         break;
-                 }
-            }
-            if (btn.classList.contains('btn-receive-transfer')) { openViewTransferModal(btn.dataset.batchId); }
-            if (btn.classList.contains('btn-edit-transfer')) { openTransferEditModal(btn.dataset.batchId); }
-            if (btn.classList.contains('btn-cancel-transfer')) { const batchId = btn.dataset.batchId; if (confirm(`Are you sure you want to cancel transfer ${batchId}?`)) { postData('cancelTransfer', { batchId }, btn).then(res => res && reloadDataAndRefreshUI()); } }
-            if(btn.classList.contains('btn-approve-request')) { openApproveRequestModal(btn.dataset.id); } 
-            if (btn.classList.contains('btn-reject-request')) { const requestId = btn.dataset.id; if(confirm(`Are you sure you want to reject request ${requestId}?`)) { postData('rejectItemRequest', { requestId }, btn).then(res => res && reloadDataAndRefreshUI()); } }
-            if (btn.id === 'btn-print-pending-requests') {
-                const tableToPrint = document.getElementById('table-pending-requests');
-                if (tableToPrint) {
-                    const printableDoc = `<div class="printable-document"><h2>${_t('req_pending_approval')}</h2><p>Date: ${new Date().toLocaleString()}</p>${tableToPrint.outerHTML}</div>`;
-                    printContent(printableDoc);
-                }
-            }
-            if (btn.classList.contains('btn-edit-po')) { openPOEditModal(btn.dataset.poId); }
-            if (btn.classList.contains('btn-edit-invoice')) { openInvoiceEditModal(btn.dataset.batchId); }
-            if (btn.classList.contains('btn-approve-financial') || btn.classList.contains('btn-reject-financial')) {
-                const id = btn.dataset.id;
-                const type = btn.dataset.type;
-                const action = btn.classList.contains('btn-approve-financial') ? 'approveFinancial' : 'rejectFinancial';
-                const confirmationText = action === 'approveFinancial' ? _t('approve_confirm_prompt', {type: _t(type)}) : _t('reject_confirm_prompt', {type: _t(type)});
-                
-                if (confirm(confirmationText)) {
-                    postData(action, { id, type }, btn).then(result => {
-                        if (result) {
-                            showToast(action.includes('approve') ? _t('approved_toast', {type: _t(type)}) : _t('rejected_toast', {type: _t(type)}), 'success');
-                            reloadDataAndRefreshUI();
-                        }
-                    });
-                }
-            }
-        });
-        
-        document.body.addEventListener('click', (e) => { 
-            if (e.target.classList.contains('close-button') || e.target.classList.contains('modal-cancel')) { closeModal(); } 
-            
-            if (e.target.id === 'btn-confirm-receive-transfer') {
-                const btn = e.target;
-                const batchId = btn.dataset.batchId;
-                const transferGroup = state.transactions.filter(t => t.batchId === batchId);
-                const payload = { originalBatchId: batchId, ref: transferGroup[0].ref, fromBranchCode: transferGroup[0].fromBranchCode, toBranchCode: transferGroup[0].toBranchCode, items: transferGroup.map(t => ({ itemCode: t.itemCode, quantity: t.quantity })), notes: `Received from ${batchId}` };
-                postData('receiveTransfer', payload, btn).then(result => {
-                    if (result) { showToast('Transfer received!', 'success'); closeModal(); reloadDataAndRefreshUI(); }
-                });
-            }
-            if (e.target.id === 'btn-reject-transfer') {
-                const btn = e.target;
-                const batchId = btn.dataset.batchId;
-                if(confirm('Are you sure you want to reject this transfer? This action cannot be undone.')) {
-                    postData('rejectTransfer', { batchId }, btn).then(result => {
-                        if (result) { showToast('Transfer rejected.', 'success'); closeModal(); reloadDataAndRefreshUI(); }
-                    });
-                }
-            }
-            if (e.target.id === 'btn-confirm-request-approval') { confirmRequestApproval(e); }
-            if (e.target.id === 'btn-save-po-changes') { savePOChanges(e); }
-            if (e.target.id === 'btn-save-invoice-changes') { saveInvoiceChanges(e); }
-        });
-        document.getElementById('btn-confirm-modal-selection').addEventListener('click', confirmModalSelection);
-        document.getElementById('btn-confirm-invoice-selection').addEventListener('click', confirmModalSelection);
-        
-        document.getElementById('payment-supplier-select').addEventListener('change', e => { document.getElementById('btn-select-invoices').disabled = !e.target.value; state.invoiceModalSelections.clear(); renderPaymentList(); });
-        document.getElementById('table-payment-list').addEventListener('input', handlePaymentInputChange);
-        document.getElementById('invoice-selector-modal').addEventListener('change', handleInvoiceModalCheckboxChange);
-        modalItemList.addEventListener('change', handleModalCheckboxChange);
-        modalSearchInput.addEventListener('input', e => renderItemsInModal(e.target.value));
-        formEditRecord.addEventListener('submit', handleUpdateSubmit);
-        document.getElementById('form-add-item').addEventListener('submit', async e => { e.preventDefault(); const btn = e.target.querySelector('button[type="submit"]'); const data = { code: document.getElementById('item-code').value, barcode: document.getElementById('item-barcode').value, name: document.getElementById('item-name').value, unit: document.getElementById('item-unit').value, category: document.getElementById('item-category').value, supplierCode: document.getElementById('item-supplier').value, cost: parseFloat(document.getElementById('item-cost').value) }; const result = await postData('addItem', data, btn); if (result) { showToast(_t('add_success_toast', {type: _t('item')}), 'success'); e.target.reset(); reloadDataAndRefreshUI(); } });
-        document.getElementById('form-add-supplier').addEventListener('submit', async e => { e.preventDefault(); const btn = e.target.querySelector('button[type="submit"]'); const data = { supplierCode: document.getElementById('supplier-code').value, name: document.getElementById('supplier-name').value, contact: document.getElementById('supplier-contact').value }; const result = await postData('addSupplier', data, btn); if (result) { showToast(_t('add_success_toast', {type: _t('supplier')}), 'success'); e.target.reset(); reloadDataAndRefreshUI(); } });
-        document.getElementById('form-add-branch').addEventListener('submit', async e => { e.preventDefault(); const btn = e.target.querySelector('button[type="submit"]'); const data = { branchCode: document.getElementById('branch-code').value, name: document.getElementById('branch-name').value }; const result = await postData('addBranch', data, btn); if (result) { showToast(_t('add_success_toast', {type: _t('branch')}), 'success'); e.target.reset(); reloadDataAndRefreshUI(); } });
-        document.getElementById('form-add-section').addEventListener('submit', async e => { e.preventDefault(); const btn = e.target.querySelector('button[type="submit"]'); const data = { sectionCode: document.getElementById('section-code').value, name: document.getElementById('section-name').value }; const result = await postData('addSection', data, btn); if (result) { showToast(_t('add_success_toast', {type: _t('section')}), 'success'); e.target.reset(); reloadDataAndRefreshUI(); } });
-        document.getElementById('form-record-payment').addEventListener('submit', async e => {
-            e.preventDefault(); 
-            const btn = e.target.querySelector('button[type="submit"]');
-            const supplierCode = document.getElementById('payment-supplier-select').value;
-            const method = document.getElementById('payment-method').value;
-            if (!supplierCode || state.invoiceModalSelections.size === 0) {
-                showToast('Please select a supplier and at least one invoice to pay.', 'error');
-                return;
-            }
-            const paymentId = `PAY-${Date.now()}`;
-            let totalAmount = 0;
-            const payments = [];
-            document.querySelectorAll('.payment-amount-input').forEach(input => {
-                const amount = parseFloat(input.value) || 0;
-                if (amount > 0) {
-                    totalAmount += amount;
-                    payments.push({
-                        paymentId: paymentId,
-                        date: new Date().toISOString(),
-                        supplierCode: supplierCode,
-                        invoiceNumber: input.dataset.invoice,
-                        amount: amount,
-                        method: method
-                    });
-                }
+        if (contextPromiseResolver) {
+            contextPromiseResolver({
+                branch: selectedBranch,
+                section: selectedSection
             });
-            if (payments.length === 0) {
-                showToast('Payment amount must be greater than zero.', 'error');
-                return;
-            }
-            const payload = {
-                supplierCode: supplierCode,
-                method: method,
-                date: new Date().toISOString(),
-                totalAmount: totalAmount,
-                payments: payments
-            };
-            const result = await postData('addPaymentBatch', payload, btn);
-            if (result) {
-                showToast('Payment recorded successfully!', 'success');
-                generatePaymentVoucher(payload); 
-                state.invoiceModalSelections.clear();
-                document.getElementById('form-record-payment').reset();
-                document.getElementById('btn-select-invoices').disabled = true;
-                renderPaymentList();
-                await reloadDataAndRefreshUI();
-            }
-        });
-        
-        document.getElementById('btn-submit-receive-batch').addEventListener('click', async (e) => { const btn = e.currentTarget; const supplierCode = document.getElementById('receive-supplier').value, branchCode = document.getElementById('receive-branch').value, invoiceNumber = document.getElementById('receive-invoice').value, notes = document.getElementById('receive-notes').value, poId = document.getElementById('receive-po-select').value; if (!userCan('opReceiveWithoutPO') && !poId) { showToast(_t('select_po_first_toast'), 'error'); return; } if (!supplierCode || !branchCode || !invoiceNumber || state.currentReceiveList.length === 0) { showToast(_t('fill_required_fields_toast'), 'error'); return; } const payload = { type: 'receive', batchId: `GRN-${Date.now()}`, supplierCode, branchCode, invoiceNumber, poId, date: new Date().toISOString(), items: state.currentReceiveList.map(i => ({...i, type: 'receive'})), notes }; await handleTransactionSubmit(payload, btn); });
-        document.getElementById('btn-submit-transfer-batch').addEventListener('click', async (e) => { const btn = e.currentTarget; const fromBranchCode = document.getElementById('transfer-from-branch').value, toBranchCode = document.getElementById('transfer-to-branch').value, notes = document.getElementById('transfer-notes').value, ref = document.getElementById('transfer-ref').value; if (!fromBranchCode || !toBranchCode || fromBranchCode === toBranchCode || state.currentTransferList.length === 0) { showToast('Please select valid branches and add at least one item.', 'error'); return; } const payload = { type: 'transfer_out', batchId: ref, ref: ref, fromBranchCode, toBranchCode, date: new Date().toISOString(), items: state.currentTransferList.map(i => ({...i, type: 'transfer_out'})), notes }; await handleTransactionSubmit(payload, btn); });
-        document.getElementById('btn-submit-issue-batch').addEventListener('click', async(e) => { const btn = e.currentTarget; const fromBranchCode = document.getElementById('issue-from-branch').value, sectionCode = document.getElementById('issue-to-section').value, ref = document.getElementById('issue-ref').value, notes = document.getElementById('issue-notes').value; if (!fromBranchCode || !sectionCode || !ref || state.currentIssueList.length === 0) { showToast('Please fill all issue details and select at least one item.', 'error'); return; } const payload = { type: 'issue', batchId: ref, ref: ref, fromBranchCode, sectionCode, date: new Date().toISOString(), items: state.currentIssueList.map(i => ({...i, type: 'issue'})), notes }; await handleTransactionSubmit(payload, btn); });
-        document.getElementById('btn-submit-po').addEventListener('click', async (e) => { const btn = e.currentTarget; const supplierCode = document.getElementById('po-supplier').value, poId = document.getElementById('po-ref').value, notes = document.getElementById('po-notes').value; if (!supplierCode || state.currentPOList.length === 0) { showToast('Please select a supplier and add items.', 'error'); return; } const totalValue = state.currentPOList.reduce((acc, item) => acc + (item.quantity * item.cost), 0); const payload = { type: 'po', poId, supplierCode, date: new Date().toISOString(), items: state.currentPOList, totalValue, notes }; await handleTransactionSubmit(payload, btn); });
-        document.getElementById('btn-submit-return').addEventListener('click', async (e) => { const btn = e.currentTarget; const supplierCode = document.getElementById('return-supplier').value, fromBranchCode = document.getElementById('return-branch').value, ref = document.getElementById('return-ref').value, notes = document.getElementById('return-notes').value; if (!supplierCode || !fromBranchCode || !ref || state.currentReturnList.length === 0) { showToast('Please fill all required fields and add items.', 'error'); return; } const payload = { type: 'return_out', batchId: `RTN-${Date.now()}`, ref: ref, supplierCode, fromBranchCode, date: new Date().toISOString(), items: state.currentReturnList.map(i => ({...i, type: 'return_out'})), notes }; await handleTransactionSubmit(payload, btn); });
-        document.getElementById('btn-submit-request').addEventListener('click', async(e) => { const btn = e.currentTarget; const requestType = document.getElementById('request-type').value; const notes = document.getElementById('request-notes').value; if(state.currentRequestList.length === 0){ showToast('Please select items for your request.', 'error'); return; } const payload = { requestId: `REQ-${Date.now()}`, requestType, notes, items: state.currentRequestList }; const result = await postData('addItemRequest', payload, btn); if(result){ showToast('Request submitted successfully!', 'success'); state.currentRequestList = []; document.getElementById('form-create-request').reset(); renderRequestListTable(); reloadDataAndRefreshUI(); }});
-        
-        const handleTableInputUpdate = (e, listName, updaterFn) => {
-            if (e.target.classList.contains('table-input')) {
-                const index = parseInt(e.target.dataset.index);
-                const field = e.target.dataset.field;
-                const value = e.target.type === 'number' ? parseFloat(e.target.value) : e.target.value;
-                if (state[listName] && state[listName][index]) {
-                   if (!isNaN(value)) {
-                       state[listName][index][field] = value;
-                   }
-                   if (updaterFn) updaterFn();
-                }
-            }
-        };
-        const handleTableRemove = (e, listName, rendererFn) => { 
-            const btn = e.target.closest('button');
-            if (btn && btn.classList.contains('danger') && btn.dataset.index) {
-                state[listName].splice(btn.dataset.index, 1); 
-                rendererFn(); 
-            }
-        };
-        
-        const setupInputTableListeners = (tableId, listName, rendererFn) => {
-            const table = document.getElementById(tableId);
-            if (!table) return;
-            table.addEventListener('change', e => handleTableInputUpdate(e, listName, rendererFn));
-            table.addEventListener('click', e => handleTableRemove(e, listName, rendererFn));
-        };
-
-        setupInputTableListeners('table-receive-list', 'currentReceiveList', renderReceiveListTable);
-        setupInputTableListeners('table-po-list', 'currentPOList', renderPOListTable);
-        setupInputTableListeners('table-edit-po-list', 'currentEditingPOList', renderPOEditListTable);
-        setupInputTableListeners('table-return-list', 'currentReturnList', renderReturnListTable);
-        setupInputTableListeners('table-transfer-list', 'currentTransferList', renderTransferListTable);
-        setupInputTableListeners('table-issue-list', 'currentIssueList', renderIssueListTable);
-        setupInputTableListeners('table-request-list', 'currentRequestList', renderRequestListTable);
-        setupInputTableListeners('table-adjustment-list', 'currentAdjustmentList', renderAdjustmentListTable);
-        
-        document.getElementById('btn-submit-adjustment').addEventListener('click', async (e) => {
-            const btn = e.currentTarget;
-            const branchCode = document.getElementById('adjustment-branch').value;
-            const ref = document.getElementById('adjustment-ref').value;
-            const notes = document.getElementById('adjustment-notes').value;
-            if (!branchCode || !ref || !state.currentAdjustmentList || state.currentAdjustmentList.length === 0) {
-                showToast('Please select a branch, provide a reference, and add items to adjust.', 'error');
-                return;
-            }
-
-            const stock = calculateStockLevels();
-            const adjustmentItems = state.currentAdjustmentList.map(item => {
-                const systemQty = (stock[branchCode]?.[item.itemCode]?.quantity) || 0;
-                const physicalCount = item.physicalCount || 0;
-                const adjustmentQty = physicalCount - systemQty;
-                
-                if (Math.abs(adjustmentQty) < 0.01) return null;
-
-                return {
-                    itemCode: item.itemCode,
-                    quantity: Math.abs(adjustmentQty),
-                    type: adjustmentQty > 0 ? 'adjustment_in' : 'adjustment_out',
-                    cost: findByKey(state.items, 'code', item.itemCode)?.cost || 0
-                };
-            }).filter(Boolean);
-
-            if (adjustmentItems.length === 0) {
-                showToast('No adjustments needed for the entered counts.', 'info');
-                return;
-            }
-
-            const payload = {
-                type: 'stock_adjustment',
-                batchId: `ADJ-${Date.now()}`,
-                ref: ref,
-                fromBranchCode: branchCode,
-                notes: notes,
-                items: adjustmentItems
-            };
-            await handleTransactionSubmit(payload, btn);
-            state.currentAdjustmentList = [];
-            renderAdjustmentListTable();
-            document.getElementById('form-adjustment-details').reset();
-        });
-
-        document.getElementById('form-financial-adjustment').addEventListener('submit', async(e) => {
-            e.preventDefault();
-            const btn = e.target.querySelector('button[type="submit"]');
-            const supplierCode = document.getElementById('fin-adj-supplier').value;
-            const balance = parseFloat(document.getElementById('fin-adj-balance').value);
-            
-            if (!supplierCode || isNaN(balance) || balance < 0) {
-                showToast('Please select a supplier and enter a valid opening balance.', 'error');
-                return;
-            }
-            
-            if (!confirm(`Are you sure you want to set the opening balance for this supplier to ${balance.toFixed(2)} EGP? This should only be done once.`)) {
-                return;
-            }
-
-            const payload = {
-                supplierCode: supplierCode,
-                balance: balance,
-                ref: `OB-${supplierCode}`
-            };
-            
-            const result = await postData('financialAdjustment', payload, btn);
-            if (result) {
-                showToast('Supplier opening balance set successfully!', 'success');
-                e.target.reset();
-                await reloadDataAndRefreshUI();
-            }
-        });
-        
-        document.getElementById('btn-generate-supplier-statement').addEventListener('click', () => { const supplierCode = document.getElementById('supplier-statement-select').value; const startDate = document.getElementById('statement-start-date').value; const endDate = document.getElementById('statement-end-date').value; if(!supplierCode) { showToast('Please select a supplier.', 'error'); return; } renderSupplierStatement(supplierCode, startDate, endDate); });
-        document.getElementById('btn-generate-branch-consumption').addEventListener('click', () => { const branchCode = document.getElementById('branch-consumption-select').value; const startDate = document.getElementById('branch-consumption-start-date').value; const endDate = document.getElementById('branch-consumption-end-date').value; const itemFilter = document.getElementById('branch-consumption-item-filter').value; const categoryFilter = document.getElementById('branch-consumption-category-filter').value; if(!branchCode) { showToast('Please select a branch.', 'error'); return; } let filteredTx = state.transactions.filter(t => t.type === 'issue' && t.fromBranchCode === branchCode); const sDate = startDate ? new Date(startDate) : null; if(sDate) sDate.setHours(0,0,0,0); const eDate = endDate ? new Date(endDate) : null; if(eDate) eDate.setHours(23,59,59,999); if (sDate) filteredTx = filteredTx.filter(t => new Date(t.date) >= sDate); if (eDate) filteredTx = filteredTx.filter(t => new Date(t.date) <= eDate); if (itemFilter) filteredTx = filteredTx.filter(t => t.itemCode === itemFilter); if (categoryFilter) { const itemCodesInCategory = state.items.filter(i => i.category === categoryFilter).map(i => i.code); filteredTx = filteredTx.filter(t => itemCodesInCategory.includes(t.itemCode)); } const historicalCosts = calculateHistoricalCosts(); renderConsumptionReport({ resultsContainerId: 'branch-consumption-results', exportBtnId: 'btn-export-branch-consumption', data: filteredTx, title: 'branch_consumption', entityName: findByKey(state.branches, 'branchCode', branchCode).name, dateHeader: `${startDate || 'Start'} to ${endDate || 'End'}`, historicalCosts: historicalCosts }); });
-        document.getElementById('btn-generate-section-consumption').addEventListener('click', () => { const sectionCode = document.getElementById('section-consumption-select').value; const startDate = document.getElementById('section-consumption-start-date').value; const endDate = document.getElementById('section-consumption-end-date').value; const itemFilter = document.getElementById('section-consumption-item-filter').value; const categoryFilter = document.getElementById('section-consumption-category-filter').value; if(!sectionCode) { showToast('Please select a section.', 'error'); return; } let filteredTx = state.transactions.filter(t => t.type === 'issue' && t.sectionCode === sectionCode); const sDate = startDate ? new Date(startDate) : null; if(sDate) sDate.setHours(0,0,0,0); const eDate = endDate ? new Date(endDate) : null; if(eDate) eDate.setHours(23,59,59,999); if (sDate) filteredTx = filteredTx.filter(t => new Date(t.date) >= sDate); if (eDate) filteredTx = filteredTx.filter(t => new Date(t.date) <= eDate); if (itemFilter) filteredTx = filteredTx.filter(t => t.itemCode === itemFilter); if (categoryFilter) { const itemCodesInCategory = state.items.filter(i => i.category === categoryFilter).map(i => i.code); filteredTx = filteredTx.filter(t => itemCodesInCategory.includes(t.itemCode)); } const historicalCosts = calculateHistoricalCosts(); renderConsumptionReport({ resultsContainerId: 'section-consumption-results', exportBtnId: 'btn-export-section-consumption', data: filteredTx, title: 'section_usage', entityName: findByKey(state.sections, 'sectionCode', sectionCode).name, dateHeader: `${startDate || 'Start'} to ${endDate || 'End'}`, historicalCosts: historicalCosts }); });
-        document.getElementById('btn-generate-resupply-report').addEventListener('click', () => { const branchCode = document.getElementById('resupply-branch-filter').value; const startDate = document.getElementById('resupply-start-date').value; const endDate = document.getElementById('resupply-end-date').value; let filteredReqs = state.itemRequests.filter(r => r.Type === 'resupply'); const sDate = startDate ? new Date(startDate) : null; if(sDate) sDate.setHours(0,0,0,0); const eDate = endDate ? new Date(endDate) : null; if(eDate) eDate.setHours(23,59,59,999); if (branchCode) filteredReqs = filteredReqs.filter(r => r.ToBranch === branchCode); if (sDate) filteredReqs = filteredReqs.filter(r => new Date(r.Date) >= sDate); if (eDate) filteredReqs = filteredReqs.filter(r => new Date(r.Date) <= eDate); const entityName = branchCode ? findByKey(state.branches, 'branchCode', branchCode).name : _t('all_branches'); renderConsumptionReport({ resultsContainerId: 'resupply-report-results', exportBtnId: 'btn-export-resupply-report', data: filteredReqs.map(r => ({...r, fromBranchCode: r.ToBranch, itemCode: r.ItemCode, quantity: r.Quantity})), title: 'resupply_report', entityName: entityName, dateHeader: `${startDate || 'Start'} to ${endDate || 'End'}`, qtyColumnHeader: 'Total Qty Requested' }); });
-        
-        document.getElementById('pending-requests-widget').addEventListener('click', () => showView('requests', 'pending-approval'));
-
-        ['tx-filter-start-date', 'tx-filter-end-date', 'tx-filter-type', 'tx-filter-branch', 'transaction-search'].forEach(id => {
-            const el = document.getElementById(id);
-            const eventType = (el.tagName === 'SELECT' || el.type === 'date') ? 'change' : 'input';
-            el.addEventListener(eventType, () => {
-                const filters = {
-                    startDate: document.getElementById('tx-filter-start-date').value,
-                    endDate: document.getElementById('tx-filter-end-date').value,
-                    type: document.getElementById('tx-filter-type').value,
-                    branch: document.getElementById('tx-filter-branch').value,
-                    searchTerm: document.getElementById('transaction-search').value,
-                };
-                renderTransactionHistory(filters);
-            });
-        });
-
-        document.getElementById('receive-po-select').addEventListener('change', e => {
-            const poId = e.target.value;
-            if(!poId) {
-                state.currentReceiveList = [];
-                renderReceiveListTable();
-                document.getElementById('receive-supplier').value = '';
-                return;
-            }
-            const po = findByKey(state.purchaseOrders, 'poId', poId);
-            const poItems = state.purchaseOrderItems.filter(i => i.poId === poId);
-            document.getElementById('receive-supplier').value = po.supplierCode;
-            state.currentReceiveList = poItems.map(item => {
-                const masterItem = findByKey(state.items, 'code', item.itemCode);
-                return { itemCode: item.itemCode, itemName: masterItem?.name || 'Unknown Item', quantity: parseFloat(item.quantity), cost: parseFloat(item.cost) }
-            });
-            renderReceiveListTable();
-        });
+            contextPromiseResolver = null;
+        }
+        contextSelectorModal.classList.remove('active');
     }
     
     function setupRoleBasedNav() {
