@@ -847,8 +847,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // PART 2 OF 4: MODAL & UI LOGIC
     function showView(viewId, subViewId = null) {
-        Logger.info(`Switching view to: ${viewId}` + (subViewId ? `/${subViewId}` : ''));
-        
+        Logger.info(`Switching view to: ${viewId}` + (subViewId ? `/${subViewId}` : ''));     
         document.querySelectorAll('.view').forEach(view => view.classList.remove('active'));
         document.querySelectorAll('#main-nav a').forEach(link => link.classList.remove('active'));
 
