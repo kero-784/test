@@ -2957,7 +2957,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('btn-generate-supplier-statement').addEventListener('click', () => { const supplierCode = document.getElementById('supplier-statement-select').value; const startDate = document.getElementById('statement-start-date').value; const endDate = document.getElementById('statement-end-date').value; if(!supplierCode) { showToast('Please select a supplier.', 'error'); return; } renderSupplierStatement(supplierCode, startDate, endDate); });
         document.getElementById('btn-generate-consumption-report').addEventListener('click', renderUnifiedConsumptionReport);
         
-        document.getElementById('pending-requests-widget').addEventListener('click', () => showView('requests, 'pending-approval'));
+        document.getElementById('pending-requests-widget').addEventListener('click', () => showView('requests', 'pending-approval'));
 
         ['tx-filter-start-date', 'tx-filter-end-date', 'tx-filter-type', 'tx-filter-branch', 'transaction-search'].forEach(id => {
             const el = document.getElementById(id);
