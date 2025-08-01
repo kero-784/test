@@ -1,265 +1,614 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Packing Stock Control</title>
-    <link rel="icon" href="favicon.ico" type="image/x-icon">
-    <link rel="stylesheet" href="style.css">
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <title>Task Follow Up</title>
+    <!-- Fonts, Icons, and Libraries -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-color: #f0f4f8; --primary-text: #2c3e50; --secondary-text: #8492a6;
+            --card-bg: #ffffff; --border-color: #e2e8f0; --shadow: 0 10px 30px -15px rgba(0, 0, 0, 0.1);
+            --green: #10B981; --red: #EF4444; --gray: #6B7280; --blue: #3B82F6; --orange: #F97316;
+            --purple: #8B5CF6; --yellow: #F59E0B;
+            --font-family: 'Tajawal', sans-serif; --border-radius: 16px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: var(--font-family); background-color: var(--bg-color); color: var(--primary-text); line-height: 1.7; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 2.5rem 2rem; }
+        .hidden { display: none !important; }
+        .btn { padding: 0.8rem 1.5rem; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 0.75rem; }
+        .btn-primary { background: linear-gradient(45deg, var(--blue), #60A5FA); color: white; box-shadow: 0 4px 15px -5px var(--blue); }
+        .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 7px 20px -5px var(--blue); }
+        .btn-secondary { background-color: var(--card-bg); color: var(--blue); border: 1px solid var(--border-color); }
+        .btn-secondary:hover { background-color: #f8fafc; border-color: var(--blue); }
+        .btn-danger { background-color: var(--red); color: white; }
+        .btn:disabled { background-color: var(--gray); color: white; cursor: not-allowed; box-shadow: none; }
+        .header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1.5rem; margin-bottom: 2.5rem; }
+        .header-title { flex-grow: 1; }
+        .header-title h1 { display: flex; align-items: center; gap: 1rem; }
+        .header-title .back-btn { background: none; border: none; font-size: 1.5rem; color: var(--secondary-text); cursor: pointer; transition: color 0.2s; }
+        .header-title .back-btn:hover { color: var(--blue); }
+        .grid-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 1.5rem; animation: fadeIn 0.5s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeOut { to { opacity: 0; transform: scale(0.9); height: 0; padding: 0; margin: 0; border: none; } }
+        
+        /* Section View */
+        .section-item { background: var(--card-bg); border-radius: var(--border-radius); box-shadow: var(--shadow); transition: all 0.3s ease; border-left: 6px solid var(--purple); overflow: hidden; display: flex; flex-direction: column; }
+        .section-item:hover { transform: translateY(-5px); box-shadow: 0 15px 35px -10px rgba(0,0,0,0.1); }
+        .section-item-actions { padding: 0.5rem 1rem 0; text-align: left; }
+        .delete-btn { background: none; border: none; color: var(--secondary-text); cursor: pointer; font-size: 1rem; padding: 0.5rem; border-radius: 50%; width: 36px; height: 36px; transition: all 0.2s ease; }
+        .delete-btn:hover { background-color: #FEE2E2; color: var(--red); }
+        .confirm-delete-btn { background-color: var(--red); color: white; font-size: 0.8rem; padding: 0.4rem 0.8rem; border-radius: 8px; font-weight: 700; border: none; cursor: pointer; animation: fadeIn 0.3s; }
+        .section-item-clickable { padding: 0 1.5rem 1.5rem; cursor: pointer; flex-grow: 1; }
+        .section-item-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem; }
+        .section-item-name { font-size: 1.25rem; font-weight: 700; }
+        .section-item-stats { font-size: 0.9rem; color: var(--secondary-text); }
+        
+        /* Task View */
+        .task-item { background: var(--card-bg); border-radius: var(--border-radius); box-shadow: var(--shadow); transition: all 0.3s ease; border-left: 6px solid; overflow: hidden; display: flex; flex-direction: column; }
+        .task-item.status-Closed, .task-item.status-ClosedForAssessment { opacity: 0.7; background: #fafafa; }
+        .task-item.status-Closed .task-item-name::after, .task-item.status-ClosedForAssessment .task-item-name::after { content: '(مغلقة)'; font-size: 0.9rem; color: var(--red); margin-right: 8px; }
+        .task-item:hover { transform: translateY(-5px); box-shadow: 0 15px 35px -10px rgba(0,0,0,0.1); }
+        .task-item-clickable { padding: 0 1.5rem 1.5rem; cursor: pointer; flex-grow: 1; }
+        .task-item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+        .task-item-name { font-size: 1.25rem; font-weight: 700; }
+        .task-type-icon { font-size: 1rem; color: var(--secondary-text); }
+        .progress-label { display: flex; justify-content: space-between; font-size: 0.9rem; font-weight: 500; color: var(--secondary-text); margin-bottom: 0.5rem; }
+        .progress-bar-bg { width: 100%; background-color: var(--bg-color); border-radius: 10px; height: 12px; overflow: hidden; }
+        .progress-bar-fg { height: 100%; border-radius: 10px; background-color: var(--green); }
+        .task-item-footer { margin-top: 1.5rem; padding-top: 1rem; border-top: 1px dashed var(--border-color); font-size: 0.9rem; color: var(--secondary-text); display: flex; justify-content: space-between; }
+        
+        /* Task Detail View */
+        #taskDetailView h2 { margin-bottom: 0.5rem; } #taskDetailView .task-meta { color: var(--secondary-text); margin-bottom: 1.5rem; }
+        .branch-card { background: var(--card-bg); border-radius: var(--border-radius); padding: 1.5rem; box-shadow: var(--shadow); }
+        .status-radio-group { display: flex; gap: 0.75rem; margin-top: 1rem; }
+        .status-radio-group input[type="radio"] { display: none; }
+        .status-radio-group label { flex-grow: 1; text-align: center; padding: 0.7rem; border-radius: 10px; border: 2px solid var(--border-color); cursor: pointer; font-weight: 500; transition: all 0.2s ease; }
+        .status-radio-group input[type="radio"]:checked + label { font-weight: 700; color: white; border-width: 2px; transform: translateY(-2px); }
+        .status-radio-group input[value="done"]:checked + label, .status-radio-group input[value="late-done"]:checked + label { background-color: var(--green); border-color: var(--green); box-shadow: 0 4px 10px -4px var(--green); }
+        .status-radio-group input[value="pending"]:checked + label { background-color: var(--red); border-color: var(--red); box-shadow: 0 4px 10px -4px var(--red); }
+        .status-radio-group input[value="not-required"]:checked + label { background-color: var(--gray); border-color: var(--gray); box-shadow: 0 4px 10px -4px var(--gray); }
+        .late-done-label::after { content: ' (متأخر)'; font-size: 0.75rem; }
+
+        /* Modals */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.2); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); display: flex; justify-content: center; align-items: center; z-index: 1000; animation: fadeIn 0.3s; }
+        .modal-content { background: rgba(255, 255, 255, 0.7); border: 1px solid rgba(255, 255, 255, 0.3); padding: 2.5rem; border-radius: var(--border-radius); width: 90%; max-width: 600px; box-shadow: 0 20px 50px -20px rgba(0,0,0,0.2); }
+        .modal-content h2 { margin-bottom: 1.5rem; }
+        .modal-content input[type="text"], .modal-content input[type="datetime-local"] { width: 100%; padding: 1rem; border-radius: 12px; border: 1px solid var(--border-color); font-family: var(--font-family); font-size: 1rem; margin-bottom: 1.5rem; background: rgba(255,255,255,0.8); }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 1rem; }
+        .form-group { margin-bottom: 1.5rem; }
+        .form-group label { display: block; font-weight: 700; margin-bottom: 0.5rem; }
+        .branch-selection-container { max-height: 200px; overflow-y: auto; background: rgba(255,255,255,0.5); padding: 1rem; border-radius: 12px; border: 1px solid var(--border-color); }
+        .branch-checkbox-item { display: block; margin-bottom: 0.75rem; }
+        .branch-checkbox-item input { margin-left: 10px; }
+        
+        /* General */
+        .message-container { text-align: center; padding: 5rem 2rem; font-size: 1.2rem; color: var(--secondary-text); }
+        .fa-spinner { font-size: 2.5rem; margin-bottom: 1rem; }
+        #notification-container { position: fixed; top: 20px; right: 20px; z-index: 2000; display: flex; flex-direction: column; gap: 10px; }
+        .notification { padding: 1rem 1.5rem; border-radius: 12px; color: white; box-shadow: 0 5px 15px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 1rem; opacity: 0; transform: translateX(100%); animation: slideInAndOut 5s forwards; }
+        .notification.error { background: linear-gradient(45deg, var(--red), #F87171); } .notification.success { background: linear-gradient(45deg, var(--green), #34D399); }
+        @keyframes slideInAndOut { 0%, 100% { opacity: 0; transform: translateX(100%); } 10%, 90% { opacity: 1; transform: translateX(0); } }
+    </style>
 </head>
 <body>
-    <div id="login-container">
-        <div class="login-box">
-            <div class="login-header"><svg class="logo-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M20 7L16 3L12 7L8 3L4 7L12 15L20 7Z M4 9L12 17L20 9V17H4V9Z"/></svg><h1 data-translate-key="packing_stock">Packing Stock</h1></div>
-            <form id="login-form"><p data-translate-key="login_prompt">Please enter your credentials to continue.</p><div class="form-group"><label for="login-username" data-translate-key="username">Username</label><input type="text" id="login-username" required autocomplete="username"></div><div class="form-group"><label for="login-code" data-translate-key="password_code">Password / Login Code</label><input type="password" id="login-code" required autocomplete="current-password"></div><button type="submit" class="primary" style="width:100%; margin-top:10px;" data-translate-key="login">Login</button></form>
-            <div id="login-error" class="login-error"></div>
-            <div id="login-loader" style="display: none;"><div class="spinner"></div><p data-translate-key="signing_in">Signing in...</p></div>
+    <div class="container">
+        <header class="header">
+            <div id="headerTitle" class="header-title">
+                 <!-- Title will be injected by JS -->
+            </div>
+            <div id="headerActions">
+                <!-- Action buttons will be injected by JS -->
+            </div>
+        </header>
+        <div id="contentArea" class="grid-container"></div>
+    </div>
+
+    <!-- Modals -->
+    <div id="sectionModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h2>إنشاء قسم جديد</h2>
+            <input type="text" id="sectionNameInput" placeholder="اكتب اسم القسم هنا...">
+            <div class="modal-actions">
+                <button id="cancelAddSectionBtn" class="btn btn-secondary">إلغاء</button>
+                <button id="confirmAddSectionBtn" class="btn btn-primary">إضافة القسم</button>
+            </div>
         </div>
     </div>
 
-    <div id="app-container" class="app-container" style="display: none;">
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <div class="logo-container">
-                    <svg class="logo-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M20 7L16 3L12 7L8 3L4 7L12 15L20 7Z M4 9L12 17L20 9V17H4V9Z"/></svg><h1>Hi, User</h1>
-                </div>
-                <button id="global-refresh-button" class="secondary small">
-                    <svg class="icon" style="width: 16px; height: 16px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z" /></svg>
-                    <span data-translate-key="refresh_all_data">Refresh All Data</span>
-                </button>
-                 <div class="language-switcher">
-                    <select id="lang-switcher">
-                        <option value="en">English</option>
-                        <option value="ar">العربية</option>
-                    </select>
+    <div id="addTaskModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h2>إنشاء مهمة جديدة</h2>
+            <div class="form-group">
+                <label for="newTaskNameInput">اسم المهمة</label>
+                <input type="text" id="newTaskNameInput" placeholder="اكتب اسم المهمة هنا...">
+            </div>
+            <div class="form-group">
+                <label>نوع المهمة</label>
+                <div class="status-radio-group">
+                    <input type="radio" id="taskTypeStandard" name="taskType" value="Standard" checked><label for="taskTypeStandard">قياسية</label>
+                    <input type="radio" id="taskTypeTimeLimited" name="taskType" value="TimeLimited"><label for="taskTypeTimeLimited">محددة بوقت</label>
                 </div>
             </div>
-            <ul class="sidebar-nav" id="main-nav">
-                <li class="nav-item"><a href="#" data-view="dashboard" class="active"><svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M13 3V9H21V3M13 21H21V11H13M3 21H11V15H3M3 13H11V3H3V13Z"></path></svg><span data-translate-key="dashboard">Dashboard</span></a></li>
-                <li class="nav-item"><a href="#" data-view="operations"><svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24"><path d="M3,4H21V6H3V4M3,11H15V13H3V11M3,18H18V20H3V18Z" /></svg><span data-translate-key="stock_operations">Stock Operations</span></a></li>
-                <li class="nav-item"><a href="#" data-view="purchasing"><svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24"><path d="M17,18C15.89,18 15,18.89 15,20A2,2 0 0,0 17,22A2,2 0 0,0 19,20C19,18.89 18.1,18 17,18M1,2V4H3L6.6,11.59L5.24,14.04C5.09,14.32 5,14.65 5,15A2,2 0 0,0 7,17H19V15H7.42A0.25,0.25 0 0,1 7.17,14.75L8.1,13H15.55C16.3,13 16.96,12.58 17.3,11.97L20.88,5.5C20.95,5.34 21,5.17 21,5A1,1 0 0,0 20,4H5.21L4.27,2H1M7,18C5.89,18 5,18.89 5,20A2,2 0 0,0 7,22A2,2 0 0,0 9,20C9,18.89 8.1,18 7,18Z" /></svg><span data-translate-key="purchasing">Purchasing</span></a></li>
-                <li class="nav-item"><a href="#" data-view="requests"><svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M18 14H20V17H23V19H20V22H18V19H15V17H18V14M16.8 12.04C16.4 12.04 16 11.64 16 11.14V6.82L10.96 12H5V6H3V12A2 2 0 0 0 5 14H11.59L17.41 8.17V11.14C17.41 11.64 17.21 12.04 16.8 12.04Z" /></svg><span data-translate-key="requests">Requests</span></a></li>
-                <li class="nav-item"><a href="#" data-view="payments"><svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24"><path d="M20,8H4V6H20M20,18H4V12H20M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,4 20,4Z" /></svg><span data-translate-key="payments">Payments</span></a></li>
-                <li class="nav-item"><a href="#" data-view="reports"><svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24"><path d="M3,22V8H7V22H3M10,22V2H14V22H10M17,22V14H21V22H17Z" /></svg><span data-translate-key="reports">Reports</span></a></li>
-                <li class="nav-item"><a href="#" data-view="stock-levels"><svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M7,5H21V7H7V5M7,11H21V13H7V11M7,17H21V19H7V17M4,4.5A1.5,1.5 0 0,1 5.5,6A1.5,1.5 0 0,1 4,7.5A1.5,1.5 0 0,1 2.5,6A1.5,1.5 0 0,1 4,4.5M4,10.5A1.5,1.5 0 0,1 5.5,12A1.5,1.5 0 0,1 4,13.5A1.5,1.5 0 0,1 2.5,12A1.5,1.5 0 0,1 4,10.5M4,16.5A1.5,1.5 0 0,1 5.5,18A1.5,1.5 0 0,1 4,19.5A1.5,1.5 0 0,1 2.5,18A1.5,1.5 0 0,1 4,16.5Z"></path></svg><span data-translate-key="stock_levels">Stock Levels</span></a></li>
-                <li class="nav-item"><a href="#" data-view="transaction-history"><svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M13.5,8H12V13L16.28,15.54L17,14.33L13.5,12.25V8M13,3A9,9 0 0,0 4,12H1L4.96,16.03L9,12H6A7,7 0 0,1 13,5A7,7 0 0,1 20,12A7,7 0 0,1 13,19C11.07,19 9.32,18.21 8.06,16.94L6.64,18.36C8.27,20 10.5,21 13,21A9,9 0 0,0 22,12A9,9 0 0,0 13,3Z"></path></svg><span data-translate-key="transaction_history">Transaction History</span></a></li>
-                <li class="nav-item"><a href="#" data-view="setup"><svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19,3H5C3.89,3 3,3.89 3,5V19C3,20.11 3.9,21 5,21H19C20.11,21 21,20.11 21,19V5C21,3.89 20.1,3 19,3M13.5,13H11V15H9V13H6.5V11H9V9H11V11H13.5V13M12,12Z"/></svg><span data-translate-key="add_data">Add Data</span></a></li>
-                <li class="nav-item"><a href="#" data-view="master-data"><svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24"><path d="M16 20H20V16H16M16 14H20V10H16M14 20H10V16H14M14 14H10V10H14M8 20H4V16H8M8 14H4V10H8M22 8V4H2V8H22M20 6H16V6.03H4V6H4V6H20M2 22V10H0V22A2 2 0 0 0 2 24H22V22Z" /></svg><span data-translate-key="master_data">Master Data</span></a></li>
-                <li class="nav-item"><a href="#" data-view="user-management"><svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24"><path d="M12,1L9,4H15L12,1M19,6H5A2,2 0 0,0 3,8V20A2,2 0 0,0 5,22H19A2,2 0 0,0 21,20V8A2,2 0 0,0 19,6M12,17A3,3 0 0,1 9,14A3,3 0 0,1 12,11A3,3 0 0,1 15,14A3,3 0 0,1 12,17M12,6A1.5,1.5 0 0,1 13.5,7.5A1.5,1.5 0 0,1 12,9A1.5,1.5 0 0,1 10.5,7.5A1.5,1.5 0 0,1 12,6Z" /></svg><span data-translate-key="user_management">User Management</span></a></li>
-                <li class="nav-item"><a href="#" data-view="backup"><svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12,3C7.58,3 4,4.79 4,7V17C4,19.21 7.58,21 12,21C16.42,21 20,19.21 20,17V7C20,4.79 16.42,3 12,3M12,5C15.31,5 18,6.34 18,8C18,9.66 15.31,11 12,11C8.69,11 6,9.66 6,8C6,6.34 8.69,5 12,5M18,13C18,14.66 15.31,16 12,16C8.69,16 6,14.66 6,13V12.42C7.75,13.42 9.79,14 12,14C14.21,14 16.25,13.42 18,12.42V13M18,17C18,18.66 15.31,20 12,20C8.69,20 6,18.66 6,17V16.42C7.75,17.42 9.79,18 12,18C14.21,18 16.25,17.42 18,16.42V17Z"></path></svg><span data-translate-key="backup_restore">Backup</span></a></li>
-                <li class="nav-item"><a href="#" data-view="activity-log"><svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M15,12A1,1 0 0,1 14,11A1,1 0 0,1 15,10A1,1 0 0,1 16,11A1,1 0 0,1 15,12M10,12A1,1 0 0,1 9,11A1,1 0 0,1 10,10A1,1 0 0,1 11,11A1,1 0 0,1 10,12M5,12A1,1 0 0,1 4,11A1,1 0 0,1 5,10A1,1 0 0,1 6,11A1,1 0 0,1 5,12M21,2V6H3V2H21M3,8H21V20H3V8M5,10V20H19V10H5Z"></path></svg><span data-translate-key="activity_log">Activity Log</span></a></li>
-                <li class="nav-item nav-item-logout"><a href="#" id="btn-logout"><svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M16,17V14H9V10H16V7L21,12L16,17M14,2A2,2 0 0,1 16,4V6H14V4H5V20H14V18H16V20A2,2 0 0,1 14,22H5A2,2 0 0,1 3,20V4A2,2 0 0,1 5,2H14Z"></path></svg><span data-translate-key="logout">Logout</span></a></li>
-            </ul>
-        </aside>
-
-        <main class="main-content">
-           <header class="main-header">
-                <h2 id="view-title" data-translate-key="dashboard">Dashboard</h2>
-                <div id="pending-requests-widget" class="pending-requests-widget" style="display: none;">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="icon"><path d="M22 6.98V16C22 17.1 21.1 18 20 18H6L2 22V4C2 2.9 2.9 2 4 2H18C18.3 2 18.6 2.1 18.8 2.2L21.8 5.2C21.9 5.4 22 5.6 22 5.98V6.98M20 6H18V4H4V16L5.2 15H20V6Z" /></svg>
-                    <span id="pending-requests-widget-text">Pending Requests: </span><span id="pending-requests-count">0</span>
+            <div id="timeLimitedFields" class="form-group hidden" style="display: flex; gap: 1rem;">
+                <div style="flex: 1;">
+                    <label for="taskStartDateInput">وقت البدء</label>
+                    <input type="datetime-local" id="taskStartDateInput">
                 </div>
-                <span id="user-branch-display" class="user-branch-display"></span>
-            </header>
-
-            <div id="view-dashboard" class="view active"><div class="kpi-grid"><div class="card"><div class="kpi-label" data-translate-key="total_items">Total Items</div><div id="dashboard-total-items" class="kpi-value">0</div></div><div class="card"><div class="kpi-label" data-translate-key="total_stock_value">Total Stock Value</div><div id="dashboard-total-value" class="kpi-value">0.00 EGP</div></div><div class="card"><div class="kpi-label" data-translate-key="total_suppliers">Total Suppliers</div><div id="dashboard-total-suppliers" class="kpi-value">0</div></div><div class="card"><div class="kpi-label" data-translate-key="total_branches">Total Branches</div><div id="dashboard-total-branches" class="kpi-value">0</div></div></div></div>
-            <div id="view-setup" class="view"><div class="grid"><div class="card"><h2 class="card-title" data-translate-key="add_new_item">Add New Item</h2><form id="form-add-item"><div class="form-grid"><div class="form-group"><label for="item-code" data-translate-key="item_code">Item Code (Unique ID)</label><input type="text" id="item-code" required></div><div class="form-group"><label for="item-barcode" data-translate-key="barcode">Barcode</label><input type="text" id="item-barcode"></div><div class="form-group"><label for="item-name" data-translate-key="item_name">Item Name</label><input type="text" id="item-name" required></div><div class="form-group"><label for="item-unit" data-translate-key="unit">Unit (e.g., PCS, KG)</label><input type="text" id="item-unit" required></div><div class="form-group"><label for="item-category" data-translate-key="category">Category</label><select id="item-category" required><option value="" data-translate-key="select_category">Select Category</option><option value="Packing" data-translate-key="packing">Packing</option><option value="Cleaning" data-translate-key="cleaning">Cleaning</option></select></div><div class="form-group"><label for="item-supplier" data-translate-key="default_supplier">Default Supplier</label><select id="item-supplier"></select></div><div class="form-group span-full"><label for="item-cost" data-translate-key="default_cost">Default Cost</label><input type="number" id="item-cost" step="0.01" min="0" required></div></div><button type="submit" class="primary" style="margin-top: 20px;" data-translate-key="add_item_btn">Add Item</button></form></div><div class="card"><h2 data-translate-key="add_new_supplier">Add New Supplier</h2><form id="form-add-supplier"><div class="form-grid"><div class="form-group"><label for="supplier-code" data-translate-key="supplier_code">Supplier Code (Unique ID)</label><input type="text" id="supplier-code" required></div><div class="form-group"><label for="supplier-name" data-translate-key="supplier_name">Supplier Name</label><input type="text" id="supplier-name" required></div><div class="form-group"><label for="supplier-contact" data-translate-key="contact_info">Contact Info</label><input type="text" id="supplier-contact"></div></div><button type="submit" class="primary" style="margin-top: 20px; width:100%;" data-translate-key="add_supplier_btn">Add Supplier</button></form></div><div class="card"><h2 data-translate-key="add_new_branch">Add New Branch</h2><form id="form-add-branch"><div class="form-grid"><div class="form-group"><label for="branch-code" data-translate-key="branch_code">Branch Code (Unique ID)</label><input type="text" id="branch-code" required></div><div class="form-group"><label for="branch-name" data-translate-key="branch_name">Branch Name</label><input type="text" id="branch-name" required></div></div><button type="submit" class="primary" style="margin-top: 20px;" data-translate-key="add_branch_btn">Add Branch</button></form></div><div class="card"><h2 data-translate-key="add_new_section">Add New Section</h2><form id="form-add-section"><div class="form-grid"><div class="form-group"><label for="section-code" data-translate-key="section_code">Section Code (Unique ID)</label><input type="text" id="section-code" required></div><div class="form-group"><label for="section-name" data-translate-key="section_name">Section Name</label><input type="text" id="section-name" required></div></div><button type="submit" class="primary" style="margin-top: 20px;" data-translate-key="add_section_btn">Add Section</button></form></div></div></div>
-            <div id="view-backup" class="view">
-                <div class="card">
-                    <h2 class="card-title" data-translate-key="auto_backup_settings">Automatic Backup Settings</h2>
-                    <p data-translate-key="auto_backup_desc">Enable automatic backups to save a copy of your data periodically. Backups are stored in "StockApp Backups" in Google Drive.</p>
-                    <div class="form-group-toggle">
-                        <label for="auto-backup-toggle" data-translate-key="enable_auto_backups">Enable Automatic Backups</label>
-                        <label class="switch">
-                            <input type="checkbox" id="auto-backup-toggle">
-                            <span class="slider round"></span>
-                        </label>
-                    </div>
-                    <div id="auto-backup-frequency-container" class="form-group" style="display: none; max-width: 300px; margin-top: 16px;">
-                        <label for="auto-backup-frequency" data-translate-key="backup_frequency">Backup Frequency</label>
-                        <select id="auto-backup-frequency">
-                            <option value="daily" data-translate-key="daily_backup">Daily (at 2am)</option>
-                            <option value="weekly" data-translate-key="weekly_backup">Weekly (Sunday at 2am)</option>
-                        </select>
-                    </div>
-                    <p id="auto-backup-status" style="margin-top: 16px; color: var(--text-light-color); font-style: italic;"></p>
-                </div>
-                <div class="card">
-                    <h2 class="card-title" data-translate-key="manual_backup_restore">Manual Backup & Restore</h2>
-                    <p data-translate-key="manual_backup_desc">Create an immediate backup or restore from a previously created file.</p>
-                    <button id="btn-create-backup" class="primary" data-translate-key="create_new_manual_backup">Create New Manual Backup</button>
-                    <hr style="margin: 24px 0;">
-                    <h3 data-translate-key="available_backups">Available Backups</h3>
-                    <div id="backup-list-container" class="report-area">
-                        <p data-translate-key="loading_backups">Loading backup list...</p>
-                    </div>
+                <div style="flex: 1;">
+                    <label for="taskEndDateInput">وقت الإنتهاء</label>
+                    <input type="datetime-local" id="taskEndDateInput">
                 </div>
             </div>
-            <div id="view-master-data" class="view"><div class="sub-nav"><button class="sub-nav-item active" data-subview="items" data-translate-key="items">Items</button><button class="sub-nav-item" data-subview="suppliers" data-translate-key="suppliers">Suppliers</button><button class="sub-nav-item" data-subview="branches" data-translate-key="branches">Branches</button><button class="sub-nav-item" data-subview="sections" data-translate-key="sections">Sections</button></div><div id="subview-items" class="sub-view active"><div class="card"><div class="toolbar"><h2 data-translate-key="item_list">Item List</h2><div class="search-bar"><input type="search" id="search-items" class="search-bar-input" data-translate-placeholder="search_items_placeholder"></div><button id="btn-export-items" class="secondary" data-translate-key="export_to_excel">Export to Excel</button></div><div class="report-area"><table id="table-items"><thead><tr><th data-translate-key="table_h_code">Code</th><th data-translate-key="table_h_name">Name</th><th data-translate-key="table_h_category">Category</th><th data-translate-key="table_h_unit">Unit</th><th data-translate-key="table_h_cost">Default Cost</th><th data-translate-key="table_h_actions">Actions</th></tr></thead><tbody></tbody></table></div></div></div><div id="subview-suppliers" class="sub-view"><div class="card"><div class="toolbar"><h2 data-translate-key="supplier_list">Supplier List</h2><div class="search-bar"><input type="search" id="search-suppliers" class="search-bar-input" data-translate-placeholder="search_suppliers_placeholder"></div><button id="btn-export-suppliers" class="secondary" data-translate-key="export_to_excel">Export to Excel</button></div><div class="report-area"><table id="table-suppliers"><thead><tr><th data-translate-key="table_h_code">Code</th><th data-translate-key="table_h_name">Name</th><th data-translate-key="table_h_contact">Contact</th><th data-translate-key="table_h_balance">Balance (Owed)</th><th data-translate-key="table_h_actions">Actions</th></tr></thead><tbody></tbody></table></div></div></div><div id="subview-branches" class="sub-view"><div class="card"><div class="toolbar"><h2 data-translate-key="branch_list">Branch List</h2><div class="search-bar"><input type="search" id="search-branches" class="search-bar-input" data-translate-placeholder="search_branches_placeholder"></div><button id="btn-export-branches" class="secondary" data-translate-key="export_to_excel">Export to Excel</button></div><div class="report-area"><table id="table-branches"><thead><tr><th data-translate-key="table_h_code">Code</th><th data-translate-key="table_h_name">Name</th><th data-translate-key="table_h_actions">Actions</th></tr></thead><tbody></tbody></table></div></div></div><div id="subview-sections" class="sub-view"><div class="card"><div class="toolbar"><h2 data-translate-key="section_list">Section List</h2><div class="search-bar"><input type="search" id="search-sections" class="search-bar-input" data-translate-placeholder="search_sections_placeholder"></div><button id="btn-export-sections" class="secondary" data-translate-key="export_to_excel">Export to Excel</button></div><div class="report-area"><table id="table-sections"><thead><tr><th data-translate-key="table_h_code">Code</th><th data-translate-key="table_h_name">Name</th><th data-translate-key="table_h_actions">Actions</th></tr></thead><tbody></tbody></table></div></div></div></div>
-            <div id="view-payments" class="view"><div class="card"><h2 data-translate-key="record_payment">Record a Payment</h2><form id="form-record-payment"><div class="form-grid"><div class="form-group"><label for="payment-supplier-select" data-translate-key="step1_select_supplier">1. Select Supplier</label><select id="payment-supplier-select" required></select></div><div class="form-group"><label data-translate-key="step2_select_invoices">2. Select Invoices to Pay</label><button type="button" id="btn-select-invoices" class="secondary" style="width: 100%;" disabled data-translate-key="select_invoices_btn">Select Invoices...</button></div><div class="form-group"><label for="payment-method" data-translate-key="step3_payment_method">3. Enter Payment Method</label><input type="text" id="payment-method" data-translate-placeholder="payment_method_placeholder" required></div></div><div id="payment-invoice-list-container" class="report-area" style="display:none; margin-top:24px;"><h3 data-translate-key="step4_confirm_amounts">4. Confirm Amounts</h3><table id="table-payment-list"><thead><tr><th data-translate-key="table_h_invoice_no">Invoice #</th><th data-translate-key="table_h_balance_due">Balance Due</th><th data-translate-key="table_h_amount_to_pay">Amount to Pay</th></tr></thead><tbody></tbody><tfoot><tr style="font-weight:bold;"><td colspan="2" style="text-align:right;" data-translate-key="total_payment">Total Payment:</td><td id="payment-total-amount">0.00 EGP</td></tr></tfoot></table></div><button type="submit" class="primary" style="margin-top: 24px; width:100%;" data-translate-key="submit_payment_btn">Submit Payment</button></form></div></div>
-            <div id="view-reports" class="view">
-                <div class="sub-nav">
-                    <button class="sub-nav-item active" data-subview="supplier-statement" data-translate-key="supplier_statement">Supplier Statement</button>
-                    <button class="sub-nav-item" data-subview="consumption-report" data-translate-key="consumption_report">Consumption Report</button>
-                </div>
-                <div id="subview-supplier-statement" class="sub-view active">
-                    <div class="card">
-                        <div class="report-generator-controls">
-                            <select id="supplier-statement-select"></select>
-                            <input type="date" id="statement-start-date">
-                            <input type="date" id="statement-end-date">
-                            <button id="btn-generate-supplier-statement" class="primary small" data-translate-key="generate">Generate</button>
-                            <button id="btn-export-supplier-statement" class="secondary small" disabled data-translate-key="export_to_excel">Export to Excel</button>
-                        </div>
-                        <div id="supplier-statement-results" class="printable-area" style="display: none; margin-top:20px;"></div>
-                    </div>
-                </div>
-                <div id="subview-consumption-report" class="sub-view">
-                    <div class="card">
-                        <p data-translate-key="consumption_report_desc" style="color: var(--text-light-color); margin-top: -10px;">Generate a detailed report of item consumption across selected branches and sections.</p>
-                        <div class="form-grid report-area" style="gap: 16px 24px;">
-                            <div class="form-group"><label data-translate-key="branches">Branches</label><select id="consumption-branch-filter" multiple></select></div>
-                            <div class="form-group"><label data-translate-key="sections">Sections</label><select id="consumption-section-filter" multiple></select></div>
-                            <div class="form-group"><label data-translate-key="items">Items</label><select id="consumption-item-filter" multiple></select></div>
-                            <div class="form-group"><label>Start Date</label><input type="date" id="consumption-start-date"></div>
-                            <div class="form-group"><label>End Date</label><input type="date" id="consumption-end-date"></div>
-                            <div style="align-self: end; display: flex; gap: 10px;">
-                                <button id="btn-generate-consumption-report" class="primary small" data-translate-key="generate">Generate</button>
-                                <button id="btn-export-consumption-report" class="secondary small" disabled data-translate-key="export_to_excel">Export</button>
-                            </div>
-                        </div>
-                        <div id="consumption-report-results" class="printable-area" style="display: none; margin-top:20px;"></div>
-                    </div>
+            <div class="form-group">
+                <label>الفروع المستهدفة</label>
+                <div id="branchSelectionContainer" class="branch-selection-container">
+                    <!-- Branch checkboxes will be injected by JS -->
                 </div>
             </div>
-            <div id="view-operations" class="view"><div class="sub-nav"><button class="sub-nav-item active" data-subview="receive" data-translate-key="receive_stock">Receive Stock</button><button class="sub-nav-item" data-subview="issue" data-translate-key="issue_stock">Issue Stock</button><button class="sub-nav-item" data-subview="transfer" data-translate-key="internal_transfer">Internal Transfer</button><button class="sub-nav-item" data-subview="return" data-translate-key="return_to_supplier">Return to Supplier</button><button class="sub-nav-item" data-subview="in-transit" data-translate-key="in_transit_report">In-Transit Report</button><button class="sub-nav-item" data-subview="adjustments" data-translate-key="adjustments">Adjustments</button></div>
-                <div id="subview-receive" class="sub-view active">
-                    <div class="card" id="pending-transfers-card" style="display: none;"><h2 data-translate-key="pending_incoming_transfers">Pending Incoming Transfers</h2><div class="report-area"><table id="table-pending-transfers"><thead><tr><th data-translate-key="table_h_date_sent">Date Sent</th><th data-translate-key="table_h_from_branch">From Branch</th><th data-translate-key="table_h_ref_no">Reference #</th><th data-translate-key="items">Items</th><th data-translate-key="actions">Actions</th></tr></thead><tbody></tbody></table></div></div>
-                    <div class="card"><h2 data-translate-key="receive_stock_from_supplier">Receive Stock from Supplier</h2><form id="form-receive-details" class="form-grid" onsubmit="return false;"><div class="form-group"><label for="receive-po-select"><span data-translate-key="receive_against_po">Receive Against PO</span> <small data-translate-key="optional">(Optional)</small></label><select id="receive-po-select"><option value="" data-translate-key="select_a_po">Select a Purchase Order</option></select></div><div class="form-group"><label for="receive-supplier" data-translate-key="supplier">Supplier</label><select id="receive-supplier" required></select></div><div class="form-group"><label for="receive-invoice" data-translate-key="table_h_invoice_no">Invoice Number</label><input type="text" id="receive-invoice" required></div><div class="form-group"><label for="receive-branch" data-translate-key="to_branch">To Branch</label><select id="receive-branch" required></select></div><div class="form-group span-full"><label for="receive-notes" data-translate-key="notes_optional">Notes (Optional)</label><textarea id="receive-notes" rows="2"></textarea></div></form></div>
-                    <div class="card" id="receive-list-card"><h2 data-translate-key="items_to_be_received">Items to be Received</h2><table id="table-receive-list"><thead><tr><th data-translate-key="table_h_code">Code</th><th data-translate-key="item_name">Item Name</th><th data-translate-key="table_h_quantity">Quantity</th><th data-translate-key="table_h_cost_per_unit">Cost/Unit</th><th data-translate-key="table_h_total">Total</th><th data-translate-key="actions">Action</th></tr></thead><tbody></tbody><tfoot><tr style="font-weight: bold; background-color: var(--bg-color);"><td colspan="4" style="text-align: right;" data-translate-key="grand_total">Grand Total:</td><td id="receive-grand-total" colspan="2">0.00 EGP</td></tr></tfoot></table><div style="margin-top: 20px; display: flex; gap: 10px;"><button type="button" data-context="receive" class="secondary" data-translate-key="select_items">Select Items</button><button id="btn-submit-receive-batch" class="primary" data-translate-key="submit_for_approval">Submit for Approval</button></div></div>
-                </div>
-                <div id="subview-issue" class="sub-view"><div class="card"><h2 data-translate-key="issue_note_details">Issue Note Details</h2><form id="form-issue-details" class="form-grid" onsubmit="return false;"><div class="form-group"><label for="issue-from-branch" data-translate-key="from_branch">From Branch</label><select id="issue-from-branch" required></select></div><div class="form-group"><label for="issue-to-section" data-translate-key="to_section">To Section</label><select id="issue-to-section" required></select></div><div class="form-group"><label for="issue-ref" data-translate-key="issue_ref_no">Issue Ref #</label><input type="text" id="issue-ref" readonly></div><div class="form-group span-full"><label for="issue-notes" data-translate-key="notes_optional">Notes (Optional)</label><textarea id="issue-notes" rows="2"></textarea></div></form></div><div class="card" id="issue-list-card"><h2 data-translate-key="items_to_be_issued">Items to be Issued</h2><table id="table-issue-list"><thead><tr><th data-translate-key="table_h_code">Code</th><th data-translate-key="item_name">Item Name</th><th data-translate-key="table_h_available">Available</th><th data-translate-key="table_h_qty_to_issue">Quantity to Issue</th><th data-translate-key="actions">Action</th></tr></thead><tbody></tbody><tfoot><tr style="font-weight: bold; background-color: var(--bg-color);"><td colspan="3" style="text-align: right;" data-translate-key="total_items_to_issue">Total Items to Issue:</td><td id="issue-grand-total" colspan="2">0.00</td></tr></tfoot></table><div style="margin-top: 20px; display: flex; gap: 10px;"><button type="button" data-context="issue" class="secondary" data-translate-key="select_items">Select Items</button><button id="btn-submit-issue-batch" class="primary" data-translate-key="confirm_issue_all">Confirm & Issue All Items</button></div></div></div>
-                <div id="subview-transfer" class="sub-view"><div class="card"><h2 data-translate-key="send_stock_to_branch">Send Stock to Another Branch</h2><form id="form-transfer-details" class="form-grid" onsubmit="return false;"><div class="form-group"><label for="transfer-from-branch" data-translate-key="from_branch">From Branch</label><select id="transfer-from-branch" required></select></div><div class="form-group"><label for="transfer-to-branch" data-translate-key="to_branch">To Branch</label><select id="transfer-to-branch" required></select></div><div class="form-group"><label for="transfer-ref" data-translate-key="transfer_ref_no">Transfer Reference #</label><input type="text" id="transfer-ref" readonly></div><div class="form-group span-full"><label for="transfer-notes" data-translate-key="notes_optional">Notes (Optional)</label><textarea id="transfer-notes" rows="2"></textarea></div></form></div><div class="card" id="transfer-list-card"><h2 data-translate-key="items_to_be_transferred">Items to be Transferred</h2><table id="table-transfer-list"><thead><tr><th data-translate-key="table_h_code">Code</th><th data-translate-key="item_name">Item Name</th><th data-translate-key="table_h_available">Available</th><th data-translate-key="table_h_qty_to_transfer">Quantity to Transfer</th><th data-translate-key="actions">Action</th></tr></thead><tbody></tbody><tfoot><tr style="font-weight: bold; background-color: var(--bg-color);"><td colspan="3" style="text-align: right;" data-translate-key="total_items_to_transfer">Total Items to Transfer:</td><td id="transfer-grand-total" colspan="2">0.00</td></tr></tfoot></table><div style="margin-top: 20px; display: flex; gap: 10px;"><button type="button" data-context="transfer" class="secondary" data-translate-key="select_items">Select Items</button><button id="btn-submit-transfer-batch" class="primary" data-translate-key="confirm_transfer_all">Confirm & Transfer All Items</button></div></div></div>
-                <div id="subview-return" class="sub-view"><div class="card"><h2 data-translate-key="return_to_supplier">Return to Supplier</h2><form id="form-return-details" class="form-grid" onsubmit="return false;"><div class="form-group"><label for="return-supplier" data-translate-key="supplier">Supplier</label><select id="return-supplier" required></select></div><div class="form-group"><label for="return-branch" data-translate-key="from_branch">From Branch</label><select id="return-branch" required></select></div><div class="form-group"><label for="return-ref" data-translate-key="credit_note_ref">Credit Note Ref #</label><input type="text" id="return-ref" required></div><div class="form-group span-full"><label for="return-notes" data-translate-key="reason_for_return">Reason for Return (Optional)</label><textarea id="return-notes" rows="2"></textarea></div></form></div><div class="card" id="return-list-card"><h2 data-translate-key="items_to_return">Items to Return</h2><table id="table-return-list"><thead><tr><th data-translate-key="table_h_code">Code</th><th data-translate-key="item_name">Item Name</th><th data-translate-key="table_h_available">Available</th><th data-translate-key="table_h_qty_to_return">Qty to Return</th><th data-translate-key="table_h_cost">Cost</th><th data-translate-key="actions">Action</th></tr></thead><tbody></tbody><tfoot><tr style="font-weight: bold; background-color: var(--bg-color);"><td colspan="4" style="text-align: right;" data-translate-key="total_return_value">Total Return Value:</td><td id="return-grand-total" colspan="2">0.00 EGP</td></tr></tfoot></table><div style="margin-top: 20px; display: flex; gap: 10px;"><button type="button" data-context="return" class="secondary" data-translate-key="select_items">Select Items</button><button id="btn-submit-return" class="primary" data-translate-key="confirm_return_all">Confirm & Return All Items</button></div></div></div>
-                <div id="subview-in-transit" class="sub-view"><div class="card"><h2 data-translate-key="goods_in_transit_report">Goods In-Transit Report</h2><div class="report-area"><table id="table-in-transit"><thead><tr><th data-translate-key="table_h_date_sent">Date Sent</th><th data-translate-key="table_h_from_branch">From Branch</th><th data-translate-key="table_h_to_branch">To Branch</th><th data-translate-key="table_h_ref_no">Reference #</th><th data-translate-key="items">Items</th><th data-translate-key="table_h_status">Status</th><th data-translate-key="actions">Actions</th></tr></thead><tbody></tbody></table></div></div></div>
-                <div id="subview-adjustments" class="sub-view">
-                    <div id="stock-adjustment-card" class="card">
-                        <h2 data-translate-key="stock_count_adjustment">Stock Count Adjustment</h2>
-                        <form id="form-adjustment-details" class="form-grid" onsubmit="return false;">
-                            <div class="form-group"><label for="adjustment-branch" data-translate-key="branch">Branch</label><select id="adjustment-branch" required></select></div>
-                            <div class="form-group"><label for="adjustment-ref" data-translate-key="reference">Reference</label><input type="text" id="adjustment-ref" data-translate-placeholder="stocktake_example" required></div>
-                            <div class="form-group span-full"><label for="adjustment-notes" data-translate-key="notes_reason">Notes / Reason</label><textarea id="adjustment-notes" rows="2"></textarea></div>
-                        </form>
-                    </div>
-                    <div id="stock-adjustment-list-card" class="card">
-                        <h2 data-translate-key="items_to_adjust">Items to Adjust</h2>
-                        <table id="table-adjustment-list">
-                            <thead><tr><th data-translate-key="table_h_code">Code</th><th data-translate-key="item_name">Item Name</th><th data-translate-key="table_h_system_qty">System Qty</th><th data-translate-key="table_h_physical_count">Physical Count</th><th data-translate-key="table_h_adjustment">Adjustment</th><th data-translate-key="actions">Action</th></tr></thead>
-                            <tbody></tbody>
-                        </table>
-                        <div style="margin-top: 20px; display: flex; gap: 10px;">
-                            <button type="button" data-context="adjustment" class="secondary" data-translate-key="select_items">Select Items</button>
-                            <button id="btn-submit-adjustment" class="primary" data-translate-key="process_stock_adjustment">Process Stock Adjustment</button>
-                        </div>
-                    </div>
-                    <div id="financial-adjustment-card" class="card">
-                        <h2 data-translate-key="supplier_opening_balance">Supplier Opening Balance Adjustment</h2>
-                        <p data-translate-key="supplier_opening_balance_desc">Use this to set the initial amount owed to a supplier. This should typically only be done once per supplier when setting up.</p>
-                        <form id="form-financial-adjustment" class="form-grid">
-                            <div class="form-group"><label for="fin-adj-supplier" data-translate-key="supplier">Supplier</label><select id="fin-adj-supplier" required></select></div>
-                            <div class="form-group"><label for="fin-adj-balance" data-translate-key="opening_balance_amount">Opening Balance (Amount Owed)</label><input type="number" id="fin-adj-balance" step="0.01" min="0" required></div>
-                            <button type="submit" class="primary" style="align-self: end;" data-translate-key="set_opening_balance">Set Opening Balance</button>
-                        </form>
-                    </div>
-                </div>
+            <div class="modal-actions">
+                <button id="cancelAddTaskBtn" class="btn btn-secondary">إلغاء</button>
+                <button id="confirmAddTaskBtn" class="btn btn-primary">إضافة المهمة</button>
             </div>
-            <div id="view-purchasing" class="view">
-                <div class="sub-nav">
-                    <button class="sub-nav-item active" data-subview="create-po" data-translate-key="create_po">Create Purchase Order</button>
-                    <button class="sub-nav-item" data-subview="view-pos" data-translate-key="view_pos">View Purchase Orders</button>
-                    <button class="sub-nav-item" data-subview="pending-financial-approval" data-translate-key="pending_approval">Pending Approval</button>
-                </div>
-                <div id="subview-create-po" class="sub-view active">
-                    <div class="card"><h2 data-translate-key="po_details">Purchase Order Details</h2><form id="form-po-details" class="form-grid" onsubmit="return false;"><div class="form-group"><label for="po-supplier" data-translate-key="supplier">Supplier</label><select id="po-supplier" required></select></div><div class="form-group"><label for="po-ref" data-translate-key="po_ref_no">PO Reference #</label><input type="text" id="po-ref" readonly></div><div class="form-group span-full"><label for="po-notes" data-translate-key="notes_optional">Notes (Optional)</label><textarea id="po-notes" rows="2"></textarea></div></form></div>
-                    <div class="card" id="po-list-card"><h2 data-translate-key="items_to_order">Items to Order</h2><table id="table-po-list"><thead><tr><th data-translate-key="table_h_code">Code</th><th data-translate-key="item_name">Item Name</th><th data-translate-key="table_h_quantity">Quantity</th><th data-translate-key="table_h_cost_per_unit">Cost/Unit</th><th data-translate-key="table_h_total">Total</th><th data-translate-key="actions">Action</th></tr></thead><tbody></tbody><tfoot><tr style="font-weight: bold; background-color: var(--bg-color);"><td colspan="4" style="text-align: right;" data-translate-key="grand_total">Grand Total:</td><td id="po-grand-total" colspan="2">0.00 EGP</td></tr></tfoot></table><div style="margin-top: 20px; display: flex; gap: 10px;"><button type="button" data-context="po" class="secondary" data-translate-key="select_items">Select Items</button><button id="btn-submit-po" class="primary" data-translate-key="submit_for_approval">Submit for Approval</button></div></div>
-                </div>
-                <div id="subview-view-pos" class="sub-view">
-                    <div class="card"><h2 data-translate-key="po_list">Purchase Order List</h2><div class="report-area"><table id="table-po-viewer"><thead><tr><th data-translate-key="table_h_po_no">PO #</th><th data-translate-key="table_h_date">Date</th><th data-translate-key="supplier">Supplier</th><th data-translate-key="items">Items</th><th data-translate-key="table_h_total_value">Total Value</th><th data-translate-key="table_h_status">Status</th><th data-translate-key="actions">Actions</th></tr></thead><tbody></tbody></table></div></div>
-                </div>
-                <div id="subview-pending-financial-approval" class="sub-view">
-                    <div class="card">
-                        <h2 data-translate-key="tx_pending_financial_approval">Transactions Pending Financial Approval</h2>
-                        <div class="report-area">
-                            <table id="table-pending-financial-approval">
-                                <thead>
-                                    <tr><th data-translate-key="table_h_date">Date</th><th data-translate-key="table_h_type">Type</th><th data-translate-key="table_h_ref_no">Reference #</th><th data-translate-key="table_h_details">Details</th><th data-translate-key="table_h_amount">Amount</th><th data-translate-key="actions">Actions</th></tr>
-                                </thead>
-                                <tbody></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div id="view-requests" class="view">
-                <div class="sub-nav">
-                    <button class="sub-nav-item active" data-subview="my-requests" data-translate-key="my_requests">My Requests</button>
-                    <button class="sub-nav-item" data-subview="pending-approval" data-translate-key="pending_approval">Pending Approval</button>
-                </div>
-                <div id="subview-my-requests" class="sub-view active">
-                    <div class="card"><h2 data-translate-key="create_new_request">Create New Request</h2><form id="form-create-request" class="form-grid" onsubmit="return false;"><div class="form-group"><label for="request-type" data-translate-key="request_type">Request Type</label><select id="request-type"><option value="issue" data-translate-key="req_items_from_branch">Request Items from Branch</option><option value="resupply" data-translate-key="req_item_resupply">Request Item Resupply (Low Stock)</option></select></div><div class="form-group span-full"><label for="request-notes" data-translate-key="notes_justification">Notes / Justification</label><textarea id="request-notes" rows="2"></textarea></div></form></div>
-                    <div class="card"><h2 data-translate-key="items_for_request">Items for Request</h2><table id="table-request-list"><thead><tr><th data-translate-key="table_h_code">Code</th><th data-translate-key="item_name">Item Name</th><th data-translate-key="table_h_quantity">Quantity</th><th data-translate-key="actions">Action</th></tr></thead><tbody></tbody></table><div style="margin-top: 20px; display: flex; gap: 10px;"><button type="button" data-context="request" class="secondary" data-translate-key="select_items">Select Items</button><button id="btn-submit-request" class="primary" data-translate-key="submit_request">Submit Request</button></div></div>
-                    <div class="card"><h2 data-translate-key="my_request_history">My Request History</h2><div class="report-area"><table id="table-my-requests-history"><thead><tr><th data-translate-key="table_h_req_id">ID</th><th data-translate-key="table_h_date">Date</th><th data-translate-key="table_h_type">Type</th><th data-translate-key="table_h_items_req_issued">Items (Req/Issued)</th><th data-translate-key="table_h_status">Status</th><th data-translate-key="table_h_req_notes">Notes</th></tr></thead><tbody></tbody></table></div></div>
-                </div>
-                <div id="subview-pending-approval" class="sub-view">
-                    <div class="card">
-                        <div class="toolbar">
-                            <h2 data-translate-key="req_pending_approval">Requests Pending Approval</h2>
-                            <button id="btn-print-pending-requests" class="secondary small" data-translate-key="print_list">Print List</button>
-                        </div>
-                        <div class="report-area"><table id="table-pending-requests"><thead><tr><th data-translate-key="table_h_req_id">ID</th><th data-translate-key="table_h_date">Date</th><th data-translate-key="table_h_type">Type</th><th data-translate-key="table_h_requested_by">Requested By</th><th data-translate-key="table_h_details">Details</th><th data-translate-key="items">Items</th><th data-translate-key="actions">Actions</th></tr></thead><tbody></tbody></table></div>
-                    </div>
-                </div>
-            </div>
-            <div id="view-stock-levels" class="view"><div class="card"><div class="toolbar"><h2 id="stock-levels-title" data-translate-key="stock_by_item">Stock by Item</h2><div class="search-bar"><input type="search" id="stock-levels-search" class="search-bar-input" data-translate-placeholder="search_items_stock_placeholder"></div><button id="btn-export-stock" class="secondary" data-translate-key="export_to_excel">Export to Excel</button></div><div id="item-centric-stock-container" class="report-area"></div></div><div class="card"><h2 data-translate-key="item_stock_inquiry">Item Stock Inquiry (Drill-down)</h2><input type="search" id="item-inquiry-search" class="search-bar-input" data-translate-placeholder="item_stock_inquiry_placeholder"><div id="item-inquiry-results" class="report-area"></div></div></div>
-            <div id="view-transaction-history" class="view">
-                <div class="card">
-                    <div class="toolbar">
-                        <h2 data-translate-key="transaction_log">Transaction Log</h2>
-                        <div class="filters-container">
-                            <input type="date" id="tx-filter-start-date" class="small">
-                            <input type="date" id="tx-filter-end-date" class="small">
-                            <select id="tx-filter-type" class="small"><option value="" data-translate-key="all_types">All Types</option></select>
-                            <select id="tx-filter-branch" class="small"><option value="" data-translate-key="all_branches">All Branches</option></select>
-                            <input type="search" id="transaction-search" class="search-bar-input small" data-translate-placeholder="search_tx_placeholder" style="width: 250px;">
-                        </div>
-                    </div>
-                    <div class="report-area">
-                        <table id="table-transaction-history">
-                            <thead><tr><th data-translate-key="table_h_date">Date</th><th data-translate-key="table_h_type">Type</th><th data-translate-key="table_h_batch_ref">Batch/Ref #</th><th data-translate-key="table_h_details">Details</th><th data-translate-key="table_h_status">Status</th><th data-translate-key="actions">Actions</th></tr></thead>
-                            <tbody></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-            <div id="view-user-management" class="view"><div class="card"><div class="toolbar"><h2 data-translate-key="users">Users</h2><button id="btn-add-new-user" class="primary" data-translate-key="add_new_user">Add New User</button></div><div class="report-area"><table id="table-users"><thead><tr><th data-translate-key="username">Username</th><th data-translate-key="table_h_fullname">Full Name</th><th data-translate-key="table_h_role">Role</th><th data-translate-key="table_h_assigned_branch_section">Assigned Branch/Section</th><th data-translate-key="table_h_status">Status</th><th data-translate-key="actions">Actions</th></tr></thead><tbody></tbody></table></div></div><div class="card"><div class="toolbar"><h2 data-translate-key="roles">Roles</h2><button id="btn-add-new-role" class="primary" data-translate-key="add_new_role">Add New Role</button></div><div class="report-area"><table id="table-roles"><thead><tr><th data-translate-key="table_h_rolename">Role Name</th><th data-translate-key="actions">Actions</th></tr></thead><tbody></tbody></table></div></div></div>
-            <div id="view-activity-log" class="view"><div class="card"><h2 data-translate-key="system_activity_log">System Activity Log</h2><div class="report-area"><table id="table-activity-log"><thead><tr><th data-translate-key="table_h_timestamp">Timestamp</th><th data-translate-key="table_h_user">User</th><th data-translate-key="table_h_action">Action</th><th data-translate-key="table_h_description">Description</th></tr></thead><tbody></tbody></table></div></div></div>
-        </main>
+        </div>
     </div>
-    
-    <div id="item-selector-modal" class="modal-overlay"><div class="modal-content"><div class="modal-header"><h2 data-translate-key="select_items_modal_title">Select Items</h2><button class="close-button">×</button></div><div class="modal-body"><input type="search" id="modal-search-items" data-translate-placeholder="search_items_placeholder_modal">
-        <div id="modal-item-list" class="modal-item-list"></div></div><div class="modal-footer"><button class="secondary modal-cancel" data-translate-key="cancel">Cancel</button><button id="btn-confirm-modal-selection" class="primary" data-translate-key="confirm_selection">Confirm Selection</button></div></div></div>
-    <div id="invoice-selector-modal" class="modal-overlay"><div class="modal-content"><div class="modal-header"><h2 data-translate-key="select_invoices_modal_title">Select Invoices to Pay</h2><button class="close-button">×</button></div><div class="modal-body"><div id="modal-invoice-list" class="modal-item-list"></div></div><div class="modal-footer"><button class="secondary modal-cancel" data-translate-key="cancel">Cancel</button><button id="btn-confirm-invoice-selection" class="primary" data-translate-key="confirm_selection">Confirm Selection</button></div></div></div>
-    <div id="edit-modal" class="modal-overlay"><form id="form-edit-record" class="modal-content"><div class="modal-header"><h2 id="edit-modal-title" data-translate-key="edit_modal_title">Edit</h2><button type="button" class="close-button">×</button></div><div class="modal-body" id="edit-modal-body"></div><div class="modal-footer"><button type="button" class="secondary modal-cancel" data-translate-key="cancel">Cancel</button><button type="submit" class="primary" data-translate-key="save_changes">Save Changes</button></div></form></div>
-    <div id="view-transfer-modal" class="modal-overlay"><div class="modal-content"><div class="modal-header"><h2 id="view-transfer-modal-title" data-translate-key="confirm_transfer_receipt_modal_title">Confirm Transfer Receipt</h2><button class="close-button">×</button></div><div class="modal-body" id="view-transfer-modal-body"></div><div class="modal-footer"><button class="secondary modal-cancel" data-translate-key="cancel">Cancel</button><button id="btn-reject-transfer" class="danger" data-translate-key="reject">Reject</button><button id="btn-confirm-receive-transfer" class="primary" data-translate-key="confirm_receipt">Confirm Receipt</button></div></div></div>
-    <div id="history-modal" class="modal-overlay"><div class="modal-content" style="max-width: 900px;"><div class="modal-header"><h2 id="history-modal-title" data-translate-key="item_history_modal_title">Item History</h2><button class="close-button">×</button></div><div class="modal-body" id="history-modal-body"><div class="sub-nav"><button class="sub-nav-item active" data-subview="price-history" data-translate-key="price_history">Price History</button><button class="sub-nav-item" data-subview="movement-history" data-translate-key="movement_history">Movement History</button></div><div id="subview-price-history" class="sub-view active report-area"></div><div id="subview-movement-history" class="sub-view report-area"><div class="filters-container" style="padding: 10px 0; gap: 10px;"><input type="date" id="history-filter-start-date" class="small"><input type="date" id="history-filter-end-date" class="small"><select id="history-filter-type" class="small"><option value="" data-translate-key="all_types">All Types</option></select><select id="history-filter-branch" class="small"><option value="" data-translate-key="all_branches">All Branches</option></select></div><div id="movement-history-table-container"></div></div></div><div class="modal-footer"><button class="secondary modal-cancel" data-translate-key="close">Close</button></div></div></div>
-    <div id="edit-po-modal" class="modal-overlay"><div class="modal-content" style="max-width: 900px;"><div class="modal-header"><h2 id="edit-po-modal-title" data-translate-key="edit_po_modal_title">Edit Purchase Order</h2><button class="close-button">×</button></div><div class="modal-body" id="edit-po-modal-body"></div><div class="modal-footer"><button class="secondary modal-cancel" data-translate-key="cancel">Cancel</button><button id="btn-save-po-changes" class="primary" data-translate-key="save_changes">Save Changes</button></div></div></div>
-    <div id="approve-request-modal" class="modal-overlay"><div class="modal-content" style="max-width: 900px;"><div class="modal-header"><h2 id="approve-request-modal-title" data-translate-key="approve_request_modal_title">Approve Item Request</h2><button class="close-button">×</button></div><div class="modal-body" id="approve-request-modal-body"></div><div class="modal-footer"><button class="secondary modal-cancel" data-translate-key="cancel">Cancel</button><button id="btn-print-draft-issue-note" class="secondary" data-translate-key="print_list">Print Draft</button><button id="btn-confirm-request-approval" class="primary" data-translate-key="confirm_and_issue">Confirm and Issue</button></div></div></div>
-    <div id="restore-modal" class="modal-overlay"><div class="modal-content" style="max-width: 600px;"><div class="modal-header"><h2 id="restore-modal-title" data-translate-key="restore_from_backup_modal_title">Restore from Backup</h2><button class="close-button">×</button></div><div class="modal-body" id="restore-modal-body"><p data-translate-key="restore_from_backup_desc">You are about to restore data from the backup file:</p><p><strong id="restore-filename-display"></strong></p><hr><p><strong data-translate-key="restore_step1">1. Select which data sheets to restore.</strong></p><div id="restore-sheet-list" class="form-grid permissions-grid"></div><hr><div class="form-group" style="margin-top: 20px;"><label><strong data-translate-key="restore_step2">2. Confirm this irreversible action.</strong></label><div style="padding: 15px; background-color: #FDEDE9; border: 1px solid var(--danger-color); border-radius: 8px;"><strong style="color: var(--danger-color);" data-translate-key="restore_danger_warning">EXTREME DANGER:</strong> <span data-translate-key="restore_danger_text">This will permanently delete the current data in the selected live sheets and replace it with the data from the backup. This action CANNOT be undone.</span></div><p style="margin-top: 15px;" data-translate-key="restore_prompt">Please type <strong>RESTORE</strong> into the box below to proceed.</p><input type="text" id="restore-confirmation-input" autocomplete="off"></div></div><div class="modal-footer"><button class="secondary modal-cancel" data-translate-key="cancel">Cancel</button><button id="btn-confirm-restore" class="danger" disabled data-translate-key="confirm_and_restore">Confirm and Restore Data</button></div></div></div>
-    <div id="context-selector-modal" class="modal-overlay"><div class="modal-content" style="max-width: 500px;"><div class="modal-header"><h2 id="context-modal-title">Select Operational Context</h2></div><div class="modal-body"><p id="context-modal-message">Before you can proceed, please select the branch or section you are operating on behalf of for this session.</p><div id="context-modal-fromBranch-group" class="form-group" style="display: none;"><label for="context-from-branch-select">Select From Branch</label><select id="context-from-branch-select"></select></div><div id="context-modal-toBranch-group" class="form-group" style="display: none;"><label for="context-to-branch-select">Select To Branch</label><select id="context-to-branch-select"></select></div><div id="context-modal-branch-group" class="form-group" style="display: none;"><label for="context-branch-select">Select Branch</label><select id="context-branch-select"></select></div><div id="context-modal-fromSection-group" class="form-group" style="display: none;"><label for="context-from-section-select">Select From Section</label><select id="context-from-section-select"></select></div><div id="context-modal-toSection-group" class="form-group" style="display: none;"><label for="context-to-section-select">Select To Section</label><select id="context-to-section-select"></select></div></div><div class="modal-footer"><button id="btn-confirm-context" class="primary">Confirm Selection</button></div></div></div>
 
-    <div id="print-area" style="display: none;"></div>
-    <div id="toast-container"></div>
-    <script src="script.js"></script>
+    <div id="notification-container"></div>
+    
 </body>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxIei-1QKbW_oJT5zuJnE2Y_FjpxuwyI08atsS1zZQh_2BNPkkoptPMbneLy7MJCuksuQ/exec';
+
+    // UI Elements
+    const contentArea = document.getElementById('contentArea');
+    const headerTitle = document.getElementById('headerTitle');
+    const headerActions = document.getElementById('headerActions');
+    const notificationContainer = document.getElementById('notification-container');
+    
+    // Modals
+    const sectionModal = document.getElementById('sectionModal');
+    const addTaskModal = document.getElementById('addTaskModal');
+
+    // State
+    let state = {
+        view: 'sections', // sections, tasks, taskDetail
+        currentSection: null, // {id, name}
+        currentTask: null, // {id, name, ...}
+        allBranches: [],
+    };
+
+    // --- API HELPER ---
+    async function apiCall(action, method = 'GET', body = null) {
+        const url = new URL(SCRIPT_URL);
+        const options = { method, redirect: 'follow', muteHttpExceptions: true };
+        if (method === 'POST') {
+            options.body = JSON.stringify({ action, ...body });
+        } else {
+            url.searchParams.append('action', action);
+            if (body) Object.keys(body).forEach(key => url.searchParams.append(key, body[key]));
+        }
+        try {
+            const response = await fetch(url, options);
+            if (!response.ok) throw new Error(`Network error: ${response.statusText}`);
+            const data = await response.json();
+            if (!data.success) throw new Error(data.message || 'Unknown API error');
+            return data;
+        } catch (error) {
+            showNotification(error.message, true);
+            throw error;
+        }
+    }
+
+    // --- RENDER FUNCTIONS ---
+
+    function showLoader(message = 'جاري التحميل...') {
+        contentArea.innerHTML = `<div class="message-container"><i class="fas fa-spinner fa-spin"></i><p>${message}</p></div>`;
+    }
+
+    function render() {
+        showLoader();
+        updateHeader();
+        contentArea.classList.add('grid-container');
+
+        if (state.view === 'sections') {
+            handleLoadSections();
+        } else if (state.view === 'tasks') {
+            handleLoadTasks(state.currentSection.id);
+        } else if (state.view === 'taskDetail') {
+            handleLoadTaskDetails(state.currentTask.id);
+        }
+    }
+
+    function updateHeader() {
+        headerTitle.innerHTML = '';
+        headerActions.innerHTML = '';
+
+        if (state.view === 'sections') {
+            headerTitle.innerHTML = '<h1>الأقسام</h1>';
+            headerActions.innerHTML = `<button id="addSectionBtn" class="btn btn-primary"><i class="fas fa-plus"></i> إضافة قسم</button>`;
+            document.getElementById('addSectionBtn').addEventListener('click', openSectionModal);
+        } else if (state.view === 'tasks') {
+            headerTitle.innerHTML = `<h1><button id="backToSectionsBtn" class="back-btn"><i class="fas fa-arrow-right"></i></button> ${state.currentSection.name}</h1>`;
+            headerActions.innerHTML = `
+                <button id="addOrCloseTaskBtn" class="btn btn-primary"><i class="fas fa-plus"></i> إضافة مهمة</button>
+                <button id="sectionReportBtn" class="btn btn-secondary"><i class="fas fa-file-alt"></i> تقرير القسم</button>`;
+            document.getElementById('backToSectionsBtn').addEventListener('click', () => navigate('sections'));
+            document.getElementById('addOrCloseTaskBtn').addEventListener('click', openAddTaskModal);
+
+        } else if (state.view === 'taskDetail') {
+            headerTitle.innerHTML = `<h1><button id="backToTasksBtn" class="back-btn"><i class="fas fa-arrow-right"></i></button> ${state.currentTask.name}</h1>`;
+            let closeBtnHtml = '';
+            if (state.currentTask.type === 'Standard' && state.currentTask.status === 'Open') {
+                closeBtnHtml = `<button id="closeTaskBtn" class="btn btn-danger"><i class="fas fa-lock"></i> إغلاق المهمة</button>`;
+            }
+            headerActions.innerHTML = `
+                ${closeBtnHtml}
+                <button id="downloadReportBtn" class="btn btn-secondary"><i class="fas fa-download"></i> تحميل تقرير</button>`;
+            document.getElementById('backToTasksBtn').addEventListener('click', () => navigate('tasks', { section: state.currentSection }));
+            if (document.getElementById('closeTaskBtn')) {
+                 document.getElementById('closeTaskBtn').addEventListener('click', handleCloseTask);
+            }
+        }
+    }
+
+    function renderSections(sections) {
+        if (!sections || sections.length === 0) {
+            contentArea.innerHTML = `<p class="message-container">لا توجد أقسام. قم بإضافة قسم جديد.</p>`;
+            return;
+        }
+        contentArea.innerHTML = '';
+        sections.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)).forEach(section => {
+            const item = document.createElement('div');
+            item.className = 'section-item';
+            item.dataset.sectionId = section.id;
+            item.innerHTML = `
+                <div class="section-item-actions">
+                    <button class="delete-btn" title="حذف القسم"><i class="fas fa-trash-alt"></i></button>
+                </div>
+                <div class="section-item-clickable" data-section-name="${section.name}">
+                    <div class="section-item-header">
+                        <h3 class="section-item-name">${section.name}</h3>
+                    </div>
+                    <p class="section-item-stats">عدد المهام: ${section.taskCount}</p>
+                </div>`;
+            contentArea.appendChild(item);
+        });
+    }
+    
+    function renderTasks(tasks) {
+        if (!tasks || tasks.length === 0) {
+            contentArea.innerHTML = `<p class="message-container">لا توجد مهام في هذا القسم.</p>`;
+            return;
+        }
+        contentArea.innerHTML = '';
+        tasks.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)).forEach(task => {
+            const item = document.createElement('div');
+            item.className = `task-item status-${task.status}`;
+            item.dataset.taskId = task.id;
+
+            const completionColor = task.completion > 80 ? 'green' : task.completion > 40 ? 'orange' : 'red';
+            item.style.borderColor = `var(--${completionColor})`;
+            
+            const typeIcon = task.type === 'TimeLimited' 
+                ? '<i class="fas fa-clock task-type-icon" title="مهمة محددة بوقت"></i>' 
+                : '<i class="fas fa-check-double task-type-icon" title="مهمة قياسية"></i>';
+            
+            const footerDate = task.type === 'TimeLimited' && task.endDate
+                ? `<i class="fas fa-hourglass-end"></i> تنتهي في: ${new Date(task.endDate).toLocaleString('ar-EG')}`
+                : `<i class="fas fa-calendar-alt"></i> أنشئت في: ${new Date(task.createdAt).toLocaleDateString('ar-EG')}`;
+
+            item.innerHTML = `
+                <div class="section-item-actions">
+                    <button class="delete-btn" title="حذف المهمة"><i class="fas fa-trash-alt"></i></button>
+                </div>
+                <div class="task-item-clickable" data-task-json='${JSON.stringify(task)}'>
+                    <div class="task-item-header">
+                        <h3 class="task-item-name">${task.name}</h3>
+                        ${typeIcon}
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-label"><span>نسبة الإنجاز</span><span>${task.completion}%</span></div>
+                        <div class="progress-bar-bg"><div class="progress-bar-fg" style="width: ${task.completion}%;"></div></div>
+                    </div>
+                    <div class="task-item-footer">${footerDate}</div>
+                </div>`;
+            contentArea.appendChild(item);
+        });
+    }
+
+    function renderTaskDetail(data) {
+        contentArea.classList.remove('grid-container');
+        state.currentTask.status = data.task.status; // Update state with latest status
+        updateHeader(); // Re-render header to show/hide close button
+
+        let meta = `نوع المهمة: ${data.task.type === 'TimeLimited' ? 'محددة بوقت' : 'قياسية'}`;
+        if (data.task.type === 'TimeLimited' && data.task.endDate) {
+             meta += ` | تنتهي في: ${new Date(data.task.endDate).toLocaleString('ar-EG')}`;
+        }
+        if (data.task.status !== 'Open') {
+            meta += ` | <span style="color:var(--red); font-weight:bold;">الحالة: مغلقة</span>`;
+        }
+
+        contentArea.innerHTML = `
+            <div id="taskDetailView" class="view">
+                <p class="task-meta">${meta}</p>
+                <div class="grid-container" id="branchGrid"></div>
+            </div>`;
+
+        const branchGrid = document.getElementById('branchGrid');
+        if (!data.branches || data.branches.length === 0) {
+            branchGrid.innerHTML = `<p class="message-container">لم يتم تحديد فروع لهذه المهمة.</p>`;
+            return;
+        }
+
+        const isTaskClosed = data.task.status !== 'Open';
+
+        data.branches.forEach(branch => {
+            const card = document.createElement('div');
+            card.className = 'branch-card';
+            const doneLabel = branch.status === 'late-done' ? 'تم (متأخر)' : 'تم';
+            const disabledAttr = isTaskClosed ? 'disabled' : '';
+
+            card.innerHTML = `
+                <div class="branch-name">${branch.name}</div>
+                <div class="status-radio-group" data-branch-id="${branch.id}">
+                    <input type="radio" id="pending-${branch.id}" name="status-${branch.id}" value="pending" ${branch.status === 'pending' ? 'checked' : ''} ${disabledAttr}><label for="pending-${branch.id}">لم يتم</label>
+                    <input type="radio" id="done-${branch.id}" name="status-${branch.id}" value="done" ${branch.status === 'done' || branch.status === 'late-done' ? 'checked' : ''} ${disabledAttr}><label for="done-${branch.id}" class="${branch.status === 'late-done' ? 'late-done-label': ''}">${doneLabel}</label>
+                    <input type="radio" id="not-required-${branch.id}" name="status-${branch.id}" value="not-required" ${branch.status === 'not-required' ? 'checked' : ''} ${disabledAttr}><label for="not-required-${branch.id}">غير مطلوب</label>
+                </div>`;
+            branchGrid.appendChild(card);
+        });
+    }
+
+    // --- DATA HANDLERS ---
+    
+    async function handleLoadSections() {
+        try {
+            const data = await apiCall('getSections');
+            renderSections(data.sections);
+        } catch (error) {
+            contentArea.innerHTML = `<p class="message-container">حدث خطأ أثناء تحميل الأقسام.</p>`;
+        }
+    }
+
+    async function handleLoadTasks(sectionId) {
+        try {
+            const data = await apiCall('getTasksForSection', 'GET', { sectionID: sectionId });
+            renderTasks(data.tasks);
+        } catch (error) {
+            contentArea.innerHTML = `<p class="message-container">حدث خطأ أثناء تحميل المهام.</p>`;
+        }
+    }
+    
+    async function handleLoadTaskDetails(taskId) {
+        contentArea.classList.remove('grid-container');
+        showLoader(`جاري تحميل تفاصيل المهمة...`);
+        try {
+            const data = await apiCall('getTaskDetails', 'GET', { taskID: taskId });
+            state.currentTask = { ...state.currentTask, ...data.task };
+            renderTaskDetail(data);
+        } catch (error) {
+            navigate('tasks', { section: state.currentSection });
+        }
+    }
+
+    async function handleStatusChange(e) {
+        if (e.target.name.startsWith('status-')) {
+            const radio = e.target;
+            const newStatus = radio.value;
+            const branchID = radio.closest('.status-radio-group').dataset.branchId;
+            const taskID = state.currentTask.id;
+            
+            const group = radio.closest('.status-radio-group');
+            Array.from(group.querySelectorAll('input')).forEach(inp => inp.disabled = true);
+
+            try {
+                const result = await apiCall('updateStatus', 'POST', { taskID, branchID, newStatus });
+                // Update label for late-done status
+                if(result.actualStatus === 'late-done') {
+                    const doneLabel = group.querySelector('label[for="done-'+branchID+'"]');
+                    doneLabel.textContent = 'تم (متأخر)';
+                    doneLabel.classList.add('late-done-label');
+                }
+            } catch (error) {
+                 // Revert on error - simple reload for now
+                 handleLoadTaskDetails(taskID);
+            } finally {
+                Array.from(group.querySelectorAll('input')).forEach(inp => inp.disabled = false);
+            }
+        }
+    }
+    
+    async function handleDelete(e) {
+        const deleteBtn = e.target.closest('.delete-btn');
+        if (!deleteBtn) return;
+        
+        e.stopPropagation();
+        
+        const sectionItem = e.target.closest('.section-item');
+        const taskItem = e.target.closest('.task-item');
+
+        if (sectionItem) {
+            const sectionId = sectionItem.dataset.sectionId;
+            if (confirm(`هل أنت متأكد من حذف هذا القسم؟ سيتم حذف جميع المهام بداخله بشكل نهائي.`)) {
+                try {
+                    await apiCall('deleteSection', 'POST', { sectionID: sectionId });
+                    showNotification('تم حذف القسم بنجاح.', false);
+                    sectionItem.style.animation = 'fadeOut 0.5s forwards';
+                    setTimeout(() => sectionItem.remove(), 500);
+                } catch(error) { /* notification is shown by apiCall */ }
+            }
+        } else if (taskItem) {
+            const taskId = taskItem.dataset.taskId;
+            if (confirm('هل أنت متأكد من حذف هذه المهمة؟')) {
+                try {
+                    await apiCall('deleteTask', 'POST', { taskID: taskId });
+                    showNotification('تم حذف المهمة بنجاح.', false);
+                    taskItem.style.animation = 'fadeOut 0.5s forwards';
+                    setTimeout(() => taskItem.remove(), 500);
+                } catch(error) { /* notification is shown by apiCall */ }
+            }
+        }
+    }
+
+    async function handleCloseTask() {
+        if(!state.currentTask || !state.currentTask.id) return;
+        if (confirm('هل أنت متأكد من إغلاق هذه المهمة؟ لن تتمكن من تعديل حالات الفروع بعد الإغلاق.')) {
+            try {
+                await apiCall('updateTaskStatus', 'POST', { taskID: state.currentTask.id, newStatus: 'Closed' });
+                showNotification('تم إغلاق المهمة بنجاح', false);
+                state.currentTask.status = 'Closed';
+                render(); // Re-render the detail view
+            } catch(error) { /* notification handled by apiCall */ }
+        }
+    }
+
+    // --- MODAL & FORM HANDLING ---
+    function openSectionModal() {
+        document.getElementById('sectionNameInput').value = '';
+        sectionModal.classList.remove('hidden');
+    }
+    
+    async function openAddTaskModal() {
+        // Reset form
+        document.getElementById('newTaskNameInput').value = '';
+        document.getElementById('taskTypeStandard').checked = true;
+        document.getElementById('timeLimitedFields').classList.add('hidden');
+        
+        // Populate branches
+        const branchContainer = document.getElementById('branchSelectionContainer');
+        branchContainer.innerHTML = 'جاري تحميل الفروع...';
+        try {
+            if (state.allBranches.length === 0) {
+                const data = await apiCall('getBranches');
+                state.allBranches = data.branches;
+            }
+            branchContainer.innerHTML = '';
+            if (state.allBranches.length === 0) {
+                 branchContainer.innerHTML = 'لم يتم العثور على فروع. يرجى إضافتها في شيت "Branches".';
+                 return;
+            }
+            state.allBranches.forEach(branch => {
+                branchContainer.innerHTML += `
+                    <label class="branch-checkbox-item">
+                        <input type="checkbox" name="branch" value="${branch.id}"> ${branch.name}
+                    </label>`;
+            });
+
+            addTaskModal.classList.remove('hidden');
+        } catch (error) {
+            branchContainer.innerHTML = 'فشل في تحميل الفروع.';
+        }
+    }
+
+    // --- NAVIGATION ---
+    function navigate(view, data = {}) {
+        state.view = view;
+        if (view === 'tasks') {
+            state.currentSection = data.section;
+            state.currentTask = null;
+        } else if (view === 'taskDetail') {
+            state.currentTask = data.task;
+        } else {
+            state.currentSection = null;
+            state.currentTask = null;
+        }
+        render();
+    }
+
+    // --- UTILITIES ---
+    function showNotification(message, isError = true) {
+        const notification = document.createElement('div');
+        notification.className = `notification ${isError ? 'error' : 'success'}`;
+        notification.innerHTML = `<i class="fas ${isError ? 'fa-exclamation-circle' : 'fa-check-circle'}"></i><span>${message}</span>`;
+        notificationContainer.appendChild(notification);
+        setTimeout(() => notification.remove(), 5000);
+    }
+    
+    // --- INITIALIZATION ---
+    function initializeApp() {
+        // Main Click Handler
+        contentArea.addEventListener('click', e => {
+            // Navigate to tasks
+            const sectionClickable = e.target.closest('.section-item-clickable');
+            if (sectionClickable) {
+                const sectionItem = sectionClickable.closest('.section-item');
+                navigate('tasks', { section: { id: sectionItem.dataset.sectionId, name: sectionClickable.dataset.sectionName }});
+                return;
+            }
+            // Navigate to task detail
+            const taskClickable = e.target.closest('.task-item-clickable');
+            if (taskClickable) {
+                const taskData = JSON.parse(taskClickable.dataset.taskJson);
+                navigate('taskDetail', { task: taskData });
+                return;
+            }
+            // Handle Deletes
+            handleDelete(e);
+        });
+
+        // Task Detail Status Change Handler
+        contentArea.addEventListener('change', handleStatusChange);
+
+        // Section Modal Handlers
+        document.getElementById('cancelAddSectionBtn').addEventListener('click', () => sectionModal.classList.add('hidden'));
+        document.getElementById('confirmAddSectionBtn').addEventListener('click', async () => {
+            const btn = document.getElementById('confirmAddSectionBtn');
+            const sectionName = document.getElementById('sectionNameInput').value.trim();
+            if (!sectionName) return showNotification('الرجاء إدخال اسم للقسم.', true);
+            btn.disabled = true;
+            try {
+                const data = await apiCall('createSection', 'POST', { sectionName });
+                showNotification('تم إنشاء القسم بنجاح.', false);
+                sectionModal.classList.add('hidden');
+                render(); // Re-render sections view
+            } finally { btn.disabled = false; }
+        });
+        
+        // Add Task Modal Handlers
+        document.getElementById('cancelAddTaskBtn').addEventListener('click', () => addTaskModal.classList.add('hidden'));
+        document.querySelector('input[name="taskType"][value="TimeLimited"]').addEventListener('change', () => {
+            document.getElementById('timeLimitedFields').classList.remove('hidden');
+        });
+        document.querySelector('input[name="taskType"][value="Standard"]').addEventListener('change', () => {
+            document.getElementById('timeLimitedFields').classList.add('hidden');
+        });
+        document.getElementById('confirmAddTaskBtn').addEventListener('click', async () => {
+            const btn = document.getElementById('confirmAddTaskBtn');
+            const taskName = document.getElementById('newTaskNameInput').value.trim();
+            const taskType = document.querySelector('input[name="taskType"]:checked').value;
+            const startDate = document.getElementById('taskStartDateInput').value;
+            const endDate = document.getElementById('taskEndDateInput').value;
+            const selectedBranches = Array.from(document.querySelectorAll('input[name="branch"]:checked')).map(cb => cb.value);
+
+            if (!taskName) return showNotification('الرجاء إدخال اسم المهمة.', true);
+            if (taskType === 'TimeLimited' && (!startDate || !endDate)) return showNotification('يجب تحديد وقت البدء والانتهاء للمهام المحددة بوقت.', true);
+            if (selectedBranches.length === 0) return showNotification('يجب اختيار فرع واحد على الأقل.', true);
+            
+            btn.disabled = true;
+            try {
+                await apiCall('createTask', 'POST', { 
+                    sectionID: state.currentSection.id,
+                    taskName, taskType, startDate, endDate,
+                    branchIDs: selectedBranches
+                });
+                showNotification('تم إنشاء المهمة بنجاح.', false);
+                addTaskModal.classList.add('hidden');
+                render(); // Re-render tasks view
+            } finally { btn.disabled = false; }
+        });
+
+        // Start the app
+        render();
+    }
+    
+    initializeApp();
+});
+</script>
 </html>
