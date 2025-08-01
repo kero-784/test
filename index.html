@@ -4,102 +4,102 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Task Follow Up</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔮</text></svg>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📋</text></svg>">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* === POLISHED GLASSMORPHISM UI V2 === */
+        /* === CLEAN & MINIMALIST LIGHT UI === */
         :root {
-            --bg-color: #111827;
-            --primary-text: #f9fafb;
-            --secondary-text: #d1d5db;
-            --border-color: rgba(255, 255, 255, 0.15);
-            --glass-bg: rgba(31, 41, 55, 0.5);
-            --glass-bg-hover: rgba(55, 65, 81, 0.7);
-            --blue: #60a5fa; --blue-glow: 0 0 20px rgba(96, 165, 250, 0.5);
-            --green: #4ade80; --green-glow: 0 0 20px rgba(74, 222, 128, 0.5);
-            --red: #f87171;
-            --orange: #fb923c;
-            --purple: #c084fc;
+            --bg-color: #f9fafb; /* Off-white */
+            --sidebar-bg: #ffffff;
+            --primary-text: #1f2937;
+            --secondary-text: #6b7280;
+            --card-bg: #ffffff;
+            --border-color: #e5e7eb;
+            --shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --blue: #3b82f6; --blue-dark: #2563eb; --blue-light: #eff6ff;
+            --green: #22c55e; --red: #ef4444; --orange: #f97316; --purple: #8b5cf6;
             --font-family: 'Tajawal', sans-serif;
-            --border-radius: 1rem;
+            --border-radius: 0.75rem;
             --transition-speed: 0.2s;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
         body {
-            font-family: var(--font-family); color: var(--primary-text); line-height: 1.6;
-            background: linear-gradient(243deg, #1d2b64, #f8cdda, #1d2b64, #f8cdda);
-            background-size: 400% 400%; animation: gradientBG 30s ease infinite;
-            display: flex; min-height: 100vh;
+            font-family: var(--font-family); color: var(--primary-text); background-color: var(--bg-color);
+            line-height: 1.6; display: flex;
             -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
         }
-        @keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
         .hidden { display: none !important; }
         
-        #sidebar { width: 280px; background: var(--glass-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-left: 1px solid var(--border-color); padding: 2rem; display: flex; flex-direction: column; height: 100vh; position: fixed; right: 0; top: 0; }
+        /* Layout */
+        #sidebar { width: 280px; background-color: var(--sidebar-bg); border-left: 1px solid var(--border-color); padding: 2rem; display: flex; flex-direction: column; height: 100vh; position: fixed; right: 0; top: 0; }
         #main-content { margin-right: 280px; width: calc(100% - 280px); padding: 2rem; }
         
-        .sidebar-header { text-align: center; margin-bottom: 2.5rem; }
-        .sidebar-header i { font-size: 2.5rem; color: var(--blue); text-shadow: var(--blue-glow); }
-        .sidebar-header h1 { font-size: 1.5rem; font-weight: 800; margin-top: 0.5rem; text-shadow: 0 0 10px rgba(0,0,0,0.5); }
+        /* Sidebar */
+        .sidebar-header { text-align: right; margin-bottom: 2.5rem; display: flex; align-items: center; gap: 0.75rem; }
+        .sidebar-header i { font-size: 1.75rem; color: var(--blue); }
+        .sidebar-header h1 { font-size: 1.25rem; font-weight: 800; }
         
+        /* Content Header */
         .content-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
-        .content-title { font-size: 1.75rem; font-weight: 800; display: flex; align-items: center; gap: 1rem; }
-        .back-btn { background: none; border: none; font-size: 1.5rem; color: var(--secondary-text); cursor: pointer; padding: 0.5rem; border-radius: 99px; line-height: 1; transition: all var(--transition-speed) ease; }
-        .back-btn:hover { background: var(--glass-bg); color: var(--blue); }
-        
-        .btn { width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 0.75rem; font-weight: 700; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 0.75rem; font-size: 0.95rem; background: var(--glass-bg); color: var(--primary-text); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); transition: all var(--transition-speed) ease; }
-        .btn:hover:not(:disabled) { background: var(--glass-bg-hover); border-color: white; transform: translateY(-2px); }
-        .btn:active:not(:disabled) { transform: translateY(-1px) scale(0.98); }
-        .btn-primary { background: var(--blue); border-color: var(--blue); color: white; box-shadow: var(--blue-glow); }
-        .btn-primary:hover:not(:disabled) { background: #3b82f6; box-shadow: var(--blue-glow), 0 0 30px rgba(96, 165, 250, 0.7); }
-        .btn:disabled { background: rgba(55, 65, 81, 0.7); color: #9ca3af; cursor: not-allowed; border-color: transparent; }
+        .content-title { font-size: 2rem; font-weight: 800; display: flex; align-items: center; gap: 1rem; }
+        .back-btn { background: none; border: none; font-size: 1.75rem; color: var(--secondary-text); cursor: pointer; padding: 0.5rem; border-radius: 99px; line-height: 1; transition: all var(--transition-speed) ease; }
+        .back-btn:hover { background-color: var(--border-color); color: var(--blue); }
+
+        /* Buttons */
+        .btn { width: 100%; padding: 0.75rem 1rem; border: 1px solid transparent; border-radius: 0.5rem; font-weight: 700; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 0.75rem; font-size: 0.9rem; transition: all var(--transition-speed) ease; }
+        .btn-primary { background-color: var(--blue); color: white; box-shadow: var(--shadow); }
+        .btn-primary:hover:not(:disabled) { background-color: var(--blue-dark); }
+        .btn-secondary { background-color: var(--card-bg); color: var(--primary-text); border-color: var(--border-color); box-shadow: var(--shadow); }
+        .btn-secondary:hover { background-color: var(--bg-color); }
+        .btn-danger { background-color: #fee2e2; color: var(--red); }
+        .btn:disabled { background-color: var(--border-color); color: var(--secondary-text); cursor: not-allowed; box-shadow: none; }
         .content-header .btn { width: auto; }
         
+        /* Grid & Cards */
         .grid-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; }
-        .card { background: var(--glass-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: var(--border-radius); display: flex; flex-direction: column; border: 1px solid var(--border-color); cursor: pointer; transition: all var(--transition-speed) ease-in-out; }
-        .card:hover { transform: translateY(-5px); border-color: rgba(255, 255, 255, 0.5); box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
+        .card { background: var(--card-bg); border-radius: var(--border-radius); box-shadow: var(--shadow); display: flex; flex-direction: column; border: 1px solid var(--border-color); cursor: pointer; transition: all var(--transition-speed) ease-in-out; }
+        .card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); }
         .card:active { transform: translateY(-2px) scale(0.99); }
-        .card-content { padding: 1.5rem; flex-grow: 1; }
-        .card-footer { padding: 0.75rem 1.5rem; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: var(--secondary-text); }
+        .card-content { padding: 1.25rem; flex-grow: 1; }
+        .card-footer { padding: 0.75rem 1.25rem; background-color: #f9fafb; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: var(--secondary-text); }
         .delete-btn { font-size: 0.8rem; color: var(--red); background: none; border: none; cursor: pointer; padding: 0.5rem; border-radius: 0.5rem; transition: background-color var(--transition-speed) ease; }
-        .delete-btn:hover { background-color: #ef444420; }
-        .card-name { font-weight: 700; font-size: 1.25rem; margin-bottom: 0.5rem; }
+        .delete-btn:hover { background-color: #fee2e2; }
+        .card-name { font-weight: 700; font-size: 1.1rem; margin-bottom: 0.5rem; color: var(--primary-text); }
+        .card-stats { font-size: 0.9rem; color: var(--secondary-text); }
         
         .task-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1.25rem; }
-        .tag { padding: 0.25rem 0.75rem; font-size: 0.75rem; font-weight: 700; border-radius: 99px; border: 1px solid; }
-        .tag-purple { background-color: #c084fc30; color: var(--purple); border-color: var(--purple); }
-        .tag-orange { background-color: #fb923c30; color: var(--orange); border-color: var(--orange); }
+        .tag { padding: 0.25rem 0.75rem; font-size: 0.75rem; font-weight: 700; border-radius: 99px; }
+        .tag-purple { background-color: #f5f3ff; color: #7c3aed; }
+        .tag-orange { background-color: #fff7ed; color: #ea580c; }
         .progress-label { display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 700; color: var(--secondary-text); margin: 1.25rem 0 0.5rem; }
-        .progress-bar-bg { width: 100%; background-color: rgba(0,0,0,0.2); border-radius: 99px; height: 8px; overflow: hidden; }
+        .progress-bar-bg { width: 100%; background-color: #e5e7eb; border-radius: 99px; height: 8px; overflow: hidden; }
         .progress-bar-fg { height: 100%; border-radius: 99px; transition: width 0.5s ease; }
 
-        .branch-card { background: var(--glass-bg); border-radius: var(--border-radius); padding: 1.5rem; border: 1px solid var(--border-color); }
+        .branch-card { background: var(--card-bg); border-radius: var(--border-radius); padding: 1.25rem; border: 1px solid var(--border-color); }
         .status-radio-group { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; margin-top: 1rem; }
         .status-radio-group input[type="radio"] { display: none; }
         .status-radio-group label { text-align: center; padding: 0.6rem; border-radius: 0.5rem; border: 1px solid var(--border-color); cursor: pointer; font-weight: 700; color: var(--secondary-text); font-size: 0.85rem; transition: all var(--transition-speed) ease; }
-        .status-radio-group label:hover { background-color: var(--glass-bg-hover); border-color: white; }
+        .status-radio-group label:hover { border-color: var(--blue); }
         .status-radio-group input[type="radio"]:checked + label { color: white; transform: scale(1.05); }
-        .status-radio-group input[value="done"]:checked + label, .status-radio-group input[value="late-done"]:checked + label { background-color: var(--green); border-color: var(--green); box-shadow: var(--green-glow); }
-        .status-radio-group input[value="pending"]:checked + label { background-color: var(--red); border-color: var(--red); box-shadow: 0 0 20px #f8717180; }
-        .status-radio-group input[value="not-required"]:checked + label { background-color: var(--gray); border-color: var(--gray); }
+        .status-radio-group input[value="done"]:checked + label, .status-radio-group input[value="late-done"]:checked + label { background-color: var(--green); border-color: var(--green); }
+        .status-radio-group input[value="pending"]:checked + label { background-color: var(--red); border-color: var(--red); }
+        .status-radio-group input[value="not-required"]:checked + label { background-color: var(--secondary-text); border-color: var(--secondary-text); }
         
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1000; background: rgba(17, 24, 39, 0.8); backdrop-filter: blur(4px); display: flex; justify-content: center; align-items: center; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s ease; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1000; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); display: flex; justify-content: center; align-items: center; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s ease; }
         .modal-overlay.visible { opacity: 1; visibility: visible; }
-        .modal-content { background: var(--glass-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); padding: 2.5rem; border-radius: var(--border-radius); width: 90%; max-width: 550px; border: 1px solid var(--border-color); box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); transform: scale(0.95); transition: transform 0.3s ease; }
+        .modal-content { background-color: var(--card-bg); padding: 2.5rem; border-radius: var(--border-radius); width: 90%; max-width: 550px; box-shadow: var(--shadow-md); transform: scale(0.95); transition: transform 0.3s ease; }
         .modal-overlay.visible .modal-content { transform: scale(1); }
         .modal-actions .btn { width: auto; }
         .form-group { margin-bottom: 1.25rem; }
         .form-group label { display: block; font-weight: 700; margin-bottom: 0.5rem; font-size: 0.9rem; }
-        .modal-content input { width: 100%; padding: 0.8rem 1rem; border-radius: 0.5rem; border: 1px solid var(--border-color); font-family: var(--font-family); font-size: 1rem; background-color: rgba(17, 24, 39, 0.8); color: var(--primary-text); transition: all var(--transition-speed) ease; }
-        .modal-content input:focus { border-color: var(--blue); box-shadow: var(--blue-glow); outline: none; }
-        .modal-content input[type="datetime-local"]::-webkit-calendar-picker-indicator { filter: invert(1); }
-        .branch-selection-container { max-height: 200px; overflow-y: auto; background-color: rgba(17, 24, 39, 0.8); padding: 1rem; border-radius: 0.5rem; border: 1px solid var(--border-color); }
-        .branch-checkbox-item { display: block; margin-bottom: 0.75rem; }
-        .branch-checkbox-item label { display: flex; align-items: center; gap: 0.75rem; }
+        .modal-content input { width: 100%; padding: 0.8rem 1rem; border-radius: 0.5rem; border: 1px solid var(--border-color); font-family: var(--font-family); font-size: 1rem; background-color: var(--bg-color); transition: all var(--transition-speed) ease; }
+        .modal-content input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px #bfdbfe; outline: none; }
+        .branch-selection-container { max-height: 200px; overflow-y: auto; background-color: var(--bg-color); padding: 1rem; border-radius: 0.5rem; border: 1px solid var(--border-color); }
         
         .loader-container { text-align: center; padding: 5rem 2rem; }
         .fa-spinner { font-size: 2.5rem; color: var(--blue); animation: fa-spin 1.5s infinite linear; }
@@ -120,9 +120,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalContainer = document.getElementById('modal-container');
     let state = { view: 'sections', currentSection: null, currentTask: null, allBranches: [] };
     
+    // --- HELPERS ---
     const apiCall = async (action, method = 'GET', body = null) => { try { const url = new URL(SCRIPT_URL); const options = { method, redirect: 'follow', muteHttpExceptions: true }; if (method === 'POST') options.body = JSON.stringify({ action, ...body }); else { url.searchParams.append('action', action); if (body) Object.keys(body).forEach(key => url.searchParams.append(key, body[key])); } const response = await fetch(url, options); const data = await response.json(); if (!data.success) throw new Error(data.message || 'Unknown API error'); return data; } catch (error) { console.error("API Call Failed:", error); throw error; } };
     const showLoader = (message = 'جاري التحميل...') => { mainContent.innerHTML = `<div class="loader-container"><i class="fas fa-spinner"></i><p>${message}</p></div>`; };
     
+    // --- NAVIGATION & RENDERING ---
     const navigate = async (view, data = {}) => {
         state.view = view;
         if (view === 'tasks') { state.currentSection = data.section; state.currentTask = null; if (state.allBranches.length === 0) { try { state.allBranches = (await apiCall('getBranches')).branches; } catch (e) {} } } 
@@ -134,8 +136,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const render = () => { showLoader(); updateChrome(); const viewHandlers = { sections: handleLoadSections, tasks: () => handleLoadTasks(state.currentSection.id), taskDetail: () => handleLoadTaskDetails(state.currentTask.id) }; viewHandlers[state.view](); };
     
     const updateChrome = () => {
-        sidebar.innerHTML = `<div class="sidebar-header"><i class="fas fa-rocket"></i><h1>لوحة المهام</h1></div><div class="sidebar-actions"><button id="addSectionBtn" class="btn btn-primary"><i class="fas fa-plus"></i> إضافة قسم جديد</button></div>`;
-        let headerHTML = `<header class="content-header"><h2 class="content-title">${state.view === 'sections' ? 'الأقسام' : `<button class="back-btn"><i class="fas fa-arrow-right"></i></button> ${state.currentSection?.name || state.currentTask?.name || ''}`}</h2><div id="content-actions" class="content-actions">${state.view === 'tasks' ? `<button id="addTaskBtn" class="btn btn-primary"><i class="fas fa-plus"></i> مهمة جديدة</button>` : ''}${state.view === 'taskDetail' && state.currentTask?.type === 'Standard' && state.currentTask?.status === 'Open' ? `<button id="closeTaskBtn" class="btn btn-danger"><i class="fas fa-lock"></i> إغلاق المهمة</button>` : ''}</div></header><div id="content-area"></div>`;
+        sidebar.innerHTML = `<div class="sidebar-header"><i class="fas fa-clipboard-list"></i><h1>لوحة المهام</h1></div><div class="sidebar-actions"><button id="addSectionBtn" class="btn btn-primary"><i class="fas fa-plus"></i> إضافة قسم جديد</button></div>`;
+        let headerHTML = `<header class="content-header"><h2 class="content-title">${state.view === 'sections' ? 'الأقسام' : `<button class="back-btn"><i class="fas fa-arrow-right"></i></button> ${state.currentSection?.name || state.currentTask?.name || ''}`}</h2><div class="content-actions">${state.view === 'tasks' ? `<button id="addTaskBtn" class="btn btn-primary"><i class="fas fa-plus"></i> مهمة جديدة</button>` : ''}${state.view === 'taskDetail' && state.currentTask?.type === 'Standard' && state.currentTask?.status === 'Open' ? `<button id="closeTaskBtn" class="btn btn-danger"><i class="fas fa-lock"></i> إغلاق المهمة</button>` : ''}</div></header><div id="content-area"></div>`;
         mainContent.innerHTML = headerHTML;
     };
 
@@ -153,7 +155,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="card-content">
                     <h3 class="card-name">${t.name}</h3>
                     <div class="progress-label"><span>نسبة الإنجاز</span><span>${t.completion}%</span></div>
-                    <div class="progress-bar-bg"><div class="progress-bar-fg" style="background-color: var(--${progressColor}); box-shadow: 0 0 10px var(--${progressColor}); width: ${t.completion}%;"></div></div>
+                    <div class="progress-bar-bg"><div class="progress-bar-fg" style="background-color: var(--${progressColor}); width: ${t.completion}%;"></div></div>
                     <div class="task-tags">${deadline}<div class="tag tag-purple"><i class="fas fa-info-circle"></i> ${t.type === 'TimeLimited' ? 'مهمة بوقت' : 'مهمة قياسية'}</div></div>
                 </div>
                 <div class="card-footer"><span><i class="fas fa-calendar-alt"></i> أنشئت: ${new Date(t.createdAt).toLocaleDateString('ar-EG')}</span><button class="delete-btn" data-action="delete-task"><i class="fas fa-trash-alt"></i></button></div>
@@ -166,7 +168,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const renderModal = (type) => {
-        const commonActions = `<div class="modal-actions"><button class="btn" data-action="close-modal">إلغاء</button><button class="btn btn-primary" id="confirm-${type}-btn">تأكيد</button></div>`;
+        const commonActions = `<div class="modal-actions"><button class="btn btn-secondary" data-action="close-modal">إلغاء</button><button class="btn btn-primary" id="confirm-${type}-btn">تأكيد</button></div>`;
         const modals = {
             section: `<h2>إنشاء قسم جديد</h2><div class="form-group"><label>اسم القسم</label><input type="text" id="sectionNameInput" placeholder="اكتب اسم القسم هنا..."></div>`,
             task: `<h2>إنشاء مهمة جديدة</h2>
@@ -180,8 +182,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     
     document.addEventListener('click', async e => {
-        const target = e.target;
-        const actionBtn = target.closest('[data-action]'), backBtn = target.closest('.back-btn'), addSectionBtn = target.closest('#addSectionBtn'), addTaskBtn = target.closest('#addTaskBtn');
+        const target = e.target, actionBtn = target.closest('[data-action]'), backBtn = target.closest('.back-btn'), addSectionBtn = target.closest('#addSectionBtn'), addTaskBtn = target.closest('#addTaskBtn');
         const section = target.closest('.section-item'), task = target.closest('.task-item');
         
         if (actionBtn) {
@@ -199,7 +200,7 @@ document.addEventListener('DOMContentLoaded', () => {
             renderModal('task');
             const branchContainer = document.getElementById('branchSelectionContainer');
             if (state.allBranches.length === 0) try { state.allBranches = (await apiCall('getBranches')).branches; } catch(err) {}
-            branchContainer.innerHTML = state.allBranches.length > 0 ? state.allBranches.map(b => `<div class="branch-checkbox-item"><label><input type="checkbox" value="${b.id}"> ${b.name}</label></div>`).join('') : '<p>فشل تحميل الفروع.</p>';
+            branchContainer.innerHTML = state.allBranches.length > 0 ? state.allBranches.map(b => `<div class="branch-checkbox-item"><label style="display: flex; align-items: center; gap: 0.75rem;"><input type="checkbox" value="${b.id}"> ${b.name}</label></div>`).join('') : '<p>فشل تحميل الفروع.</p>';
         }
         else if (target.closest('#confirm-section-btn')) { const name = document.getElementById('sectionNameInput').value.trim(); if (!name) return; target.disabled = true; apiCall('createSection', 'POST', { sectionName: name }).then(() => { modalContainer.innerHTML = ''; render(); }).finally(() => target.disabled = false); }
         else if (target.closest('#confirm-task-btn')) {
