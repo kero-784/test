@@ -79,12 +79,16 @@
         /* Modals & General */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(17, 24, 39, 0.8); backdrop-filter: blur(4px); display: flex; justify-content: center; align-items: start; padding-top: 5vh; z-index: 1000; }
         .modal-content { background-color: var(--card-bg); padding: 2rem; border-radius: var(--border-radius); width: 90%; max-width: 550px; border: 1px solid var(--border-color); }
-        .modal-content h2 { font-weight: 800; margin-bottom: 1.5rem; }
-        .modal-content input[type="text"], .modal-content input[type="datetime-local"], .modal-content input[type="date"] { width: 100%; padding: 0.8rem 1rem; border-radius: 0.5rem; border: 1px solid var(--border-color); font-family: var(--font-family); font-size: 1rem; margin-bottom: 1.25rem; background-color: var(--bg-color); color: var(--primary-text); }
+        .modal-content h2 { font-weight: 800; margin-bottom: 2rem; }
+        .modal-content input[type="text"], .modal-content input[type="datetime-local"], .modal-content input[type="date"] { width: 100%; padding: 0.8rem 1rem; border-radius: 0.5rem; border: 1px solid var(--border-color); font-family: var(--font-family); font-size: 1rem; margin-bottom: 0; background-color: var(--bg-color); color: var(--primary-text); }
         .modal-content input[type="datetime-local"]::-webkit-calendar-picker-indicator { filter: invert(1); }
         .modal-actions { display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem; }
+        .form-group { margin-bottom: 1.5rem; }
         .form-group label { display: block; font-weight: 700; margin-bottom: 0.5rem; font-size: 0.9rem; }
-        .branch-selection-container { max-height: 200px; overflow-y: auto; background: var(--bg-color); padding: 1rem; border-radius: 0.5rem; border: 1px solid var(--border-color); }
+        .branch-selection-container { max-height: 200px; overflow-y: auto; background: var(--bg-color); padding: 0.5rem; border-radius: 0.5rem; border: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 0.25rem; }
+        .branch-checkbox-item { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; border-radius: 0.5rem; cursor: pointer; color: var(--primary-text); font-size: 1rem; }
+        .branch-checkbox-item:hover { background-color: #374151; }
+        .branch-checkbox-item input[type="checkbox"] { width: 1.25rem; height: 1.25rem; accent-color: var(--blue); margin-left: 0; }
         .loader-container { text-align: center; padding: 5rem 2rem; font-size: 1.2rem; color: var(--secondary-text); }
         .fa-spinner { font-size: 2.5rem; margin-bottom: 1rem; color: var(--blue); -webkit-animation: fa-spin 1.5s infinite linear; animation: fa-spin 1.5s infinite linear; }
         @keyframes fa-spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
@@ -100,7 +104,7 @@
     </div>
 
     <!-- Modals -->
-    <div id="sectionModal" class="modal-overlay hidden"><div class="modal-content"><h2>إنشاء قسم جديد</h2><input type="text" id="sectionNameInput" placeholder="اكتب اسم القسم هنا..."><div class="modal-actions"><button id="cancelAddSectionBtn" class="btn btn-secondary">إلغاء</button><button id="confirmAddSectionBtn" class="btn btn-primary">إضافة القسم</button></div></div></div>
+    <div id="sectionModal" class="modal-overlay hidden"><div class="modal-content"><h2>إنشاء قسم جديد</h2><div class="form-group"><input type="text" id="sectionNameInput" placeholder="اكتب اسم القسم هنا..."></div><div class="modal-actions"><button id="cancelAddSectionBtn" class="btn btn-secondary">إلغاء</button><button id="confirmAddSectionBtn" class="btn btn-primary">إضافة القسم</button></div></div></div>
     <div id="addTaskModal" class="modal-overlay hidden"><div class="modal-content"><h2>إنشاء مهمة جديدة</h2><div class="form-group"><label for="newTaskNameInput">اسم المهمة</label><input type="text" id="newTaskNameInput" placeholder="اكتب اسم المهمة هنا..."></div><div class="form-group"><label>نوع المهمة</label><div class="status-radio-group"><input type="radio" id="taskTypeStandard" name="taskType" value="Standard" checked><label for="taskTypeStandard">قياسية</label><input type="radio" id="taskTypeTimeLimited" name="taskType" value="TimeLimited"><label for="taskTypeTimeLimited">محددة بوقت</label></div></div><div id="timeLimitedFields" class="form-group hidden" style="display: flex; gap: 1rem;"><div style="flex: 1;"><label for="taskStartDateInput">وقت البدء</label><input type="datetime-local" id="taskStartDateInput"></div><div style="flex: 1;"><label for="taskEndDateInput">وقت الإنتهاء</label><input type="datetime-local" id="taskEndDateInput"></div></div><div class="form-group"><label>الفروع المستهدفة</label><div id="branchSelectionContainer" class="branch-selection-container"></div></div><div class="modal-actions"><button id="cancelAddTaskBtn" class="btn btn-secondary">إلغاء</button><button id="confirmAddTaskBtn" class="btn btn-primary">إضافة المهمة</button></div></div></div>
     <div id="dateRangeModal" class="modal-overlay hidden"><div class="modal-content"><h2>تحديد فترة التقرير</h2><div style="display: flex; gap: 1rem;"><div class="form-group" style="flex: 1;"><label for="reportStartDate">من تاريخ</label><input type="date" id="reportStartDate"></div><div class="form-group" style="flex: 1;"><label for="reportEndDate">إلى تاريخ</label><input type="date" id="reportEndDate"></div></div><div class="modal-actions"><button id="cancelDateRangeBtn" class="btn btn-secondary">إلغاء</button><button id="generateSectionReportBtn" class="btn btn-primary">إنشاء التقرير</button></div></div></div>
     <div id="reportPreviewModal" class="modal-overlay hidden"><div class="modal-content"><img id="reportPreviewImage" src="" alt="Report Preview"><div class="modal-actions" style="margin-top: 1.5rem;"><button id="closeReportPreviewBtn" class="btn btn-secondary">إغلاق</button><button id="downloadReportImageBtn" class="btn btn-primary"><i class="fas fa-download"></i> تحميل</button></div></div></div>
@@ -169,7 +173,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const targetId = e.target.closest('button')?.id;
         const actions = {
             addSectionBtn: () => sectionModal.classList.remove('hidden'),
-            addTaskBtn: async () => { const bc = document.getElementById('branchSelectionContainer'); bc.innerHTML = '<p>جاري تحميل الفروع...</p>'; addTaskModal.classList.remove('hidden'); if (state.allBranches.length === 0) { try { state.allBranches = (await apiCall('getBranches')).branches; } catch(e) {} } bc.innerHTML = state.allBranches.length > 0 ? state.allBranches.map(b => `<label class="branch-checkbox-item"><input type="checkbox" name="branch" value="${b.id}"> ${b.name}</label>`).join('') : '<p>فشل تحميل الفروع.</p>'; },
+            addTaskBtn: async () => { 
+                const bc = document.getElementById('branchSelectionContainer'); 
+                bc.innerHTML = '<p>جاري تحميل الفروع...</p>'; 
+                addTaskModal.classList.remove('hidden'); 
+                if (state.allBranches.length === 0) { 
+                    try { 
+                        state.allBranches = (await apiCall('getBranches')).branches; 
+                    } catch(e) {} 
+                } 
+                bc.innerHTML = state.allBranches.length > 0 ? state.allBranches.map(b => `<label class="branch-checkbox-item"><span>${b.name}</span><input type="checkbox" name="branch" value="${b.id}"></label>`).join('') : '<p>فشل تحميل الفروع.</p>'; 
+            },
             closeTaskBtn: () => { if (confirm('هل أنت متأكد من إغلاق هذه المهمة؟')) apiCall('updateTaskStatus', 'POST', { taskID: state.currentTask.id, newStatus: 'Closed' }).then(render); },
             sectionReportBtn: () => dateRangeModal.classList.remove('hidden'),
             taskReportBtn: () => generateAndShowReport('task', { taskId: state.currentTask.id })
@@ -188,7 +202,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const taskName = document.getElementById('newTaskNameInput').value.trim(), taskType = document.querySelector('input[name="taskType"]:checked').value, startDate = document.getElementById('taskStartDateInput').value, endDate = document.getElementById('taskEndDateInput').value, selectedBranches = Array.from(document.querySelectorAll('input[name="branch"]:checked')).map(cb => cb.value);
             if (!taskName || !selectedBranches.length) return showNotification('اسم المهمة واختيار فرع واحد على الأقل مطلوبان.', true);
             if (taskType === 'TimeLimited' && (!startDate || !endDate)) return showNotification('يجب تحديد وقت البدء والانتهاء.', true);
-            try { await apiCall('createTask', 'POST', { sectionID: state.currentSection.id, taskName, taskType, startDate, endDate, branchIDs: selectedBranches }); addTaskModal.classList.add('hidden'); render(); } catch (e) {}
+            try { 
+                await apiCall('createTask', 'POST', { sectionID: state.currentSection.id, taskName, taskType, startDate, endDate, BranchIDs: selectedBranches }); 
+                addTaskModal.classList.add('hidden'); 
+                render(); 
+            } catch (e) {}
         });
         document.getElementById('confirmAddSectionBtn').addEventListener('click', () => { const name = document.getElementById('sectionNameInput').value.trim(); if (!name) return showNotification('اسم القسم مطلوب.', true); apiCall('createSection', 'POST', { sectionName: name }).then(() => { sectionModal.classList.add('hidden'); render(); }); });
         document.getElementById('generateSectionReportBtn').addEventListener('click', () => { const s = document.getElementById('reportStartDate').value, e = document.getElementById('reportEndDate').value; if (!s || !e) return showNotification('الرجاء تحديد تاريخ البدء والانتهاء.', true); dateRangeModal.classList.add('hidden'); generateAndShowReport('section', { sectionId: state.currentSection.id, startDate: s, endDate: e }); });
