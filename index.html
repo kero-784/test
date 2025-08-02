@@ -248,29 +248,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const generateAndShowReport = async (type, options) => {
         showLoader('جاري إنشاء التقرير...');
+        const reportWrapper = document.getElementById('reportTemplateWrapper');
+        
         try {
             const data = type === 'task' 
                 ? await apiCall('getTaskDetails', 'GET', { taskID: options.taskId }) 
                 : await apiCall('getSectionReportDetails', 'GET', { sectionID: options.sectionId, startDate: options.startDate, endDate: options.endDate });
             
-            // Render data into the hidden template
             renderReportTemplate(data, type, options);
 
-            // Wait a tick for the DOM to update before running html2canvas
-            await new Promise(resolve => setTimeout(resolve, 50)); 
+            // Temporarily make the template renderable by removing display:none
+            reportWrapper.classList.remove('hidden');
+            await new Promise(resolve => setTimeout(resolve, 50)); // Allow DOM to update
             
             const canvas = await html2canvas(document.getElementById('reportTemplateContainer'), { scale: 2, useCORS: true });
+            
             state.reportImageData = canvas.toDataURL('image/jpeg', 0.95);
             state.reportFileName = `report-${type}-${type === 'task' ? options.taskId : options.sectionId}-${new Date().toISOString().split('T')[0]}.jpg`;
 
             document.getElementById('reportPreviewImage').src = state.reportImageData;
             reportPreviewModal.classList.remove('hidden');
+            // The main view is now hidden by the loader. It will be restored when the modal is closed.
+
         } catch (e) {
             showNotification('فشل إنشاء التقرير. ' + e.message, true);
+            render(); // Restore view on error
         } finally {
-            if (state.view === 'sections') render();
-            else if (state.view === 'tasks') navigate('tasks', {section: state.currentSection});
-            else if (state.view === 'taskDetail') navigate('taskDetail', {task: state.currentTask});
+            // Always hide the template wrapper again
+            reportWrapper.classList.add('hidden');
         }
     };
 
@@ -286,7 +291,13 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('generateSectionReportBtn').addEventListener('click', () => { const s = document.getElementById('reportStartDate').value, e = document.getElementById('reportEndDate').value; if (!s || !e) return showNotification('الرجاء تحديد تاريخ البدء والانتهاء.', true); dateRangeModal.classList.add('hidden'); generateAndShowReport('section', { sectionId: state.currentSection.id, startDate: s, endDate: e }); });
         document.getElementById('downloadReportImageBtn').addEventListener('click', () => { if (!state.reportImageData) return; const l = document.createElement('a'); l.href = state.reportImageData; l.download = state.reportFileName; l.click(); });
         
-        [ 'cancelAddSectionBtn', 'cancelAddTaskBtn', 'cancelDateRangeBtn', 'closeReportPreviewBtn' ].forEach(id => document.getElementById(id)?.addEventListener('click', e => e.target.closest('.modal-overlay').classList.add('hidden')));
+        [ 'cancelAddSectionBtn', 'cancelAddTaskBtn', 'cancelDateRangeBtn' ].forEach(id => document.getElementById(id)?.addEventListener('click', e => e.target.closest('.modal-overlay').classList.add('hidden')));
+        
+        document.getElementById('closeReportPreviewBtn').addEventListener('click', e => {
+            e.target.closest('.modal-overlay').classList.add('hidden');
+            render(); // Restore main view from behind the loader
+        });
+        
         document.querySelector('input[name="taskType"][value="TimeLimited"]').addEventListener('change', () => document.getElementById('timeLimitedFields').classList.remove('hidden'));
         document.querySelector('input[name="taskType"][value="Standard"]').addEventListener('change', () => document.getElementById('timeLimitedFields').classList.add('hidden'));
 
