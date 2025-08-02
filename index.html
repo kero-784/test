@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Task Follow Up</title>
+    <!-- Favicon Fix: The SVG provides the main icon, the second link prevents the 404 error -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚀</text></svg>">
+    <link rel="icon" href="data:,">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -147,7 +150,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const showNotification = (message, isError = true) => { const n = document.createElement('div'); n.className = `notification ${isError ? 'error' : 'success'}`; n.innerHTML = `<i class="fas ${isError ? 'fa-exclamation-circle' : 'fa-check-circle'}"></i><span>${message}</span>`; document.getElementById('notification-container').appendChild(n); setTimeout(() => n.remove(), 4000); };
     const showLoader = (message = 'جاري التحميل...') => { contentArea.innerHTML = `<div class="loader-container"><i class="fas fa-spinner"></i><p>${message}</p></div>`; };
     const formatDuration = (ms) => { if (ms === null || ms < 0 || isNaN(ms)) return '-'; const d = Math.floor(ms / (1000 * 60 * 60 * 24)); const h = Math.floor((ms % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)); const m = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60)); let str = ''; if (d > 0) str += `${d}ي `; if (h > 0) str += `${h}س `; if (m > 0 || str === '') str += `${m}د`; return str.trim() || '0د'; };
-    const resetAddTaskModal = () => { addTaskModal.querySelector('#newTaskNameInput').value = ''; addTaskModal.querySelector('#taskTypeStandard').checked = true; document.getElementById('timeLimitedFields').classList.add('hidden'); addTaskModal.querySelector('#taskDurationInput').value = ''; document.querySelector('#addTaskBranchList .search-input').value = ''; renderSearchableList(document.getElementById('addTaskBranchList'), state.allBranches, []); };
+    const resetAddTaskModal = () => { addTaskModal.querySelector('#newTaskNameInput').value = ''; addTaskModal.querySelector('#taskTypeStandard').checked = true; document.getElementById('timeLimitedFields').classList.add('hidden'); addTaskModal.querySelector('#taskDurationInput').value = ''; const listContainer = document.getElementById('addTaskBranchList'); if(listContainer.querySelector('.search-input')) { listContainer.querySelector('.search-input').value = ''; } renderSearchableList(listContainer, state.allBranches, []); };
     const formatDateForInput = (isoString) => { if (!isoString) return ''; const date = new Date(isoString); const pad = (num) => num.toString().padStart(2, '0'); return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`; };
 
     // --- NAVIGATION & RENDERING ---
@@ -197,36 +200,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- EVENT HANDLING & UI COMPONENTS ---
     const handleContentClick = (e) => { const section = e.target.closest('.section-item'), task = e.target.closest('.task-item'), actionBtn = e.target.closest('[data-action]'); if (actionBtn) { const action = actionBtn.dataset.action; if (action === 'delete-section') { if (confirm('هل أنت متأكد من حذف هذا القسم وكل مهامه؟')) apiCall('deleteSection', 'POST', { sectionID: section.dataset.id }).then(render); } if (action === 'delete-task') { if (confirm('هل أنت متأكد من حذف هذه المهمة؟')) apiCall('deleteTask', 'POST', { taskID: JSON.parse(task.dataset.json).id }).then(render); } return; } if (task) navigate('taskDetail', { task: JSON.parse(task.dataset.json) }); else if (section) navigate('tasks', { section: { id: section.dataset.id, name: section.dataset.name } }); };
-    const handleHeaderClick = async (e) => { const targetId = e.target.closest('button')?.id; if (!targetId) { if (e.target.closest('.back-btn')) navigate(state.view === 'taskDetail' ? 'tasks' : 'sections', { section: state.currentSection }); return; } const actions = { addSectionBtn: () => sectionModal.classList.remove('hidden'), addTaskBtn: async () => { resetAddTaskModal(); addTaskModal.classList.remove('hidden'); if (state.allBranches.length === 0) { try { state.allBranches = (await apiCall('getBranches')).branches; } catch(e) {} } renderSearchableList(document.getElementById('addTaskBranchList'), state.allBranches, []); }, toggleTaskStatusBtn: () => { const newStatus = e.target.closest('button').dataset.newStatus; if (confirm(`هل أنت متأكد من ${newStatus === 'Closed' ? 'إغلاق' : 'فتح'} هذه المهمة؟`)) apiCall('updateTaskStatus', 'POST', { taskID: state.currentTask.id, newStatus }).then(() => handleLoadTaskDetails(state.currentTask.id)); }, editTaskBtn: () => { editTaskModal.querySelector('#editTaskNameInput').value = state.currentTask.name; editTaskModal.querySelector('#editTaskStartDateInput').value = formatDateForInput(state.currentTask.startDate); editTaskModal.querySelector('#editTaskEndDateInput').value = formatDateForInput(state.currentTask.endDate); editTaskModal.classList.remove('hidden'); }, sectionReportBtn: () => dateRangeModal.classList.remove('hidden'), taskReportBtn: () => generateAndShowReport('task', { taskId: state.currentTask.id }), branchReportModalBtn: async () => { branchReportModal.classList.remove('hidden'); if (state.allBranches.length === 0) { try { state.allBranches = (await apiCall('getBranches')).branches; } catch(e) {} } renderSearchableList(document.getElementById('branchReportBranchList'), state.allBranches, []); } }; if (actions[targetId]) actions[targetId](); };
+    const handleHeaderClick = async (e) => { const targetId = e.target.closest('button')?.id; if (!targetId) { if (e.target.closest('.back-btn')) navigate(state.view === 'taskDetail' ? 'tasks' : 'sections', { section: state.currentSection }); return; } const actions = { addSectionBtn: () => sectionModal.classList.remove('hidden'), addTaskBtn: async () => { if (state.allBranches.length === 0) { try { state.allBranches = (await apiCall('getBranches')).branches; } catch(e) {} } renderSearchableList(document.getElementById('addTaskBranchList'), state.allBranches, []); resetAddTaskModal(); addTaskModal.classList.remove('hidden'); }, toggleTaskStatusBtn: () => { const newStatus = e.target.closest('button').dataset.newStatus; if (confirm(`هل أنت متأكد من ${newStatus === 'Closed' ? 'إغلاق' : 'فتح'} هذه المهمة؟`)) apiCall('updateTaskStatus', 'POST', { taskID: state.currentTask.id, newStatus }).then(() => handleLoadTaskDetails(state.currentTask.id)); }, editTaskBtn: () => { editTaskModal.querySelector('#editTaskNameInput').value = state.currentTask.name; editTaskModal.querySelector('#editTaskStartDateInput').value = formatDateForInput(state.currentTask.startDate); editTaskModal.querySelector('#editTaskEndDateInput').value = formatDateForInput(state.currentTask.endDate); editTaskModal.classList.remove('hidden'); }, sectionReportBtn: () => dateRangeModal.classList.remove('hidden'), taskReportBtn: () => generateAndShowReport('task', { taskId: state.currentTask.id }), branchReportModalBtn: async () => { if (state.allBranches.length === 0) { try { state.allBranches = (await apiCall('getBranches')).branches; } catch(e) {} } renderSearchableList(document.getElementById('branchReportBranchList'), state.allBranches, []); branchReportModal.classList.remove('hidden'); } }; if (actions[targetId]) actions[targetId](); };
     const handleStatusChange = async (e) => { if (e.target.name.startsWith('status-')) { const group = e.target.closest('.status-radio-group'); const { taskId, branchId } = group.dataset; try { const res = await apiCall('updateStatus', 'POST', { taskID: taskId, branchID: branchId, newStatus: e.target.value }); const branchToUpdate = state.currentTask.branches.find(b => b.id === branchId); if (branchToUpdate) { branchToUpdate.status = res.actualStatus; branchToUpdate.updatedAt = res.updatedAt; } renderTaskDetail({ task: state.currentTask, branches: state.currentTask.branches }); showNotification('تم تحديث الحالة بنجاح.', false); } catch (error) { showNotification('فشل تحديث الحالة.', true); handleLoadTaskDetails(taskId); } } };
     
-    function renderSearchableList(container, items, selectedIds) {
-        container.innerHTML = `<input type="text" class="search-input" placeholder="ابحث عن فرع..."><div class="searchable-list-header"><label><input type="checkbox" class="select-all"> اختيار الكل</label><span class="selection-count">0/${items.length} محدد</span></div><div class="searchable-list"></div>`;
-        const searchInput = container.querySelector('.search-input');
-        const listEl = container.querySelector('.searchable-list');
-        const selectAllCb = container.querySelector('.select-all');
-        const countEl = container.querySelector('.selection-count');
-
-        const updateList = () => {
-            const query = searchInput.value.toLowerCase();
-            const filteredItems = items.filter(item => item.name.toLowerCase().includes(query));
-            listEl.innerHTML = filteredItems.map(item => `<label class="searchable-list-item"><span>${item.name}</span><input type="checkbox" name="branch" value="${item.id}" ${selectedIds.includes(item.id) ? 'checked' : ''}></label>`).join('');
-            updateCount();
-        };
-
-        const updateCount = () => {
-            selectedIds = Array.from(container.querySelectorAll('input[name="branch"]:checked')).map(cb => cb.value);
-            countEl.textContent = `${selectedIds.length}/${items.length} محدد`;
-            selectAllCb.checked = selectedIds.length > 0 && selectedIds.length === items.length;
-        };
-
-        container.addEventListener('change', e => { if (e.target.matches('input[name="branch"]')) { updateCount(); } });
-        searchInput.addEventListener('input', updateList);
-        selectAllCb.addEventListener('change', () => {
-            const allVisibleCheckboxes = listEl.querySelectorAll('input[type="checkbox"]');
-            allVisibleCheckboxes.forEach(cb => cb.checked = selectAllCb.checked);
-            updateCount();
-        });
+    function renderSearchableList(container, items, selectedIds = []) {
+        container.innerHTML = `<input type="text" class="search-input" placeholder="ابحث..."><div class="searchable-list-header"><label style="display:flex; align-items:center; gap:0.5rem;"><input type="checkbox" class="select-all"> اختيار الكل</label><span class="selection-count">0/${items.length} محدد</span></div><div class="searchable-list"></div>`;
+        const searchInput = container.querySelector('.search-input'); const listEl = container.querySelector('.searchable-list'); const selectAllCb = container.querySelector('.select-all'); const countEl = container.querySelector('.selection-count'); let currentSelected = [...selectedIds];
+        const updateList = () => { const query = searchInput.value.toLowerCase(); const filteredItems = items.filter(item => item.name.toLowerCase().includes(query)); listEl.innerHTML = filteredItems.map(item => `<label class="searchable-list-item"><span>${item.name}</span><input type="checkbox" name="branch" value="${item.id}" ${currentSelected.includes(item.id) ? 'checked' : ''}></label>`).join(''); updateCount(); };
+        const updateCount = () => { currentSelected = Array.from(container.querySelectorAll('input[name="branch"]:checked')).map(cb => cb.value); countEl.textContent = `${currentSelected.length}/${items.length} محدد`; selectAllCb.checked = currentSelected.length > 0 && currentSelected.length === items.length; };
+        container.addEventListener('change', e => { if (e.target.matches('input[name="branch"]')) { updateCount(); } }); searchInput.addEventListener('input', updateList);
+        selectAllCb.addEventListener('change', () => { const allVisibleCheckboxes = listEl.querySelectorAll('input[type="checkbox"]'); allVisibleCheckboxes.forEach(cb => cb.checked = selectAllCb.checked); updateCount(); });
         updateList();
     }
     
@@ -240,52 +223,43 @@ document.addEventListener('DOMContentLoaded', () => {
         if (state.currentChart) { state.currentChart.destroy(); }
 
         if (type === 'section') {
+            const o = data.report.overall;
             document.getElementById('report-title').innerText = `تقرير القسم: ${data.section.name}`;
             document.getElementById('report-subtitle').innerText = `الفترة من ${new Date(options.startDate).toLocaleDateString('ar-EG')} إلى ${new Date(options.endDate).toLocaleDateString('ar-EG')}`;
-            const o = data.report.overall;
             kpiGrid = `<div class="report-kpi"><span class="report-kpi-value">${o.totalTasks}</span><span class="report-kpi-label">إجمالي المهام</span></div><div class="report-kpi"><span class="report-kpi-value" style="color:var(--green);">${o.done}</span><span class="report-kpi-label">تم بالموعد</span></div><div class="report-kpi"><span class="report-kpi-value" style="color:var(--orange);">${o.lateDone}</span><span class="report-kpi-label">تم (متأخر)</span></div><div class="report-kpi"><span class="report-kpi-value" style="color:var(--red);">${o.pending}</span><span class="report-kpi-label">لم يتم</span></div>`;
             tableHead = `<tr><th>اسم المهمة</th><th>تاريخ الإنشاء</th><th>تم</th><th>متأخر</th><th>لم يتم</th></tr>`;
             tableBody = data.report.tasks.map(t => `<tr><td>${t.name}</td><td>${new Date(t.createdAt).toLocaleDateString('ar-EG')}</td><td>${t.stats.done}</td><td>${t.stats.lateDone}</td><td>${t.stats.pending}</td></tr>`).join('');
-            chartLabels = ['تم بالموعد', 'تم (متأخر)', 'لم يتم'];
-            chartData = [o.done, o.lateDone, o.pending];
+            chartLabels = ['تم بالموعد', 'تم (متأخر)', 'لم يتم']; chartData = [o.done, o.lateDone, o.pending];
         } else if (type === 'task') {
-            document.getElementById('report-title').innerText = `تقرير المهمة: ${data.task.name}`;
-            document.getElementById('report-subtitle').innerText = `النوع: ${data.task.type === 'TimeLimited' ? 'محدد بوقت' : 'قياسي'} | الحالة: ${data.task.status === 'Open' ? 'مفتوحة' : 'مغلقة'}`;
             const stats = data.branches.reduce((acc, b) => { acc[b.status] = (acc[b.status] || 0) + 1; return acc; }, {});
             const done = stats['done'] || 0, lateDone = stats['late-done'] || 0, pending = stats['pending'] || 0;
+            document.getElementById('report-title').innerText = `تقرير المهمة: ${data.task.name}`;
+            document.getElementById('report-subtitle').innerText = `النوع: ${data.task.type === 'TimeLimited' ? 'محدد بوقت' : 'قياسي'}`;
             kpiGrid = `<div class="report-kpi"><span class="report-kpi-value">${data.branches.length}</span><span class="report-kpi-label">إجمالي الفروع</span></div><div class="report-kpi"><span class="report-kpi-value" style="color:var(--green);">${done}</span><span class="report-kpi-label">تم بالموعد</span></div><div class="report-kpi"><span class="report-kpi-value" style="color:var(--orange);">${lateDone}</span><span class="report-kpi-label">تم (متأخر)</span></div><div class="report-kpi"><span class="report-kpi-value" style="color:var(--red);">${pending}</span><span class="report-kpi-label">لم يتم</span></div>`;
-            chartLabels = ['تم بالموعد', 'تم (متأخر)', 'لم يتم'];
-            chartData = [done, lateDone, pending];
+            chartLabels = ['تم بالموعد', 'تم (متأخر)', 'لم يتم']; chartData = [done, lateDone, pending];
 
             if (data.task.type === 'TimeLimited') {
                 const rankedBranches = data.branches.map(b => ({ ...b, responseTime: (b.status === 'done' || b.status === 'late-done') && b.updatedAt && data.task.startDate ? new Date(b.updatedAt) - new Date(data.task.startDate) : Infinity })).sort((a, b) => a.responseTime - b.responseTime);
+                const slowestTime = rankedBranches.find(b => b.responseTime !== Infinity)?.responseTime;
                 tableHead = `<tr><th>الترتيب</th><th>اسم الفرع</th><th>الحالة</th><th>زمن الاستجابة</th></tr>`;
-                tableBody = rankedBranches.map((b, index) => {
-                    let rankClass = b.responseTime !== Infinity && index === 0 ? 'rank-1' : '';
-                    if (b.responseTime !== Infinity && b.responseTime === rankedBranches.filter(br => br.responseTime !== Infinity).slice(-1)[0].responseTime && rankedBranches.length > 1) rankClass = 'rank-slowest';
-                    return `<tr><td><span class="rank-badge ${rankClass}">${b.responseTime !== Infinity ? index + 1 : '-'}</span></td><td>${b.name}</td><td><span class="report-status ${statusClassMap[b.status]}">${statusMap[b.status]}</span></td><td>${formatDuration(b.responseTime === Infinity ? null : b.responseTime)}</td></tr>`;
-                }).join('');
-            } else {
-                tableHead = `<tr><th>اسم الفرع</th><th>الحالة</th></tr>`;
-                tableBody = data.branches.map(b => `<tr><td>${b.name}</td><td><span class="report-status ${statusClassMap[b.status]}">${statusMap[b.status]}</span></td></tr>`).join('');
-            }
+                tableBody = rankedBranches.map((b, index) => { let rankClass = b.responseTime !== Infinity && index === 0 ? 'rank-1' : ''; if (b.responseTime !== Infinity && b.responseTime === slowestTime && rankedBranches.length > 1) rankClass = 'rank-slowest'; return `<tr><td><span class="rank-badge ${rankClass}">${b.responseTime !== Infinity ? index + 1 : '-'}</span></td><td>${b.name}</td><td><span class="report-status ${statusClassMap[b.status]}">${statusMap[b.status]}</span></td><td>${formatDuration(b.responseTime === Infinity ? null : b.responseTime)}</td></tr>`; }).join('');
+            } else { tableHead = `<tr><th>اسم الفرع</th><th>الحالة</th></tr>`; tableBody = data.branches.map(b => `<tr><td>${b.name}</td><td><span class="report-status ${statusClassMap[b.status]}">${statusMap[b.status]}</span></td></tr>`).join(''); }
         } else if (type === 'branch') {
             const o = data.combined;
+            const branchNames = data.branches.map(b => b.name).join(', ');
             document.getElementById('report-title').innerText = `تقرير أداء الفروع`;
-            document.getElementById('report-subtitle').innerText = `الفترة من ${new Date(options.startDate).toLocaleDateString('ar-EG')} إلى ${new Date(options.endDate).toLocaleDateString('ar-EG')}`;
+            document.getElementById('report-subtitle').innerText = `الفروع: ${branchNames.substring(0, 50)}${branchNames.length > 50 ? '...' : ''}`;
             kpiGrid = `<div class="report-kpi"><span class="report-kpi-value">${o.totalTasks}</span><span class="report-kpi-label">مهام مسندة</span></div><div class="report-kpi"><span class="report-kpi-value" style="color:var(--green);">${o.onTimeRate}%</span><span class="report-kpi-label">الإنجاز بالموعد</span></div><div class="report-kpi"><span class="report-kpi-value" style="color:var(--blue);">${formatDuration(o.avgResponseTime)}</span><span class="report-kpi-label">متوسط الاستجابة</span></div><div class="report-kpi"><span class="report-kpi-value" style="color:var(--red);">${o.pending}</span><span class="report-kpi-label">قيد الانتظار</span></div>`;
             tableHead = ``;
             tableBody = data.branches.map(b => `<div class="branch-report-breakdown"><h3>${b.name}</h3><table class="report-table" style="width:100%;"><tr><th>تم بالموعد</th><th>متأخر</th><th>قيد الانتظار</th><th>إجمالي المهام</th></tr><tr><td>${b.done}</td><td>${b.lateDone}</td><td>${b.pending}</td><td>${b.totalTasks}</td></tr></table></div>`).join('');
-            chartLabels = ['تم بالموعد', 'تم (متأخر)', 'لم يتم'];
-            chartData = [o.done, o.lateDone, o.pending];
+            chartLabels = ['تم بالموعد', 'تم (متأخر)', 'لم يتم']; chartData = [o.done, o.lateDone, o.pending];
         }
         document.getElementById('report-kpi-grid').innerHTML = kpiGrid;
-        document.getElementById('report-table-head').innerHTML = tableHead;
-        document.getElementById('report-table-body').innerHTML = tableBody;
+        document.getElementById('report-table-container').innerHTML = `<table class="report-table" style="width: 100%; border-collapse: collapse;"><thead id="report-table-head">${tableHead}</thead><tbody id="report-table-body">${tableBody}</tbody></table>`;
         document.getElementById('report-date').innerText = new Date().toLocaleString('ar-EG');
         
         const ctx = document.getElementById('reportChart').getContext('2d');
-        state.currentChart = new Chart(ctx, { type: 'pie', data: { labels: chartLabels, datasets: [{ data: chartData, backgroundColor: chartColors }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: {font: { family: "'Tajawal', sans-serif" }} } } } });
+        state.currentChart = new Chart(ctx, { type: 'pie', data: { labels: chartLabels, datasets: [{ data: chartData, backgroundColor: chartColors, borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: {font: { family: "'Tajawal', sans-serif" }} } } } });
     };
 
     const generateAndShowReport = async (type, options) => {
