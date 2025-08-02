@@ -39,6 +39,7 @@
         .btn-secondary { background-color: transparent; color: var(--primary-text); border-color: var(--border-color); }
         .btn-secondary:hover { background-color: var(--card-bg); border-color: var(--secondary-text); }
         .btn-danger { background-color: var(--red); color: white; }
+        .btn-success { background-color: var(--green); color: white; }
         .btn:disabled { background-color: #374151; color: var(--secondary-text); cursor: not-allowed; }
         
         /* Header */
@@ -77,8 +78,8 @@
         .status-radio-group input[value="not-required"]:checked + label { background-color: var(--gray); border-color: var(--gray); }
         
         /* Modals & General */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(17, 24, 39, 0.8); backdrop-filter: blur(4px); display: flex; justify-content: center; align-items: start; padding-top: 5vh; z-index: 1000; }
-        .modal-content { background-color: var(--card-bg); padding: 2rem; border-radius: var(--border-radius); width: 90%; max-width: 550px; border: 1px solid var(--border-color); }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(17, 24, 39, 0.8); backdrop-filter: blur(4px); display: flex; justify-content: center; align-items: start; padding-top: 5vh; z-index: 1000; overflow-y: auto; }
+        .modal-content { background-color: var(--card-bg); padding: 2rem; border-radius: var(--border-radius); width: 90%; max-width: 550px; border: 1px solid var(--border-color); margin-bottom: 5vh; }
         .modal-content h2 { font-weight: 800; margin-bottom: 2rem; }
         .modal-content input[type="text"], .modal-content input[type="datetime-local"], .modal-content input[type="date"] { width: 100%; padding: 0.8rem 1rem; border-radius: 0.5rem; border: 1px solid var(--border-color); font-family: var(--font-family); font-size: 1rem; margin-bottom: 0; background-color: var(--bg-color); color: var(--primary-text); }
         .modal-content input[type="datetime-local"]::-webkit-calendar-picker-indicator { filter: invert(1); }
@@ -95,6 +96,17 @@
         #notification-container { position: fixed; bottom: 20px; left: 20px; z-index: 2000; display: flex; flex-direction: column; gap: 10px; }
         .notification { padding: 1rem 1.5rem; border-radius: 0.5rem; color: white; background-color: var(--card-bg); display: flex; align-items: center; gap: 1rem; box-shadow: var(--shadow-lg); border-left: 4px solid; }
         .notification.error { border-color: var(--red); } .notification.success { border-color: var(--green); }
+
+        /* Report Template Styles */
+        #reportTemplateWrapper { font-family: 'Tajawal', sans-serif; color: #1f2937; }
+        .report-kpi { border: 1px solid #e2e8f0; border-radius: 0.5rem; padding: 1rem; text-align: center; background: #f8fafc; }
+        .report-kpi-value { font-size: 1.75rem; font-weight: 800; display: block; margin-bottom: 0.25rem; }
+        .report-kpi-label { font-size: 0.8rem; color: #64748b; font-weight: 500; }
+        .report-table th, .report-table td { padding: 0.75rem 1rem; text-align: right; border-bottom: 1px solid #e2e8f0; font-size: 0.9rem; }
+        .report-table th { background-color: #f1f5f9; font-weight: 700; }
+        .report-status { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 99px; font-size: 0.75rem; font-weight: 700; color: white; }
+        .report-status.done { background-color: var(--green); } .report-status.late-done { background-color: var(--orange); }
+        .report-status.pending { background-color: var(--red); } .report-status.not-required { background-color: var(--gray); }
     </style>
 </head>
 <body>
@@ -107,9 +119,9 @@
     <div id="sectionModal" class="modal-overlay hidden"><div class="modal-content"><h2>إنشاء قسم جديد</h2><div class="form-group"><input type="text" id="sectionNameInput" placeholder="اكتب اسم القسم هنا..."></div><div class="modal-actions"><button id="cancelAddSectionBtn" class="btn btn-secondary">إلغاء</button><button id="confirmAddSectionBtn" class="btn btn-primary">إضافة القسم</button></div></div></div>
     <div id="addTaskModal" class="modal-overlay hidden"><div class="modal-content"><h2>إنشاء مهمة جديدة</h2><div class="form-group"><label for="newTaskNameInput">اسم المهمة</label><input type="text" id="newTaskNameInput" placeholder="اكتب اسم المهمة هنا..."></div><div class="form-group"><label>نوع المهمة</label><div class="status-radio-group"><input type="radio" id="taskTypeStandard" name="taskType" value="Standard" checked><label for="taskTypeStandard">قياسية</label><input type="radio" id="taskTypeTimeLimited" name="taskType" value="TimeLimited"><label for="taskTypeTimeLimited">محددة بوقت</label></div></div><div id="timeLimitedFields" class="form-group hidden" style="display: flex; gap: 1rem;"><div style="flex: 1;"><label for="taskStartDateInput">وقت البدء</label><input type="datetime-local" id="taskStartDateInput"></div><div style="flex: 1;"><label for="taskEndDateInput">وقت الإنتهاء</label><input type="datetime-local" id="taskEndDateInput"></div></div><div class="form-group"><label>الفروع المستهدفة</label><div id="branchSelectionContainer" class="branch-selection-container"></div></div><div class="modal-actions"><button id="cancelAddTaskBtn" class="btn btn-secondary">إلغاء</button><button id="confirmAddTaskBtn" class="btn btn-primary">إضافة المهمة</button></div></div></div>
     <div id="dateRangeModal" class="modal-overlay hidden"><div class="modal-content"><h2>تحديد فترة التقرير</h2><div style="display: flex; gap: 1rem;"><div class="form-group" style="flex: 1;"><label for="reportStartDate">من تاريخ</label><input type="date" id="reportStartDate"></div><div class="form-group" style="flex: 1;"><label for="reportEndDate">إلى تاريخ</label><input type="date" id="reportEndDate"></div></div><div class="modal-actions"><button id="cancelDateRangeBtn" class="btn btn-secondary">إلغاء</button><button id="generateSectionReportBtn" class="btn btn-primary">إنشاء التقرير</button></div></div></div>
-    <div id="reportPreviewModal" class="modal-overlay hidden"><div class="modal-content"><img id="reportPreviewImage" src="" alt="Report Preview"><div class="modal-actions" style="margin-top: 1.5rem;"><button id="closeReportPreviewBtn" class="btn btn-secondary">إغلاق</button><button id="downloadReportImageBtn" class="btn btn-primary"><i class="fas fa-download"></i> تحميل</button></div></div></div>
+    <div id="reportPreviewModal" class="modal-overlay hidden"><div class="modal-content" style="max-width: 850px;"><img id="reportPreviewImage" src="" alt="Report Preview" style="width:100%; border-radius:0.5rem; border:1px solid var(--border-color);"><div class="modal-actions" style="margin-top: 1.5rem;"><button id="closeReportPreviewBtn" class="btn btn-secondary">إغلاق</button><button id="downloadReportImageBtn" class="btn btn-primary"><i class="fas fa-download"></i> تحميل</button></div></div></div>
     <div id="notification-container"></div>
-    <div id="reportTemplateWrapper" class="hidden" style="position: absolute; left: -9999px; top: -9999px;"><div id="reportTemplateContainer" style="width: 800px; padding: 0; background: white; border: 1px solid #e2e8f0; font-family: 'Tajawal', sans-serif;"><div style="padding: 30px 40px; background-color: #f8fafc; text-align: center; border-bottom: 1px solid #e2e8f0;"><h2 id="report-title"></h2><p id="report-subtitle" style="color:#718096;"></p></div><div style="padding: 30px 40px;"><div id="report-kpi-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 30px;"></div><div id="report-table-container"><table style="width: 100%; border-collapse: collapse; margin-top: 20px;"><thead id="report-table-head"></thead><tbody id="report-table-body"></tbody></table></div></div><div style="padding: 20px 40px; text-align: center; background-color: #f8fafc; border-top: 1px solid #e2e8f0; font-size: 12px; color: #718096;"><p>تم إنشاء هذا التقرير بتاريخ: <span id="report-date"></span></p></div></div></div>
+    <div id="reportTemplateWrapper" class="hidden" style="position: absolute; left: -9999px; top: -9999px; font-family: 'Tajawal', sans-serif;"><div id="reportTemplateContainer" style="width: 800px; padding: 0; background: white; border: 1px solid #e2e8f0;"><div style="padding: 30px 40px; background-color: #f8fafc; text-align: center; border-bottom: 1px solid #e2e8f0;"><h2 id="report-title" style="font-size:1.75rem; margin-bottom:0.5rem; color:#1f2937;"></h2><p id="report-subtitle" style="color:#718096;"></p></div><div style="padding: 30px 40px;"><div id="report-kpi-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 30px;"></div><div id="report-table-container"><table class="report-table" style="width: 100%; border-collapse: collapse; margin-top: 20px;"><thead id="report-table-head"></thead><tbody id="report-table-body"></tbody></table></div></div><div style="padding: 20px 40px; text-align: center; background-color: #f8fafc; border-top: 1px solid #e2e8f0; font-size: 12px; color: #718096;"><p>تم إنشاء هذا التقرير بتاريخ: <span id="report-date"></span></p></div></div></div>
 
 </body>
 <script>
@@ -138,10 +150,21 @@ document.addEventListener('DOMContentLoaded', () => {
     
     const updateHeader = () => {
         headerTitle.innerHTML = ''; headerActions.innerHTML = '';
+        let taskDetailActions = '';
+        if (state.view === 'taskDetail' && state.currentTask) {
+            const status = state.currentTask.status;
+            let toggleBtn = '';
+            if (status === 'Open') {
+                toggleBtn = `<button id="toggleTaskStatusBtn" data-new-status="Closed" class="btn btn-danger"><i class="fas fa-lock"></i> إغلاق المهمة</button>`;
+            } else {
+                toggleBtn = `<button id="toggleTaskStatusBtn" data-new-status="Open" class="btn btn-success"><i class="fas fa-lock-open"></i> فتح المهمة</button>`;
+            }
+            taskDetailActions = `${toggleBtn}<button id="taskReportBtn" class="btn btn-secondary"><i class="fas fa-download"></i> تقرير المهمة</button>`;
+        }
         const headerConfig = {
             sections: { title: 'الأقسام', actions: `<button id="addSectionBtn" class="btn btn-primary"><i class="fas fa-plus"></i> إضافة قسم</button>` },
             tasks: { title: state.currentSection?.name, back: true, actions: `<button id="addTaskBtn" class="btn btn-primary"><i class="fas fa-plus"></i> إضافة مهمة</button><button id="sectionReportBtn" class="btn btn-secondary"><i class="fas fa-file-alt"></i> تقرير القسم</button>` },
-            taskDetail: { title: state.currentTask?.name, back: true, actions: `${state.currentTask?.type === 'Standard' && state.currentTask?.status === 'Open' ? `<button id="closeTaskBtn" class="btn btn-danger"><i class="fas fa-lock"></i> إغلاق المهمة</button>` : ''}<button id="taskReportBtn" class="btn btn-secondary"><i class="fas fa-download"></i> تقرير المهمة</button>` }
+            taskDetail: { title: state.currentTask?.name, back: true, actions: taskDetailActions }
         };
         const config = headerConfig[state.view];
         headerTitle.innerHTML = `<h1>${config.back ? '<button class="back-btn"><i class="fas fa-arrow-right"></i></button>' : ''} ${config.title || ''}</h1>`;
@@ -150,11 +173,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const handleLoadSections = async () => { try { const data = await apiCall('getSections'); renderSections(data.sections); } catch (e) { contentArea.innerHTML = `<p class="loader-container">فشل تحميل الأقسام. يرجى إعادة تحميل الصفحة.</p>`; } };
     const handleLoadTasks = async (sectionId) => { try { const data = await apiCall('getTasksForSection', 'GET', { sectionID: sectionId }); renderTasks(data.tasks); } catch (e) { contentArea.innerHTML = `<p class="loader-container">فشل تحميل المهام.</p>`; } };
-    const handleLoadTaskDetails = async (taskId) => { try { const data = await apiCall('getTaskDetails', 'GET', { taskID: taskId }); state.currentTask = { ...state.currentTask, ...data.task }; renderTaskDetail(data); } catch (e) { navigate('tasks', { section: state.currentSection }); } };
+    const handleLoadTaskDetails = async (taskId) => { try { const data = await apiCall('getTaskDetails', 'GET', { taskID: taskId }); state.currentTask = { ...state.currentTask, ...data.task }; renderTaskDetail(data); updateHeader(); } catch (e) { navigate('tasks', { section: state.currentSection }); } };
 
     const renderSections = (sections) => { if (!sections || !sections.length) { contentArea.innerHTML = `<p class="loader-container">لا توجد أقسام. قم بإضافة قسم جديد.</p>`; return; } contentArea.innerHTML = sections.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)).map(s => `<div class="section-item" data-id="${s.id}" data-name="${s.name}"><div class="item-content"><h3 class="item-name">${s.name}</h3><p class="item-stats">عدد المهام: ${s.taskCount}</p></div><div class="item-footer"><button class="delete-btn" data-action="delete-section"><i class="fas fa-trash-alt"></i> حذف</button><span><i class="fas fa-calendar-alt"></i> ${new Date(s.createdAt).toLocaleDateString('ar-EG')}</span></div></div>`).join(''); };
     const renderTasks = (tasks) => { if (!tasks || !tasks.length) { contentArea.innerHTML = `<p class="loader-container">لا توجد مهام في هذا القسم.</p>`; return; } contentArea.innerHTML = tasks.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)).map(t => `<div class="task-item" data-json='${JSON.stringify(t)}'><div class="item-content"><div class="task-item-header"><h3 class="item-name">${t.name}</h3><i class="fas ${t.type === 'TimeLimited' ? 'fa-clock' : 'fa-check-double'} task-type-icon" title="${t.type === 'TimeLimited' ? 'مهمة بوقت' : 'مهمة قياسية'}"></i></div><div class="progress-label"><span>نسبة الإنجاز</span><span>${t.completion}%</span></div><div class="progress-bar-bg"><div class="progress-bar-fg" style="background-color: var(--${t.completion > 80 ? 'green' : t.completion > 40 ? 'orange' : 'red'}); width: ${t.completion}%;"></div></div></div><div class="item-footer"><button class="delete-btn" data-action="delete-task"><i class="fas fa-trash-alt"></i> حذف</button><span><i class="fas ${t.type === 'TimeLimited' && t.endDate ? 'fa-hourglass-end' : 'fa-calendar-alt'}"></i> ${t.type === 'TimeLimited' && t.endDate ? new Date(t.endDate).toLocaleDateString('ar-EG') : new Date(t.createdAt).toLocaleDateString('ar-EG')}</span></div></div>`).join(''); };
-    const renderTaskDetail = (data) => { let meta = `<span><i class="fas fa-info-circle"></i> نوع: ${data.task.type === 'TimeLimited' ? 'محدد بوقت' : 'قياسي'}</span>`; if (data.task.status !== 'Open') meta += `<span><i class="fas fa-lock"></i> <span style="color:var(--red); font-weight:bold;">الحالة: مغلقة</span></span>`; contentArea.innerHTML = `<div class="task-detail-header"><p class="task-meta">${meta}</p></div><div class="grid-container" id="branchGrid">${!data.branches || !data.branches.length ? `<p class="loader-container">لم يتم تحديد فروع لهذه المهمة.</p>` : data.branches.map(b => `<div class="branch-card"><div class="item-name">${b.name}</div><div class="status-radio-group" data-branch-id="${b.id}" data-task-id="${data.task.id}"><input type="radio" id="pending-${b.id}" name="status-${b.id}" value="pending" ${b.status === 'pending' ? 'checked' : ''} ${data.task.status !== 'Open' ? 'disabled' : ''}><label for="pending-${b.id}">لم يتم</label><input type="radio" id="done-${b.id}" name="status-${b.id}" value="done" ${b.status === 'done' || b.status === 'late-done' ? 'checked' : ''} ${data.task.status !== 'Open' ? 'disabled' : ''}><label for="done-${b.id}" class="${b.status === 'late-done' ? 'late-done-label': ''}">${b.status === 'late-done' ? 'تم (متأخر)' : 'تم'}</label><input type="radio" id="not-required-${b.id}" name="status-${b.id}" value="not-required" ${b.status === 'not-required' ? 'checked' : ''} ${data.task.status !== 'Open' ? 'disabled' : ''}><label for="not-required-${b.id}">غير مطلوب</label></div></div>`).join('')}</div>`; };
+    const renderTaskDetail = (data) => { let meta = `<span><i class="fas fa-info-circle"></i> نوع: ${data.task.type === 'TimeLimited' ? 'محدد بوقت' : 'قياسي'}</span>`; if (data.task.status !== 'Open') meta += `<span><i class="fas fa-lock"></i> <span style="color:var(--red); font-weight:bold;">الحالة: مغلقة</span></span>`; else meta += `<span><i class="fas fa-lock-open"></i> <span style="color:var(--green); font-weight:bold;">الحالة: مفتوحة</span></span>`; contentArea.innerHTML = `<div class="task-detail-header"><p class="task-meta">${meta}</p></div><div class="grid-container" id="branchGrid">${!data.branches || !data.branches.length ? `<p class="loader-container">لم يتم تحديد فروع لهذه المهمة.</p>` : data.branches.map(b => `<div class="branch-card"><div class="item-name">${b.name}</div><div class="status-radio-group" data-branch-id="${b.id}" data-task-id="${data.task.id}"><input type="radio" id="pending-${b.id}" name="status-${b.id}" value="pending" ${b.status === 'pending' ? 'checked' : ''} ${data.task.status !== 'Open' ? 'disabled' : ''}><label for="pending-${b.id}">لم يتم</label><input type="radio" id="done-${b.id}" name="status-${b.id}" value="done" ${b.status === 'done' || b.status === 'late-done' ? 'checked' : ''} ${data.task.status !== 'Open' ? 'disabled' : ''}><label for="done-${b.id}" class="${b.status === 'late-done' ? 'late-done-label': ''}">${b.status === 'late-done' ? 'تم (متأخر)' : 'تم'}</label><input type="radio" id="not-required-${b.id}" name="status-${b.id}" value="not-required" ${b.status === 'not-required' ? 'checked' : ''} ${data.task.status !== 'Open' ? 'disabled' : ''}><label for="not-required-${b.id}">غير مطلوب</label></div></div>`).join('')}</div>`; };
 
     // --- EVENT HANDLING ---
     const handleContentClick = (e) => {
@@ -171,30 +194,85 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const handleHeaderClick = async (e) => {
         const targetId = e.target.closest('button')?.id;
+        if (!targetId) { if (e.target.closest('.back-btn')) navigate(state.view === 'taskDetail' ? 'tasks' : 'sections', { section: state.currentSection }); return; }
+        
         const actions = {
             addSectionBtn: () => sectionModal.classList.remove('hidden'),
-            addTaskBtn: async () => { 
-                const bc = document.getElementById('branchSelectionContainer'); 
-                bc.innerHTML = '<p>جاري تحميل الفروع...</p>'; 
-                addTaskModal.classList.remove('hidden'); 
-                if (state.allBranches.length === 0) { 
-                    try { 
-                        state.allBranches = (await apiCall('getBranches')).branches; 
-                    } catch(e) {} 
-                } 
-                bc.innerHTML = state.allBranches.length > 0 ? state.allBranches.map(b => `<label class="branch-checkbox-item"><span>${b.name}</span><input type="checkbox" name="branch" value="${b.id}"></label>`).join('') : '<p>فشل تحميل الفروع.</p>'; 
-            },
-            closeTaskBtn: () => { if (confirm('هل أنت متأكد من إغلاق هذه المهمة؟')) apiCall('updateTaskStatus', 'POST', { taskID: state.currentTask.id, newStatus: 'Closed' }).then(render); },
+            addTaskBtn: async () => { const bc = document.getElementById('branchSelectionContainer'); bc.innerHTML = '<p>جاري تحميل الفروع...</p>'; addTaskModal.classList.remove('hidden'); if (state.allBranches.length === 0) { try { state.allBranches = (await apiCall('getBranches')).branches; } catch(e) {} } bc.innerHTML = state.allBranches.length > 0 ? state.allBranches.map(b => `<label class="branch-checkbox-item"><span>${b.name}</span><input type="checkbox" name="branch" value="${b.id}"></label>`).join('') : '<p>فشل تحميل الفروع.</p>'; },
+            toggleTaskStatusBtn: () => { const newStatus = e.target.closest('button').dataset.newStatus; if (confirm(`هل أنت متأكد من ${newStatus === 'Closed' ? 'إغلاق' : 'فتح'} هذه المهمة؟`)) apiCall('updateTaskStatus', 'POST', { taskID: state.currentTask.id, newStatus }).then(render); },
             sectionReportBtn: () => dateRangeModal.classList.remove('hidden'),
             taskReportBtn: () => generateAndShowReport('task', { taskId: state.currentTask.id })
         };
         if (actions[targetId]) actions[targetId]();
-        if (e.target.closest('.back-btn')) navigate(state.view === 'taskDetail' ? 'tasks' : 'sections', { section: state.currentSection });
     };
     
     const handleStatusChange = async (e) => { if (e.target.name.startsWith('status-')) { const group = e.target.closest('.status-radio-group'), { taskId, branchId } = group.dataset; Array.from(group.querySelectorAll('input')).forEach(i => i.disabled = true); try { const res = await apiCall('updateStatus', 'POST', { taskID: taskId, branchID: branchId, newStatus: e.target.value }); if (res.actualStatus === 'late-done') group.querySelector(`label[for="done-${branchId}"]`).innerHTML = 'تم (متأخر)'; } finally { Array.from(group.querySelectorAll('input')).forEach(i => i.disabled = false); } } };
 
-    const generateAndShowReport = async (type, options) => { showLoader('جاري إنشاء التقرير...'); try { const data = type === 'task' ? await apiCall('getTaskDetails', 'GET', { taskID: options.taskId }) : await apiCall('getSectionReportDetails', 'GET', { sectionID: options.sectionId, startDate: options.startDate, endDate: options.endDate }); const t = document.getElementById('reportTemplateContainer'); /* Report rendering logic */ const canvas = await html2canvas(document.getElementById('reportTemplateContainer'), { scale: 2, useCORS: true }); state.reportImageData = canvas.toDataURL('image/jpeg', 0.95); document.getElementById('reportPreviewImage').src = state.reportImageData; reportPreviewModal.classList.remove('hidden'); } catch (e) { showNotification('فشل إنشاء التقرير.', true); } finally { render(); } };
+    // --- REPORTING ---
+    const renderReportTemplate = (data, type, options) => {
+        const statusMap = { 'done': 'تم', 'late-done': 'تم (متأخر)', 'pending': 'لم يتم', 'not-required': 'غير مطلوب' };
+        const statusClassMap = { 'done': 'done', 'late-done': 'late-done', 'pending': 'pending', 'not-required': 'not-required' };
+        
+        if (type === 'section') {
+            document.getElementById('report-title').innerText = `تقرير القسم: ${data.section.name}`;
+            document.getElementById('report-subtitle').innerText = `الفترة من ${new Date(options.startDate).toLocaleDateString('ar-EG')} إلى ${new Date(options.endDate).toLocaleDateString('ar-EG')}`;
+            
+            const overall = data.report.overall;
+            document.getElementById('report-kpi-grid').innerHTML = `
+                <div class="report-kpi"><span class="report-kpi-value">${overall.totalTasks}</span><span class="report-kpi-label">إجمالي المهام</span></div>
+                <div class="report-kpi"><span class="report-kpi-value" style="color:var(--green);">${overall.done}</span><span class="report-kpi-label">تم بالموعد</span></div>
+                <div class="report-kpi"><span class="report-kpi-value" style="color:var(--orange);">${overall.lateDone}</span><span class="report-kpi-label">تم (متأخر)</span></div>
+                <div class="report-kpi"><span class="report-kpi-value" style="color:var(--red);">${overall.pending}</span><span class="report-kpi-label">لم يتم</span></div>`;
+
+            document.getElementById('report-table-head').innerHTML = `<tr><th>اسم المهمة</th><th>تاريخ الإنشاء</th><th>تم</th><th>متأخر</th><th>لم يتم</th><th>غير مطلوب</th></tr>`;
+            document.getElementById('report-table-body').innerHTML = data.report.tasks.map(t => `
+                <tr><td>${t.name}</td><td>${new Date(t.createdAt).toLocaleDateString('ar-EG')}</td><td>${t.stats.done}</td><td>${t.stats.lateDone}</td><td>${t.stats.pending}</td><td>${t.stats.notRequired}</td></tr>`).join('');
+        
+        } else if (type === 'task') {
+            document.getElementById('report-title').innerText = `تقرير المهمة: ${data.task.name}`;
+            document.getElementById('report-subtitle').innerText = `النوع: ${data.task.type === 'TimeLimited' ? 'محدد بوقت' : 'قياسي'} | الحالة: ${data.task.status === 'Open' ? 'مفتوحة' : 'مغلقة'}`;
+            
+            const stats = data.branches.reduce((acc, b) => { acc[b.status] = (acc[b.status] || 0) + 1; return acc; }, {});
+            document.getElementById('report-kpi-grid').innerHTML = `
+                <div class="report-kpi"><span class="report-kpi-value">${data.branches.length}</span><span class="report-kpi-label">إجمالي الفروع</span></div>
+                <div class="report-kpi"><span class="report-kpi-value" style="color:var(--green);">${stats['done'] || 0}</span><span class="report-kpi-label">تم بالموعد</span></div>
+                <div class="report-kpi"><span class="report-kpi-value" style="color:var(--orange);">${stats['late-done'] || 0}</span><span class="report-kpi-label">تم (متأخر)</span></div>
+                <div class="report-kpi"><span class="report-kpi-value" style="color:var(--red);">${stats['pending'] || 0}</span><span class="report-kpi-label">لم يتم</span></div>`;
+            
+            document.getElementById('report-table-head').innerHTML = `<tr><th>اسم الفرع</th><th>الحالة</th></tr>`;
+            document.getElementById('report-table-body').innerHTML = data.branches.map(b => `
+                <tr><td>${b.name}</td><td><span class="report-status ${statusClassMap[b.status]}">${statusMap[b.status]}</span></td></tr>`).join('');
+        }
+        document.getElementById('report-date').innerText = new Date().toLocaleString('ar-EG');
+    };
+
+    const generateAndShowReport = async (type, options) => {
+        showLoader('جاري إنشاء التقرير...');
+        try {
+            const data = type === 'task' 
+                ? await apiCall('getTaskDetails', 'GET', { taskID: options.taskId }) 
+                : await apiCall('getSectionReportDetails', 'GET', { sectionID: options.sectionId, startDate: options.startDate, endDate: options.endDate });
+            
+            // Render data into the hidden template
+            renderReportTemplate(data, type, options);
+
+            // Wait a tick for the DOM to update before running html2canvas
+            await new Promise(resolve => setTimeout(resolve, 50)); 
+            
+            const canvas = await html2canvas(document.getElementById('reportTemplateContainer'), { scale: 2, useCORS: true });
+            state.reportImageData = canvas.toDataURL('image/jpeg', 0.95);
+            state.reportFileName = `report-${type}-${type === 'task' ? options.taskId : options.sectionId}-${new Date().toISOString().split('T')[0]}.jpg`;
+
+            document.getElementById('reportPreviewImage').src = state.reportImageData;
+            reportPreviewModal.classList.remove('hidden');
+        } catch (e) {
+            showNotification('فشل إنشاء التقرير. ' + e.message, true);
+        } finally {
+            if (state.view === 'sections') render();
+            else if (state.view === 'tasks') navigate('tasks', {section: state.currentSection});
+            else if (state.view === 'taskDetail') navigate('taskDetail', {task: state.currentTask});
+        }
+    };
 
     // --- INITIALIZATION ---
     const initializeApp = () => {
@@ -202,11 +280,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const taskName = document.getElementById('newTaskNameInput').value.trim(), taskType = document.querySelector('input[name="taskType"]:checked').value, startDate = document.getElementById('taskStartDateInput').value, endDate = document.getElementById('taskEndDateInput').value, selectedBranches = Array.from(document.querySelectorAll('input[name="branch"]:checked')).map(cb => cb.value);
             if (!taskName || !selectedBranches.length) return showNotification('اسم المهمة واختيار فرع واحد على الأقل مطلوبان.', true);
             if (taskType === 'TimeLimited' && (!startDate || !endDate)) return showNotification('يجب تحديد وقت البدء والانتهاء.', true);
-            try { 
-                await apiCall('createTask', 'POST', { sectionID: state.currentSection.id, taskName, taskType, startDate, endDate, BranchIDs: selectedBranches }); 
-                addTaskModal.classList.add('hidden'); 
-                render(); 
-            } catch (e) {}
+            try { await apiCall('createTask', 'POST', { sectionID: state.currentSection.id, taskName, taskType, startDate, endDate, BranchIDs: selectedBranches }); addTaskModal.classList.add('hidden'); render(); } catch (e) {}
         });
         document.getElementById('confirmAddSectionBtn').addEventListener('click', () => { const name = document.getElementById('sectionNameInput').value.trim(); if (!name) return showNotification('اسم القسم مطلوب.', true); apiCall('createSection', 'POST', { sectionName: name }).then(() => { sectionModal.classList.add('hidden'); render(); }); });
         document.getElementById('generateSectionReportBtn').addEventListener('click', () => { const s = document.getElementById('reportStartDate').value, e = document.getElementById('reportEndDate').value; if (!s || !e) return showNotification('الرجاء تحديد تاريخ البدء والانتهاء.', true); dateRangeModal.classList.add('hidden'); generateAndShowReport('section', { sectionId: state.currentSection.id, startDate: s, endDate: e }); });
