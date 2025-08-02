@@ -89,7 +89,7 @@
         .form-group { margin-bottom: 1.5rem; }
         .form-group label { display: block; font-weight: 700; margin-bottom: 0.5rem; font-size: 0.9rem; }
         
-        /* --- NEW: Searchable Multi-Select List --- */
+        /* NEW: Polished Searchable Multi-Select List */
         .searchable-list-container { border: 1px solid var(--border-color); border-radius: 0.5rem; padding: 0.75rem; background-color: var(--bg-color); }
         .searchable-list-container .search-input { margin-bottom: 0.75rem; border-color: var(--border-color); }
         .searchable-list-header { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem; font-size: 0.85rem; color: var(--secondary-text); border-bottom: 1px solid var(--border-color); margin-bottom: 0.5rem; }
@@ -97,7 +97,7 @@
         .searchable-list-item { display: flex; align-items: center; padding: 0.75rem 0.5rem; border-radius: 0.5rem; cursor: pointer; color: var(--primary-text); font-size: 1rem; }
         .searchable-list-item:hover { background-color: #37415160; }
         .searchable-list-item input[type="checkbox"] { display: none; }
-        .searchable-list-item .custom-checkbox { width: 20px; height: 20px; border: 2px solid var(--border-color); border-radius: 0.25rem; margin-left: 12px; display: flex; align-items: center; justify-content: center; }
+        .searchable-list-item .custom-checkbox { width: 20px; height: 20px; border: 2px solid var(--border-color); border-radius: 0.25rem; margin-left: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
         .searchable-list-item .custom-checkbox i { color: white; font-size: 12px; transform: scale(0); transition: transform 0.1s ease-in-out; }
         .searchable-list-item input[type="checkbox"]:checked + .custom-checkbox { background-color: var(--blue); border-color: var(--blue); }
         .searchable-list-item input[type="checkbox"]:checked + .custom-checkbox i { transform: scale(1); }
@@ -145,7 +145,7 @@
 </body>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxMuoWji2pZmZXbi-Bk1sl7alyV6PDVWctac6Fizsl5A6RlkgHb8CqjuIbIIn9pkpsD1A/exec';
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyQT3DXK_g37Nsdx77gABjl8ZpuihdJ_TIgcLTfSuJxd4Hjt6L0O7cQIkgaC4fT_ibI/exec';
 
     const contentArea = document.getElementById('contentArea'), headerTitle = document.getElementById('headerTitle'), headerActions = document.getElementById('headerActions');
     const sectionModal = document.getElementById('sectionModal'), addTaskModal = document.getElementById('addTaskModal'), editTaskModal = document.getElementById('editTaskModal'), dateRangeModal = document.getElementById('dateRangeModal'), branchReportModal = document.getElementById('branchReportModal'), reportPreviewModal = document.getElementById('reportPreviewModal');
@@ -159,12 +159,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const resetAddTaskModal = () => { addTaskModal.querySelector('#newTaskNameInput').value = ''; addTaskModal.querySelector('#taskTypeStandard').checked = true; document.getElementById('timeLimitedFields').classList.add('hidden'); addTaskModal.querySelector('#taskDurationInput').value = ''; const listContainer = document.getElementById('addTaskBranchList'); if(listContainer.querySelector('.search-input')) { listContainer.querySelector('.search-input').value = ''; } renderSearchableList(listContainer, state.allBranches, []); };
     const formatDateForInput = (isoString) => { if (!isoString) return ''; const date = new Date(isoString); const pad = (num) => num.toString().padStart(2, '0'); return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`; };
 
-    // --- NAVIGATION & RENDERING ---
+    // --- NAVIGATION & RENDERING (BUG FIX in navigate) ---
     const navigate = async (view, data = {}) => {
         state.view = view;
-        if (view === 'tasks') { state.currentSection = data.section; state.currentTask = null; if (state.allBranches.length === 0) { try { state.allBranches = (await apiCall('getBranches')).branches; } catch (e) {} } } 
-        else if (view === 'taskDetail') { state.currentTask = data.task; } 
-        else { state.currentSection = null; state.currentTask = null; state.currentTasks = []; }
+        if (view === 'sections') {
+            state.currentSection = null;
+            state.currentTask = null;
+        } else if (view === 'tasks') {
+            state.currentSection = data.section;
+            state.currentTask = null; 
+        } else if (view === 'taskDetail') {
+            state.currentTask = data.task;
+        }
+        if (state.allBranches.length === 0) { try { state.allBranches = (await apiCall('getBranches')).branches; } catch (e) {} }
         render();
     };
 
