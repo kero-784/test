@@ -1,324 +1,476 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Task Follow Up</title>
-    <!-- Favicon Fix: The SVG provides the main icon, the second link prevents the 404 error -->
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚀</text></svg>">
-    <link rel="icon" href="data:,">
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <base target="_top">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <!-- Google Charts -->
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     <style>
-        /* === MINIMALIST DARK MODE UI === */
-        :root {
-            --bg-color: #111827; /* Near Black */
-            --card-bg: #1f2937; /* Dark Gray */
-            --primary-text: #f9fafb; /* Off-white */
-            --secondary-text: #9ca3af; /* Muted Gray */
-            --border-color: #374151; /* Darker Gray Border */
-            --shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-            --blue: #3b82f6; --blue-glow: 0 0 15px rgba(59, 130, 246, 0.5);
-            --green: #22c55e;
-            --red: #ef4444;
-            --orange: #f97316;
-            --purple: #8b5cf6; --purple-glow: 0 0 15px rgba(139, 92, 246, 0.5);
-            --gray: #6b7280;
-            --font-family: 'Tajawal', sans-serif;
-            --border-radius: 0.75rem;
+        body { background-color: #f8f9fa; }
+        .nav-link { cursor: pointer; }
+        .form-check-input { cursor: pointer; }
+        .action-btn { cursor: pointer; margin-left: 5px;}
+        #loader {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            z-index: 9999;
+            display: flex; align-items: center; justify-content: center;
         }
-        * { margin: 0; padding: 0; box-sizing: border-box; transition: none !important; animation: none !important; }
-        body { font-family: var(--font-family); background-color: var(--bg-color); color: var(--primary-text); line-height: 1.6; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
-        .container { max-width: 1400px; margin: 0 auto; padding: 2rem; }
-        .hidden { display: none !important; }
-        
-        /* Buttons */
-        .btn { padding: 0.65rem 1.25rem; border: 1px solid transparent; border-radius: 0.5rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; }
-        .btn-primary { background-color: var(--blue); color: white; }
-        .btn-primary:hover:not(:disabled) { background-color: #60a5fa; }
-        .btn-secondary { background-color: transparent; color: var(--primary-text); border-color: var(--border-color); }
-        .btn-secondary:hover { background-color: var(--card-bg); border-color: var(--secondary-text); }
-        .btn-danger { background-color: var(--red); color: white; }
-        .btn-success { background-color: var(--green); color: white; }
-        .btn:disabled { background-color: #374151; color: var(--secondary-text); cursor: not-allowed; }
-        
-        /* Header */
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1.5rem; }
-        .header-title h1 { display: flex; align-items: center; gap: 1rem; font-size: 2rem; font-weight: 800; }
-        .header-title .back-btn { background: none; border: none; font-size: 1.5rem; color: var(--secondary-text); cursor: pointer; padding: 0.5rem; border-radius: 99px; }
-        .header-title .back-btn:hover { background-color: var(--card-bg); color: var(--blue); }
-        
-        .grid-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 1.5rem; }
-        
-        /* Cards */
-        .section-item, .task-item { background: var(--card-bg); border-radius: var(--border-radius); display: flex; flex-direction: column; border: 1px solid var(--border-color); cursor: pointer; }
-        .section-item:hover, .task-item:hover { border-color: var(--blue); box-shadow: var(--blue-glow); }
-        .item-content { padding: 1.25rem; flex-grow: 1; }
-        .item-footer { padding: 0.75rem 1.25rem; background-color: #111827; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: var(--secondary-text); border-bottom-left-radius: var(--border-radius); border-bottom-right-radius: var(--border-radius); }
-        .task-footer-info { display: flex; align-items: center; gap: 0.5rem; }
-        .delete-btn { font-size: 0.8rem; color: var(--red); background: none; border: none; cursor: pointer; padding: 0.5rem; border-radius: 0.5rem; }
-        .delete-btn:hover { background-color: #ef444420; }
-        .item-name { font-weight: 700; font-size: 1.15rem; margin-bottom: 0.5rem; color: var(--primary-text); }
-        .item-stats, .item-meta { font-size: 0.9rem; color: var(--secondary-text); }
-        .task-item-header { display: flex; justify-content: space-between; align-items: flex-start; }
-        .task-type-icon { font-size: 1.1rem; color: var(--gray); }
-        .progress-label { display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 700; color: var(--secondary-text); margin: 1rem 0 0.5rem; }
-        .progress-bar-bg { width: 100%; background-color: #374151; border-radius: 99px; height: 8px; overflow: hidden; }
-        .progress-bar-fg { height: 100%; border-radius: 99px; }
-
-        /* Task Detail */
-        .task-detail-header { margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); }
-        .task-meta { color: var(--secondary-text); font-size: 0.9rem; display: flex; flex-direction: column; flex-wrap: wrap; gap: 0.5rem; }
-        .branch-card { background: var(--card-bg); border-radius: var(--border-radius); padding: 1.25rem; border: 1px solid var(--border-color); }
-        .status-radio-group { display: flex; gap: 0.5rem; margin-top: 1rem; }
-        .status-radio-group input[type="radio"] { display: none; }
-        .status-radio-group label { flex-grow: 1; text-align: center; padding: 0.6rem; border-radius: 0.5rem; border: 1px solid var(--border-color); cursor: pointer; font-weight: 700; color: var(--secondary-text); font-size: 0.85rem;}
-        .status-radio-group input[type="radio"]:checked + label { color: white; }
-        .status-radio-group input[value="done"]:checked + label, .status-radio-group input[value="late-done"]:checked + label { background-color: var(--green); border-color: var(--green); }
-        .status-radio-group input[value="pending"]:checked + label { background-color: var(--red); border-color: var(--red); }
-        
-        /* Modals & General */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(17, 24, 39, 0.8); backdrop-filter: blur(4px); display: flex; justify-content: center; align-items: start; padding-top: 5vh; z-index: 1000; overflow-y: auto; }
-        .modal-content { background-color: var(--card-bg); padding: 2rem; border-radius: var(--border-radius); width: 90%; max-width: 550px; border: 1px solid var(--border-color); margin-bottom: 5vh; }
-        .modal-content h2 { font-weight: 800; margin-bottom: 2rem; }
-        .modal-content input, .modal-content select { width: 100%; padding: 0.8rem 1rem; border-radius: 0.5rem; border: 1px solid var(--border-color); font-family: var(--font-family); font-size: 1rem; margin-bottom: 0; background-color: var(--bg-color); color: var(--primary-text); }
-        .modal-content input[type="datetime-local"]::-webkit-calendar-picker-indicator { filter: invert(1); }
-        .modal-actions { display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem; }
-        .form-group { margin-bottom: 1.5rem; }
-        .form-group label { display: block; font-weight: 700; margin-bottom: 0.5rem; font-size: 0.9rem; }
-        
-        /* NEW: Polished Searchable Multi-Select List */
-        .searchable-list-container { border: 1px solid var(--border-color); border-radius: 0.5rem; padding: 0.75rem; background-color: var(--bg-color); }
-        .searchable-list-container .search-input { margin-bottom: 0.75rem; border-color: var(--border-color); }
-        .searchable-list-header { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem; font-size: 0.85rem; color: var(--secondary-text); border-bottom: 1px solid var(--border-color); margin-bottom: 0.5rem; }
-        .searchable-list { max-height: 200px; overflow-y: auto; padding-right: 0.5rem; }
-        .searchable-list-item { display: flex; align-items: center; padding: 0.75rem 0.5rem; border-radius: 0.5rem; cursor: pointer; color: var(--primary-text); font-size: 1rem; }
-        .searchable-list-item:hover { background-color: #37415160; }
-        .searchable-list-item input[type="checkbox"] { display: none; }
-        .searchable-list-item .custom-checkbox { width: 20px; height: 20px; border: 2px solid var(--border-color); border-radius: 0.25rem; margin-left: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-        .searchable-list-item .custom-checkbox i { color: white; font-size: 12px; transform: scale(0); transition: transform 0.1s ease-in-out; }
-        .searchable-list-item input[type="checkbox"]:checked + .custom-checkbox { background-color: var(--blue); border-color: var(--blue); }
-        .searchable-list-item input[type="checkbox"]:checked + .custom-checkbox i { transform: scale(1); }
-        .searchable-list-item.selected { background-color: #3b82f630; }
-
-        .loader-container { text-align: center; padding: 5rem 2rem; font-size: 1.2rem; color: var(--secondary-text); }
-        .fa-spinner { font-size: 2.5rem; margin-bottom: 1rem; color: var(--blue); -webkit-animation: fa-spin 1.5s infinite linear; animation: fa-spin 1.5s infinite linear; }
-        @keyframes fa-spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        #notification-container { position: fixed; bottom: 20px; left: 20px; z-index: 2000; display: flex; flex-direction: column; gap: 10px; }
-        .notification { padding: 1rem 1.5rem; border-radius: 0.5rem; color: white; background-color: var(--card-bg); display: flex; align-items: center; gap: 1rem; box-shadow: var(--shadow-lg); border-left: 4px solid; }
-        .notification.error { border-color: var(--red); } .notification.success { border-color: var(--green); }
-
-        /* Report Template Styles */
-        .report-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 30px; align-items: center; }
-        .report-kpi { border: 1px solid #e2e8f0; border-radius: 0.5rem; padding: 1rem; text-align: center; background: #f8fafc; }
-        .report-kpi-value { font-size: 1.75rem; font-weight: 800; display: block; margin-bottom: 0.25rem; }
-        .report-kpi-label { font-size: 0.8rem; color: #64748b; font-weight: 500; }
-        .report-table th, .report-table td { padding: 0.75rem 1rem; text-align: right; border-bottom: 1px solid #e2e8f0; font-size: 0.9rem; vertical-align: middle;}
-        .report-table th { background-color: #f1f5f9; font-weight: 700; }
-        .report-status { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 99px; font-size: 0.75rem; font-weight: 700; color: white; }
-        .report-status.done { background-color: var(--green); } .report-status.late-done { background-color: var(--orange); }
-        .report-status.pending { background-color: var(--red); }
-        .rank-badge { display: inline-block; width: 24px; height: 24px; line-height: 24px; text-align: center; border-radius: 50%; color: white; font-weight: bold; font-size: 0.8rem; }
-        .rank-1 { background-color: var(--green); } .rank-slowest { background-color: var(--red); }
-        .branch-report-breakdown { margin-top: 30px; border-top: 2px solid #e2e8f0; padding-top: 20px; }
-        .branch-report-breakdown h3 { margin-bottom: 15px; font-size: 1.2rem; color: #374151; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header class="header"><div id="headerTitle" class="header-title"></div><div id="headerActions"></div></header>
-        <main id="contentArea"></main>
+    <div id="loader">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
     </div>
 
-    <!-- Modals -->
-    <div id="sectionModal" class="modal-overlay hidden"><div class="modal-content"><h2>إنشاء قسم جديد</h2><div class="form-group"><input type="text" id="sectionNameInput" placeholder="اكتب اسم القسم هنا..."></div><div class="modal-actions"><button id="cancelAddSectionBtn" class="btn btn-secondary">إلغاء</button><button id="confirmAddSectionBtn" class="btn btn-primary">إضافة القسم</button></div></div></div>
-    <div id="addTaskModal" class="modal-overlay hidden"><div class="modal-content"><h2>إنشاء مهمة جديدة</h2><div class="form-group"><label for="newTaskNameInput">اسم المهمة</label><input type="text" id="newTaskNameInput" placeholder="اكتب اسم المهمة هنا..."></div><div class="form-group"><label>نوع المهمة</label><div class="status-radio-group"><input type="radio" id="taskTypeStandard" name="taskType" value="Standard" checked><label for="taskTypeStandard">قياسية</label><input type="radio" id="taskTypeTimeLimited" name="taskType" value="TimeLimited"><label for="taskTypeTimeLimited">محددة بوقت</label></div></div><div id="timeLimitedFields" class="form-group hidden"><label for="taskDurationInput">مدة المهمة (بالساعات)</label><input type="number" id="taskDurationInput" placeholder="مثال: 8"></div><div class="form-group"><label>الفروع المستهدفة</label><div class="searchable-list-container" id="addTaskBranchList"></div></div><div class="modal-actions"><button id="cancelAddTaskBtn" class="btn btn-secondary">إلغاء</button><button id="confirmAddTaskBtn" class="btn btn-primary">إضافة المهمة</button></div></div></div>
-    <div id="editTaskModal" class="modal-overlay hidden"><div class="modal-content"><h2>تعديل المهمة</h2><div class="form-group"><label for="editTaskNameInput">اسم المهمة</label><input type="text" id="editTaskNameInput"></div><div class="form-group" style="display: flex; gap: 1rem;"><div style="flex: 1;"><label for="editTaskStartDateInput">وقت البدء</label><input type="datetime-local" id="editTaskStartDateInput"></div><div style="flex: 1;"><label for="editTaskEndDateInput">وقت الإنتهاء</label><input type="datetime-local" id="editTaskEndDateInput"></div></div><div class="modal-actions"><button id="cancelEditTaskBtn" class="btn btn-secondary">إلغاء</button><button id="confirmEditTaskBtn" class="btn btn-primary">حفظ التغييرات</button></div></div></div>
-    <div id="dateRangeModal" class="modal-overlay hidden"><div class="modal-content"><h2>تقرير القسم</h2><div style="display: flex; gap: 1rem;"><div class="form-group" style="flex: 1;"><label for="reportStartDate">من تاريخ</label><input type="date" id="reportStartDate"></div><div class="form-group" style="flex: 1;"><label for="reportEndDate">إلى تاريخ</label><input type="date" id="reportEndDate"></div></div><div class="modal-actions"><button id="cancelDateRangeBtn" class="btn btn-secondary">إلغاء</button><button id="generateSectionReportBtn" class="btn btn-primary">إنشاء التقرير</button></div></div></div>
-    <div id="branchReportModal" class="modal-overlay hidden"><div class="modal-content"><h2>تقرير الفروع</h2><div class="form-group"><label>اختر فرع أو أكثر</label><div class="searchable-list-container" id="branchReportBranchList"></div></div><div style="display: flex; gap: 1rem;"><div class="form-group" style="flex: 1;"><label for="branchReportStartDate">من تاريخ</label><input type="date" id="branchReportStartDate"></div><div class="form-group" style="flex: 1;"><label for="branchReportEndDate">إلى تاريخ</label><input type="date" id="branchReportEndDate"></div></div><div class="modal-actions"><button id="cancelBranchReportBtn" class="btn btn-secondary">إلغاء</button><button id="generateBranchReportBtn" class="btn btn-primary">إنشاء التقرير</button></div></div></div>
-    <div id="reportPreviewModal" class="modal-overlay hidden"><div class="modal-content" style="max-width: 850px;"><img id="reportPreviewImage" src="" alt="Report Preview" style="width:100%; border-radius:0.5rem; border:1px solid var(--border-color);"><div class="modal-actions" style="margin-top: 1.5rem;"><button id="closeReportPreviewBtn" class="btn btn-secondary">إغلاق</button><button id="downloadReportImageBtn" class="btn btn-primary"><i class="fas fa-download"></i> تحميل</button></div></div></div>
-    <div id="notification-container"></div>
-    <div id="reportTemplateWrapper" class="hidden" style="position: absolute; left: -9999px; top: -9999px; font-family: 'Tajawal', sans-serif;"><div id="reportTemplateContainer" style="width: 800px; padding: 0; background: white; border: 1px solid #e2e8f0;"><div style="padding: 30px 40px; background-color: #f8fafc; text-align: center; border-bottom: 1px solid #e2e8f0;"><h2 id="report-title" style="font-size:1.75rem; margin-bottom:0.5rem; color:#1f2937;"></h2><p id="report-subtitle" style="color:#718096;"></p></div><div style="padding: 30px 40px;"><div class="report-grid"><div id="report-kpi-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;"></div><div id="report-chart-container" style="max-height: 250px;"><canvas id="reportChart"></canvas></div></div><div id="report-table-container" style="margin-top: 30px;"><table class="report-table" style="width: 100%; border-collapse: collapse;"><thead id="report-table-head"></thead><tbody id="report-table-body"></tbody></table></div></div><div style="padding: 20px 40px; text-align: center; background-color: #f8fafc; border-top: 1px solid #e2e8f0; font-size: 12px; color: #718096;"><p>تم إنشاء هذا التقرير بتاريخ: <span id="report-date"></span></p></div></div></div>
+    <div class="container mt-3">
+        <header class="d-flex justify-content-between align-items-center p-3 my-3 text-white bg-primary rounded shadow-sm">
+            <h4 class="mb-0">Company Task Manager</h4>
+            <button class="btn btn-light" data-bs-toggle="modal" data-bs-target="#newTaskModal">＋ Assign New Task</button>
+        </header>
 
-</body>
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyQT3DXK_g37Nsdx77gABjl8ZpuihdJ_TIgcLTfSuJxd4Hjt6L0O7cQIkgaC4fT_ibI/exec';
+        <!-- The rest of your HTML structure remains the same as before -->
+        <ul class="nav nav-tabs" id="main-tabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="tasks-tab" data-bs-toggle="tab" data-bs-target="#tasks-content" type="button" role="tab">Tasks Dashboard</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="reports-tab" data-bs-toggle="tab" data-bs-target="#reports-content" type="button" role="tab">Reporting</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="admin-tab" data-bs-toggle="tab" data-bs-target="#admin-content" type="button" role="tab">Manage</button>
+            </li>
+        </ul>
 
-    const contentArea = document.getElementById('contentArea'), headerTitle = document.getElementById('headerTitle'), headerActions = document.getElementById('headerActions');
-    const sectionModal = document.getElementById('sectionModal'), addTaskModal = document.getElementById('addTaskModal'), editTaskModal = document.getElementById('editTaskModal'), dateRangeModal = document.getElementById('dateRangeModal'), branchReportModal = document.getElementById('branchReportModal'), reportPreviewModal = document.getElementById('reportPreviewModal');
-    let state = { view: 'sections', currentSection: null, currentTask: null, allBranches: [], currentTasks: [], reportImageData: null, reportFileName: 'report.jpg', currentChart: null };
-    
-    // --- HELPERS ---
-    const apiCall = async (action, method = 'GET', body = null) => { try { const url = new URL(SCRIPT_URL); const options = { method, redirect: 'follow', muteHttpExceptions: true }; if (method === 'POST') { options.body = JSON.stringify({ action, ...body }); } else { url.searchParams.append('action', action); if (body) Object.keys(body).forEach(key => { const value = Array.isArray(body[key]) ? JSON.stringify(body[key]) : body[key]; url.searchParams.append(key, value); }); } const response = await fetch(url, options); const data = await response.json(); if (!data.success) throw new Error(data.message || 'Unknown API error'); return data; } catch (error) { showNotification(error.message, true); throw error; } };
-    const showNotification = (message, isError = true) => { const n = document.createElement('div'); n.className = `notification ${isError ? 'error' : 'success'}`; n.innerHTML = `<i class="fas ${isError ? 'fa-exclamation-circle' : 'fa-check-circle'}"></i><span>${message}</span>`; document.getElementById('notification-container').appendChild(n); setTimeout(() => n.remove(), 4000); };
-    const showLoader = (message = 'جاري التحميل...') => { contentArea.innerHTML = `<div class="loader-container"><i class="fas fa-spinner"></i><p>${message}</p></div>`; };
-    const formatDuration = (ms) => { if (ms === null || ms < 0 || isNaN(ms)) return '-'; const d = Math.floor(ms / (1000 * 60 * 60 * 24)); const h = Math.floor((ms % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)); const m = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60)); let str = ''; if (d > 0) str += `${d}ي `; if (h > 0) str += `${h}س `; if (m > 0 || str === '') str += `${m}د`; return str.trim() || '0د'; };
-    const resetAddTaskModal = () => { addTaskModal.querySelector('#newTaskNameInput').value = ''; addTaskModal.querySelector('#taskTypeStandard').checked = true; document.getElementById('timeLimitedFields').classList.add('hidden'); addTaskModal.querySelector('#taskDurationInput').value = ''; const listContainer = document.getElementById('addTaskBranchList'); if(listContainer.querySelector('.search-input')) { listContainer.querySelector('.search-input').value = ''; } renderSearchableList(listContainer, state.allBranches, []); };
-    const formatDateForInput = (isoString) => { if (!isoString) return ''; const date = new Date(isoString); const pad = (num) => num.toString().padStart(2, '0'); return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`; };
+        <div class="tab-content" id="myTabContent">
+            <!-- Tasks Tab -->
+            <div class="tab-pane fade show active p-3 bg-white border border-top-0" id="tasks-content" role="tabpanel">
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label for="filter-section" class="form-label">Filter by Section</label>
+                        <select id="filter-section" class="form-select"><option value="all">All Sections</option></select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="filter-branch" class="form-label">Filter by Branch</label>
+                        <select id="filter-branch" class="form-select"><option value="all">All Branches</option></select>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>Done?</th>
+                                <th>Task Title</th>
+                                <th>Assigned To</th>
+                                <th>Status</th>
+                                <th>Assigned On</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="task-table-body">
+                            <!-- Task rows will be injected here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
 
-    // --- NAVIGATION & RENDERING (BUG FIX in navigate) ---
-    const navigate = async (view, data = {}) => {
-        state.view = view;
-        if (view === 'sections') {
-            state.currentSection = null;
-            state.currentTask = null;
-        } else if (view === 'tasks') {
-            state.currentSection = data.section;
-            state.currentTask = null; 
-        } else if (view === 'taskDetail') {
-            state.currentTask = data.task;
+            <!-- Reports Tab -->
+            <div class="tab-pane fade p-3 bg-white border border-top-0" id="reports-content" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-4">
+                         <label for="report-type" class="form-label">Report On:</label>
+                         <select id="report-type" class="form-select">
+                             <option value="Overall">Overall Company</option>
+                             <option value="Section">A Section</option>
+                             <option value="Branch">A Branch</option>
+                         </select>
+                    </div>
+                    <div class="col-md-5">
+                         <label for="report-item" class="form-label">Select Item:</label>
+                         <select id="report-item" class="form-select" disabled></select>
+                    </div>
+                    <div class="col-md-3 align-self-end">
+                        <button id="generate-report-btn" class="btn btn-success w-100">Generate Report</button>
+                    </div>
+                </div>
+                <hr>
+                <div id="report-output" class="mt-4" style="display:none;">
+                    <h4 id="report-title"></h4>
+                    <div class="row">
+                        <div class="col-md-6" id="chart-div"></div>
+                        <div class="col-md-6" id="stats-div"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admin Tab -->
+            <div class="tab-pane fade p-3 bg-white border border-top-0" id="admin-content" role="tabpanel">
+                <div class="row">
+                    <!-- Manage Sections -->
+                    <div class="col-md-6">
+                        <h5>Manage Sections</h5>
+                        <form id="add-section-form" class="d-flex">
+                            <input type="text" id="new-section-name" class="form-control me-2" placeholder="New Section Name" required>
+                            <button type="submit" class="btn btn-primary">Add</button>
+                        </form>
+                        <ul id="section-list" class="list-group mt-3"></ul>
+                    </div>
+                    <!-- Manage Branches -->
+                    <div class="col-md-6">
+                        <h5>Manage Branches</h5>
+                        <form id="add-branch-form">
+                            <div class="mb-2">
+                                <input type="text" id="new-branch-name" class="form-control" placeholder="New Branch Name" required>
+                            </div>
+                            <div class="mb-2">
+                                <select id="branch-section-select" class="form-select" required>
+                                    <option value="" disabled selected>Assign to Section...</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Add Branch</button>
+                        </form>
+                        <ul id="branch-list" class="list-group mt-3"></ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Task Modal -->
+    <div class="modal fade" id="newTaskModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Assign New Task</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="new-task-form">
+                        <div class="mb-3">
+                            <label for="task-title" class="form-label">Task Title</label>
+                            <input type="text" class="form-control" id="task-title" required>
+                        </div>
+                         <div class="mb-3">
+                            <label for="task-description" class="form-label">Description</label>
+                            <textarea class="form-control" id="task-description" rows="2"></textarea>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="task-type" class="form-label">Task Type</label>
+                                <select id="task-type" class="form-select">
+                                    <option value="Standard">Standard</option>
+                                    <option value="Timed">Timed</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6" id="time-period-div" style="display:none;">
+                                <label for="task-time-period" class="form-label">Time Period (in minutes)</label>
+                                <input type="number" class="form-control" id="task-time-period" min="1">
+                            </div>
+                        </div>
+                        <hr>
+                        <h6>Assign To</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label for="assign-section-select" class="form-label">From Section:</label>
+                                <select id="assign-section-select" class="form-select" required>
+                                    <option value="" disabled selected>Select a section...</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                               <label class="form-label">To Branch(es): (Select one or more)</label>
+                               <div id="assign-branch-checklist" class="border p-2 rounded" style="max-height: 150px; overflow-y:auto;">
+                                   <small class="text-muted">Please select a section first.</small>
+                               </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" id="submit-new-task" class="btn btn-primary">Assign Task</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+    <script>
+        // ==========================================================
+        //  HARDCODE YOUR SCRIPT URL HERE
+        // ==========================================================
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxYEpNN3u-IMnif253O0ZGdBQ62G6evFSR40XkG_fKZmbU1uCaeHU479eeZNJw49LzH/exec";
+        // ==========================================================
+
+        // --- GLOBAL STATE ---
+        let allData = { sections: [], branches: [], tasks: [] };
+
+        // --- API HELPER FUNCTION ---
+        async function callAppsScript(functionName, parameters = {}) {
+            const res = await fetch(SCRIPT_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-t' }, // Use text/plain for simplicity with GAS
+                body: JSON.stringify({ functionName, parameters }),
+            });
+            const result = await res.json();
+            if (result.status === 'error') {
+                throw new Error(result.message);
+            }
+            return result.data;
         }
-        if (state.allBranches.length === 0) { try { state.allBranches = (await apiCall('getBranches')).branches; } catch (e) {} }
-        render();
-    };
 
-    const render = () => { showLoader(); updateHeader(); contentArea.className = (state.view === 'taskDetail') ? '' : 'grid-container'; const viewHandlers = { sections: handleLoadSections, tasks: () => handleLoadTasks(state.currentSection.id), taskDetail: () => handleLoadTaskDetails(state.currentTask.id) }; viewHandlers[state.view](); };
-    
-    const updateHeader = () => {
-        headerTitle.innerHTML = ''; headerActions.innerHTML = '';
-        let taskDetailActions = '';
-        if (state.view === 'taskDetail' && state.currentTask) {
-            const status = state.currentTask.status;
-            let toggleBtn = '';
-            if (status === 'Open') { toggleBtn = `<button id="toggleTaskStatusBtn" data-new-status="Closed" class="btn btn-danger"><i class="fas fa-lock"></i> إغلاق المهمة</button>`; } 
-            else { toggleBtn = `<button id="toggleTaskStatusBtn" data-new-status="Open" class="btn btn-success"><i class="fas fa-lock-open"></i> فتح المهمة</button>`; }
-            const editBtn = state.currentTask.type === 'TimeLimited' ? `<button id="editTaskBtn" class="btn btn-secondary"><i class="fas fa-edit"></i> تعديل المهمة</button>` : '';
-            taskDetailActions = `${toggleBtn}${editBtn}<button id="taskReportBtn" class="btn btn-secondary"><i class="fas fa-download"></i> تقرير المهمة</button>`;
+        // --- ON PAGE LOAD ---
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                google.charts.load('current', {'packages':['corechart']});
+                addEventListeners();
+                const initialData = await callAppsScript('getInitialData');
+                onInitialDataSuccess(initialData);
+            } catch (error) {
+                alert('Failed to load initial data: ' + error.message);
+                document.getElementById('loader').style.display = 'none';
+            }
+        });
+
+        function onInitialDataSuccess(data) {
+            allData = data;
+            populateStaticElements();
+            renderTaskTable();
+            document.getElementById('loader').style.display = 'none';
         }
-        const headerConfig = {
-            sections: { title: 'الأقسام', actions: `<button id="branchReportModalBtn" class="btn btn-secondary"><i class="fas fa-building"></i> تقرير الفروع</button><button id="addSectionBtn" class="btn btn-primary"><i class="fas fa-plus"></i> إضافة قسم</button>` },
-            tasks: { title: state.currentSection?.name, back: true, actions: `<button id="addTaskBtn" class="btn btn-primary"><i class="fas fa-plus"></i> إضافة مهمة</button><button id="sectionReportBtn" class="btn btn-secondary"><i class="fas fa-file-alt"></i> تقرير القسم</button>` },
-            taskDetail: { title: state.currentTask?.name, back: true, actions: taskDetailActions }
-        };
-        const config = headerConfig[state.view];
-        headerTitle.innerHTML = `<h1>${config.back ? '<button class="back-btn"><i class="fas fa-arrow-right"></i></button>' : ''} ${config.title || ''}</h1>`;
-        headerActions.innerHTML = config.actions || '';
-    };
-
-    const handleLoadSections = async () => { try { const data = await apiCall('getSections'); renderSections(data.sections); } catch (e) { contentArea.innerHTML = `<p class="loader-container">فشل تحميل الأقسام. يرجى إعادة تحميل الصفحة.</p>`; } };
-    const handleLoadTasks = async (sectionId) => { try { const data = await apiCall('getTasksForSection', 'GET', { sectionID: sectionId }); state.currentTasks = data.tasks; renderTasks(data.tasks); } catch (e) { contentArea.innerHTML = `<p class="loader-container">فشل تحميل المهام.</p>`; } };
-    const handleLoadTaskDetails = async (taskId) => { try { const data = await apiCall('getTaskDetails', 'GET', { taskID: taskId }); state.currentTask = { ...state.currentTask, ...data.task, branches: data.branches }; renderTaskDetail({ task: state.currentTask, branches: state.currentTask.branches }); updateHeader(); } catch (e) { navigate('tasks', { section: state.currentSection }); } };
-    
-    const renderSections = (sections) => { if (!sections || !sections.length) { contentArea.innerHTML = `<p class="loader-container">لا توجد أقسام. قم بإضافة قسم جديد.</p>`; return; } contentArea.innerHTML = sections.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)).map(s => `<div class="section-item" data-id="${s.id}" data-name="${s.name}"><div class="item-content"><h3 class="item-name">${s.name}</h3><p class="item-stats">عدد المهام: ${s.taskCount}</p></div><div class="item-footer"><div><button class="delete-btn" data-action="delete-section"><i class="fas fa-trash-alt"></i> حذف</button></div><span class="task-footer-info"><i class="fas fa-calendar-alt"></i> ${new Date(s.createdAt).toLocaleDateString('ar-EG')}</span></div></div>`).join(''); };
-    const renderTaskFooter = (task) => { if (task.type === 'TimeLimited' && task.startDate && task.endDate) { return `<span class="task-footer-info" title="وقت البدء"><i class="fas fa-play" style="color:var(--green)"></i> ${new Date(task.startDate).toLocaleDateString('ar-EG')}</span><span class="task-footer-info" title="وقت الإنتهاء"><i class="fas fa-stop" style="color:var(--red)"></i> ${new Date(task.endDate).toLocaleDateString('ar-EG')}</span>`; } return `<span class="task-footer-info"><i class="fas fa-calendar-alt"></i> ${new Date(task.createdAt).toLocaleDateString('ar-EG')}</span>`; };
-    const renderTasks = (tasks) => { if (!tasks || !tasks.length) { contentArea.innerHTML = `<p class="loader-container">لا توجد مهام في هذا القسم.</p>`; return; } contentArea.innerHTML = tasks.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)).map(t => `<div class="task-item" data-json='${JSON.stringify(t)}'><div class="item-content"><div class="task-item-header"><h3 class="item-name">${t.name}</h3><i class="fas ${t.type === 'TimeLimited' ? 'fa-clock' : 'fa-check-double'} task-type-icon" title="${t.type === 'TimeLimited' ? 'مهمة بوقت' : 'مهمة قياسية'}"></i></div><div class="progress-label"><span>نسبة الإنجاز</span><span>${t.completion}%</span></div><div class="progress-bar-bg"><div class="progress-bar-fg" style="background-color: var(--${t.completion > 80 ? 'green' : t.completion > 40 ? 'orange' : 'red'}); width: ${t.completion}%;"></div></div></div><div class="item-footer"><div><button class="delete-btn" data-action="delete-task"><i class="fas fa-trash-alt"></i> حذف</button></div><div style="display:flex; gap: 1rem;">${renderTaskFooter(t)}</div></div></div>`).join(''); };
-    const renderTaskDetail = (data) => {
-        let meta = `<div><i class="fas fa-info-circle"></i> نوع: ${data.task.type === 'TimeLimited' ? 'محدد بوقت' : 'قياسي'} | <i class="fas ${data.task.status !== 'Open' ? 'fa-lock' : 'fa-lock-open'}"></i> الحالة: <span style="font-weight:bold; color:var(--${data.task.status !== 'Open' ? 'red' : 'green'});">${data.task.status !== 'Open' ? 'مغلقة' : 'مفتوحة'}</span></div>`;
-        if (data.task.type === 'TimeLimited') { meta += `<div style="margin-top:0.5rem;"><i class="fas fa-play" style="color:var(--green)"></i> يبدأ في: ${new Date(data.task.startDate).toLocaleString('ar-EG', {dateStyle: 'short', timeStyle: 'short'})} | <i class="fas fa-stop" style="color:var(--red)"></i> ينتهي في: ${new Date(data.task.endDate).toLocaleString('ar-EG', {dateStyle: 'short', timeStyle: 'short'})}</div>`; }
-        contentArea.innerHTML = `<div class="task-detail-header"><p class="task-meta">${meta}</p></div><div class="grid-container" id="branchGrid">${!data.branches || !data.branches.length ? `<p class="loader-container">لم يتم تحديد فروع لهذه المهمة.</p>` : data.branches.map(b => `<div class="branch-card"><div class="item-name">${b.name}</div><div class="status-radio-group" data-branch-id="${b.id}" data-task-id="${data.task.id}"><input type="radio" id="pending-${b.id}" name="status-${b.id}" value="pending" ${b.status === 'pending' ? 'checked' : ''} ${data.task.status !== 'Open' ? 'disabled' : ''}><label for="pending-${b.id}">لم يتم</label><input type="radio" id="done-${b.id}" name="status-${b.id}" value="done" ${b.status === 'done' || b.status === 'late-done' ? 'checked' : ''} ${data.task.status !== 'Open' ? 'disabled' : ''}><label for="done-${b.id}" class="${b.status === 'late-done' ? 'late-done-label': ''}">${b.status === 'late-done' ? 'تم (متأخر)' : 'تم'}</label></div></div>`).join('')}</div>`;
-    };
-
-    // --- EVENT HANDLING & UI COMPONENTS ---
-    const handleContentClick = (e) => { const section = e.target.closest('.section-item'), task = e.target.closest('.task-item'), actionBtn = e.target.closest('[data-action]'); if (actionBtn) { const action = actionBtn.dataset.action; if (action === 'delete-section') { if (confirm('هل أنت متأكد من حذف هذا القسم وكل مهامه؟')) apiCall('deleteSection', 'POST', { sectionID: section.dataset.id }).then(render); } if (action === 'delete-task') { if (confirm('هل أنت متأكد من حذف هذه المهمة؟')) apiCall('deleteTask', 'POST', { taskID: JSON.parse(task.dataset.json).id }).then(render); } return; } if (task) navigate('taskDetail', { task: JSON.parse(task.dataset.json) }); else if (section) navigate('tasks', { section: { id: section.dataset.id, name: section.dataset.name } }); };
-    const handleHeaderClick = async (e) => { const targetId = e.target.closest('button')?.id; if (!targetId) { if (e.target.closest('.back-btn')) navigate(state.view === 'taskDetail' ? 'tasks' : 'sections', { section: state.currentSection }); return; } const actions = { addSectionBtn: () => sectionModal.classList.remove('hidden'), addTaskBtn: async () => { if (state.allBranches.length === 0) { try { state.allBranches = (await apiCall('getBranches')).branches; } catch(e) {} } renderSearchableList(document.getElementById('addTaskBranchList'), state.allBranches, []); resetAddTaskModal(); addTaskModal.classList.remove('hidden'); }, toggleTaskStatusBtn: () => { const newStatus = e.target.closest('button').dataset.newStatus; if (confirm(`هل أنت متأكد من ${newStatus === 'Closed' ? 'إغلاق' : 'فتح'} هذه المهمة؟`)) apiCall('updateTaskStatus', 'POST', { taskID: state.currentTask.id, newStatus }).then(() => handleLoadTaskDetails(state.currentTask.id)); }, editTaskBtn: () => { editTaskModal.querySelector('#editTaskNameInput').value = state.currentTask.name; editTaskModal.querySelector('#editTaskStartDateInput').value = formatDateForInput(state.currentTask.startDate); editTaskModal.querySelector('#editTaskEndDateInput').value = formatDateForInput(state.currentTask.endDate); editTaskModal.classList.remove('hidden'); }, sectionReportBtn: () => dateRangeModal.classList.remove('hidden'), taskReportBtn: () => generateAndShowReport('task', { taskId: state.currentTask.id }), branchReportModalBtn: async () => { if (state.allBranches.length === 0) { try { state.allBranches = (await apiCall('getBranches')).branches; } catch(e) {} } renderSearchableList(document.getElementById('branchReportBranchList'), state.allBranches, []); branchReportModal.classList.remove('hidden'); } }; if (actions[targetId]) actions[targetId](); };
-    const handleStatusChange = async (e) => { if (e.target.name.startsWith('status-')) { const group = e.target.closest('.status-radio-group'); const { taskId, branchId } = group.dataset; try { const res = await apiCall('updateStatus', 'POST', { taskID: taskId, branchID: branchId, newStatus: e.target.value }); const branchToUpdate = state.currentTask.branches.find(b => b.id === branchId); if (branchToUpdate) { branchToUpdate.status = res.actualStatus; branchToUpdate.updatedAt = res.updatedAt; } renderTaskDetail({ task: state.currentTask, branches: state.currentTask.branches }); showNotification('تم تحديث الحالة بنجاح.', false); } catch (error) { showNotification('فشل تحديث الحالة.', true); handleLoadTaskDetails(taskId); } } };
-    
-    function renderSearchableList(container, items, selectedIds = []) {
-        container.innerHTML = `<input type="text" class="search-input" placeholder="ابحث..."><div class="searchable-list-header"><label class="searchable-list-item" style="padding: 0; cursor: pointer;"><input type="checkbox" class="select-all"><div class="custom-checkbox"><i class="fas fa-check"></i></div><span>اختيار الكل</span></label><span class="selection-count">0/${items.length} محدد</span></div><div class="searchable-list"></div>`;
-        const searchInput = container.querySelector('.search-input'); const listEl = container.querySelector('.searchable-list'); const selectAllCb = container.querySelector('.select-all'); const countEl = container.querySelector('.selection-count'); let currentSelected = [...selectedIds];
-        const updateList = () => { const query = searchInput.value.toLowerCase(); const filteredItems = items.filter(item => item.name.toLowerCase().includes(query)); listEl.innerHTML = filteredItems.map(item => `<label class="searchable-list-item"><input type="checkbox" name="branch" value="${item.id}" ${currentSelected.includes(item.id) ? 'checked' : ''}><div class="custom-checkbox"><i class="fas fa-check"></i></div><span>${item.name}</span></label>`).join(''); updateCount(); };
-        const updateCount = () => { currentSelected = Array.from(container.querySelectorAll('input[name="branch"]:checked')).map(cb => cb.value); countEl.textContent = `${currentSelected.length}/${items.length} محدد`; selectAllCb.checked = currentSelected.length > 0 && currentSelected.length === items.length; Array.from(listEl.children).forEach(child => { const cb = child.querySelector('input'); if(cb) child.classList.toggle('selected', cb.checked); }); };
-        container.addEventListener('change', e => { if (e.target.matches('input[name="branch"]')) { updateCount(); } }); searchInput.addEventListener('input', updateList);
-        selectAllCb.addEventListener('change', () => { const allVisibleCheckboxes = listEl.querySelectorAll('input[type="checkbox"]'); allVisibleCheckboxes.forEach(cb => cb.checked = selectAllCb.checked); updateCount(); });
-        updateList();
-    }
-    
-    // --- REPORTING ---
-    const renderReportTemplate = (data, type, options) => {
-        const statusMap = { 'done': 'تم', 'late-done': 'تم (متأخر)', 'pending': 'لم يتم' };
-        const statusClassMap = { 'done': 'done', 'late-done': 'late-done', 'pending': 'pending' };
-        let kpiGrid = '', tableHead = '', tableBody = '', chartData, chartLabels;
-        const chartColors = ['#22c55e', '#f97316', '#ef4444'];
         
-        if (state.currentChart) { state.currentChart.destroy(); }
-
-        if (type === 'section') {
-            const o = data.report.overall;
-            document.getElementById('report-title').innerText = `تقرير القسم: ${data.section.name}`;
-            document.getElementById('report-subtitle').innerText = `الفترة من ${new Date(options.startDate).toLocaleDateString('ar-EG')} إلى ${new Date(options.endDate).toLocaleDateString('ar-EG')}`;
-            kpiGrid = `<div class="report-kpi"><span class="report-kpi-value">${o.totalTasks}</span><span class="report-kpi-label">إجمالي المهام</span></div><div class="report-kpi"><span class="report-kpi-value" style="color:var(--green);">${o.done}</span><span class="report-kpi-label">تم بالموعد</span></div><div class="report-kpi"><span class="report-kpi-value" style="color:var(--orange);">${o.lateDone}</span><span class="report-kpi-label">تم (متأخر)</span></div><div class="report-kpi"><span class="report-kpi-value" style="color:var(--red);">${o.pending}</span><span class="report-kpi-label">لم يتم</span></div>`;
-            tableHead = `<tr><th>اسم المهمة</th><th>تاريخ الإنشاء</th><th>تم</th><th>متأخر</th><th>لم يتم</th></tr>`;
-            tableBody = data.report.tasks.map(t => `<tr><td>${t.name}</td><td>${new Date(t.createdAt).toLocaleDateString('ar-EG')}</td><td>${t.stats.done}</td><td>${t.stats.lateDone}</td><td>${t.stats.pending}</td></tr>`).join('');
-            chartLabels = ['تم بالموعد', 'تم (متأخر)', 'لم يتم']; chartData = [o.done, o.lateDone, o.pending];
-        } else if (type === 'task') {
-            const stats = data.branches.reduce((acc, b) => { acc[b.status] = (acc[b.status] || 0) + 1; return acc; }, {});
-            const done = stats['done'] || 0, lateDone = stats['late-done'] || 0, pending = stats['pending'] || 0;
-            document.getElementById('report-title').innerText = `تقرير المهمة: ${data.task.name}`;
-            document.getElementById('report-subtitle').innerText = `النوع: ${data.task.type === 'TimeLimited' ? 'محدد بوقت' : 'قياسي'}`;
-            kpiGrid = `<div class="report-kpi"><span class="report-kpi-value">${data.branches.length}</span><span class="report-kpi-label">إجمالي الفروع</span></div><div class="report-kpi"><span class="report-kpi-value" style="color:var(--green);">${done}</span><span class="report-kpi-label">تم بالموعد</span></div><div class="report-kpi"><span class="report-kpi-value" style="color:var(--orange);">${lateDone}</span><span class="report-kpi-label">تم (متأخر)</span></div><div class="report-kpi"><span class="report-kpi-value" style="color:var(--red);">${pending}</span><span class="report-kpi-label">لم يتم</span></div>`;
-            chartLabels = ['تم بالموعد', 'تم (متأخر)', 'لم يتم']; chartData = [done, lateDone, pending];
-
-            if (data.task.type === 'TimeLimited') {
-                const rankedBranches = data.branches.map(b => ({ ...b, responseTime: (b.status === 'done' || b.status === 'late-done') && b.updatedAt && data.task.startDate ? new Date(b.updatedAt) - new Date(data.task.startDate) : Infinity })).sort((a, b) => a.responseTime - b.responseTime);
-                const slowestTime = rankedBranches.find(b => b.responseTime !== Infinity)?.responseTime;
-                tableHead = `<tr><th>الترتيب</th><th>اسم الفرع</th><th>الحالة</th><th>زمن الاستجابة</th></tr>`;
-                tableBody = rankedBranches.map((b, index) => { let rankClass = b.responseTime !== Infinity && index === 0 ? 'rank-1' : ''; if (b.responseTime !== Infinity && b.responseTime === slowestTime && rankedBranches.length > 1) rankClass = 'rank-slowest'; return `<tr><td><span class="rank-badge ${rankClass}">${b.responseTime !== Infinity ? index + 1 : '-'}</span></td><td>${b.name}</td><td><span class="report-status ${statusClassMap[b.status]}">${statusMap[b.status]}</span></td><td>${formatDuration(b.responseTime === Infinity ? null : b.responseTime)}</td></tr>`; }).join('');
-            } else { tableHead = `<tr><th>اسم الفرع</th><th>الحالة</th></tr>`; tableBody = data.branches.map(b => `<tr><td>${b.name}</td><td><span class="report-status ${statusClassMap[b.status]}">${statusMap[b.status]}</span></td></tr>`).join(''); }
-        } else if (type === 'branch') {
-            const o = data.combined;
-            const branchNames = data.branches.map(b => b.name).join(', ');
-            document.getElementById('report-title').innerText = `تقرير أداء الفروع`;
-            document.getElementById('report-subtitle').innerText = `الفروع: ${branchNames.substring(0, 50)}${branchNames.length > 50 ? '...' : ''}`;
-            kpiGrid = `<div class="report-kpi"><span class="report-kpi-value">${o.totalTasks}</span><span class="report-kpi-label">مهام مسندة</span></div><div class="report-kpi"><span class="report-kpi-value" style="color:var(--green);">${o.onTimeRate}%</span><span class="report-kpi-label">الإنجاز بالموعد</span></div><div class="report-kpi"><span class="report-kpi-value" style="color:var(--blue);">${formatDuration(o.avgResponseTime)}</span><span class="report-kpi-label">متوسط الاستجابة</span></div><div class="report-kpi"><span class="report-kpi-value" style="color:var(--red);">${o.pending}</span><span class="report-kpi-label">قيد الانتظار</span></div>`;
-            tableHead = ``;
-            tableBody = data.branches.map(b => `<div class="branch-report-breakdown"><h3>${b.name}</h3><table class="report-table" style="width:100%;"><tr><th>تم بالموعد</th><th>متأخر</th><th>قيد الانتظار</th><th>إجمالي المهام</th></tr><tr><td>${b.done}</td><td>${b.lateDone}</td><td>${b.pending}</td><td>${b.totalTasks}</td></tr></table></div>`).join('');
-            chartLabels = ['تم بالموعد', 'تم (متأخر)', 'لم يتم']; chartData = [o.done, o.lateDone, o.pending];
+        // --- ACTION HANDLERS (Communicate with Backend) ---
+        async function handleAction(action, params, successMessage) {
+            document.getElementById('loader').style.display = 'flex';
+            try {
+                await callAppsScript(action, params);
+                if (successMessage) alert(successMessage);
+                // Simple reload to refresh all data.
+                location.reload();
+            } catch (error) {
+                alert(`An error occurred: ${error.message}`);
+                document.getElementById('loader').style.display = 'none';
+            }
         }
-        document.getElementById('report-kpi-grid').innerHTML = kpiGrid;
-        document.getElementById('report-table-container').innerHTML = `<table class="report-table" style="width: 100%; border-collapse: collapse;"><thead id="report-table-head">${tableHead}</thead><tbody id="report-table-body">${tableBody}</tbody></table>`;
-        document.getElementById('report-date').innerText = new Date().toLocaleString('ar-EG');
         
-        const ctx = document.getElementById('reportChart').getContext('2d');
-        state.currentChart = new Chart(ctx, { type: 'pie', data: { labels: chartLabels, datasets: [{ data: chartData, backgroundColor: chartColors, borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: {font: { family: "'Tajawal', sans-serif" }} } } } });
-    };
+        function handleCompletionToggle(assignmentId, isDone) {
+            // Optimistic update for better UX, then reload on error if needed
+            const task = allData.tasks.find(t => t.assignmentId === assignmentId);
+            const originalStatus = task.completionStatus;
+            task.completionStatus = isDone ? "Done" : "Not Yet";
+            renderTaskTable(); // Re-render immediately
 
-    const generateAndShowReport = async (type, options) => {
-        showLoader('جاري إنشاء التقرير...');
-        const reportWrapper = document.getElementById('reportTemplateWrapper');
-        try {
-            let data;
-            if(type === 'task') data = await apiCall('getTaskDetails', 'GET', { taskID: options.taskId });
-            else if(type === 'section') data = await apiCall('getSectionReportDetails', 'GET', { sectionID: options.sectionId, startDate: options.startDate, endDate: options.endDate });
-            else if(type === 'branch') data = await apiCall('getBranchReportDetails', 'GET', { branchIDs: options.branchIds, startDate: options.startDate, endDate: options.endDate });
+            callAppsScript('updateCompletionStatus', { assignmentId, isDone })
+                .catch(error => {
+                    alert(`Failed to update status: ${error.message}`);
+                    task.completionStatus = originalStatus; // Revert on failure
+                    renderTaskTable();
+                });
+        }
+        
+        function handleTaskStatusChange(assignmentId, newStatus) {
+            handleAction('updateTaskStatus', { assignmentId, newStatus }, `Task status updated to ${newStatus}.`);
+        }
+
+        function handleNewTaskSubmit() {
+            const form = document.getElementById('new-task-form');
+            if (!form.checkValidity()) { form.reportValidity(); return; }
+            const checkedBoxes = document.querySelectorAll('#assign-branch-checklist input:checked');
+            if (checkedBoxes.length === 0) { alert('Please select at least one branch.'); return; }
+
+            const taskData = {
+                title: document.getElementById('task-title').value,
+                description: document.getElementById('task-description').value,
+                taskType: document.getElementById('task-type').value,
+                timePeriod: document.getElementById('task-time-period').value,
+                assignedBySectionId: document.getElementById('assign-section-select').value,
+                branchIds: Array.from(checkedBoxes).map(cb => cb.value)
+            };
+            handleAction('assignNewTask', { taskData }, 'Task(s) assigned successfully!');
+        }
+
+        function handleAddSection(e) {
+            e.preventDefault();
+            const sectionName = document.getElementById('new-section-name').value;
+            handleAction('addSection', { sectionName }, 'Section added successfully.');
+        }
+
+        function handleAddBranch(e) {
+            e.preventDefault();
+            const branchData = {
+                branchName: document.getElementById('new-branch-name').value,
+                sectionId: document.getElementById('branch-section-select').value
+            };
+            handleAction('addBranch', { branchData }, 'Branch added successfully.');
+        }
+        
+        async function handleGenerateReport() {
+            const reportType = document.getElementById('report-type').value;
+            const itemId = document.getElementById('report-item').value;
+            if ((reportType === 'Section' || reportType === 'Branch') && !itemId) {
+                alert('Please select an item to report on.'); return;
+            }
             
-            renderReportTemplate(data, type, options);
-            reportWrapper.classList.remove('hidden');
-            await new Promise(resolve => setTimeout(resolve, 100)); // Allow chart to render
-            const canvas = await html2canvas(document.getElementById('reportTemplateContainer'), { scale: 2, useCORS: true });
-            state.reportImageData = canvas.toDataURL('image/jpeg', 0.95);
-            state.reportFileName = `report-${type}-${new Date().toISOString().split('T')[0]}.jpg`;
-            document.getElementById('reportPreviewImage').src = state.reportImageData;
-            reportPreviewModal.classList.remove('hidden');
-        } catch (e) { showNotification('فشل إنشاء التقرير. ' + e.message, true); render(); } 
-        finally { reportWrapper.classList.add('hidden'); }
-    };
-
-    // --- INITIALIZATION ---
-    const initializeApp = () => {
-        document.getElementById('confirmAddTaskBtn').addEventListener('click', async () => { const taskName = document.getElementById('newTaskNameInput').value.trim(); if (state.currentTasks.some(t => t.name.trim().toLowerCase() === taskName.toLowerCase())) { return showNotification('يوجد مهمة بنفس الاسم في هذا القسم.', true); } const taskType = document.querySelector('input[name="taskType"]:checked').value; const durationHours = document.getElementById('taskDurationInput').value; const selectedBranches = Array.from(document.querySelectorAll('#addTaskBranchList input[name="branch"]:checked')).map(cb => cb.value); if (!taskName || !selectedBranches.length) return showNotification('اسم المهمة واختيار فرع واحد على الأقل مطلوبان.', true); if (taskType === 'TimeLimited' && (!durationHours || durationHours <= 0)) return showNotification('يجب تحديد مدة المهمة بالساعات.', true); try { await apiCall('createTask', 'POST', { sectionID: state.currentSection.id, taskName, taskType, durationHours, BranchIDs: selectedBranches }); addTaskModal.classList.add('hidden'); render(); } catch (e) {} });
-        document.getElementById('confirmEditTaskBtn').addEventListener('click', async () => { const taskName = document.getElementById('editTaskNameInput').value.trim(); const startDate = document.getElementById('editTaskStartDateInput').value; const endDate = document.getElementById('editTaskEndDateInput').value; if (!taskName || !startDate || !endDate) return showNotification('جميع الحقول مطلوبة.', true); try { await apiCall('updateTask', 'POST', { taskID: state.currentTask.id, taskName, startDate, endDate }); editTaskModal.classList.add('hidden'); showNotification('تم تحديث المهمة بنجاح', false); handleLoadTaskDetails(state.currentTask.id); } catch (e) {} });
-        document.getElementById('confirmAddSectionBtn').addEventListener('click', () => { const name = document.getElementById('sectionNameInput').value.trim(); if (!name) return showNotification('اسم القسم مطلوب.', true); apiCall('createSection', 'POST', { sectionName: name }).then(() => { sectionModal.classList.add('hidden'); render(); }); });
-        document.getElementById('generateSectionReportBtn').addEventListener('click', () => { const s = document.getElementById('reportStartDate').value, e = document.getElementById('reportEndDate').value; if (!s || !e) return showNotification('الرجاء تحديد تاريخ البدء والانتهاء.', true); dateRangeModal.classList.add('hidden'); generateAndShowReport('section', { sectionId: state.currentSection.id, startDate: s, endDate: e }); });
-        document.getElementById('generateBranchReportBtn').addEventListener('click', () => { const s = document.getElementById('branchReportStartDate').value, e = document.getElementById('branchReportEndDate').value; const b = Array.from(document.querySelectorAll('#branchReportBranchList input[name="branch"]:checked')).map(cb => cb.value); if (b.length === 0 || !s || !e) return showNotification('الرجاء اختيار فرع واحد على الأقل وتحديد التواريخ.', true); branchReportModal.classList.add('hidden'); generateAndShowReport('branch', { branchIds: b, startDate: s, endDate: e }); });
-        document.getElementById('downloadReportImageBtn').addEventListener('click', () => { if (!state.reportImageData) return; const l = document.createElement('a'); l.href = state.reportImageData; l.download = state.reportFileName; l.click(); });
+            document.getElementById('loader').style.display = 'flex';
+            try {
+                const reportData = await callAppsScript('getReportData', { reportType, id: itemId });
+                onReportDataReceived(reportData);
+            } catch (error) {
+                alert(`Failed to generate report: ${error.message}`);
+                document.getElementById('loader').style.display = 'none';
+            }
+        }
         
-        [ 'cancelAddSectionBtn', 'cancelAddTaskBtn', 'cancelEditTaskBtn', 'cancelDateRangeBtn', 'cancelBranchReportBtn' ].forEach(id => document.getElementById(id)?.addEventListener('click', e => { e.target.closest('.modal-overlay').classList.add('hidden'); }));
-        document.getElementById('closeReportPreviewBtn').addEventListener('click', e => { e.target.closest('.modal-overlay').classList.add('hidden'); render(); });
-        
-        document.querySelector('input[name="taskType"][value="TimeLimited"]').addEventListener('change', (e) => { document.getElementById('timeLimitedFields').classList.toggle('hidden', !e.target.checked); });
-        document.querySelector('input[name="taskType"][value="Standard"]').addEventListener('change', (e) => { document.getElementById('timeLimitedFields').classList.toggle('hidden', e.target.checked); });
+        function onReportDataReceived(data) {
+            const { stats, averageResponseHours } = data;
+            // The rest of this function is identical to the previous version...
+            const reportOutput = document.getElementById('report-output');
+            const itemSelect = document.getElementById('report-item');
+            const itemName = itemSelect.disabled ? 'Company' : itemSelect.options[itemSelect.selectedIndex].text;
+            
+            document.getElementById('report-title').innerText = `Report for ${itemName}`;
+            const chartData = google.visualization.arrayToDataTable([
+              ['Status', 'Count'], ['Done', stats.done], ['Not Yet', stats.notYet]
+            ]);
+            const options = { title: 'Task Completion Status', pieHole: 0.4 };
+            const chart = new google.visualization.PieChart(document.getElementById('chart-div'));
+            chart.draw(chartData, options);
 
-        contentArea.addEventListener('click', handleContentClick);
-        contentArea.addEventListener('change', handleStatusChange);
-        headerActions.addEventListener('click', handleHeaderClick);
-        headerTitle.addEventListener('click', handleHeaderClick);
+            const statsDiv = document.getElementById('stats-div');
+            statsDiv.innerHTML = `
+                <ul class="list-group">
+                    <li class="list-group-item d-flex justify-content-between align-items-center">Total Tasks <span class="badge bg-primary rounded-pill">${stats.total}</span></li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">Tasks Open <span class="badge bg-success rounded-pill">${stats.open}</span></li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">Tasks Closed <span class="badge bg-secondary rounded-pill">${stats.closed}</span></li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center"><strong>Average Response Time</strong> <span class="badge bg-info rounded-pill">${averageResponseHours} hours</span></li>
+                </ul>`;
 
-        render();
-    };
-    initializeApp();
-});
-</script>
+            reportOutput.style.display = 'block';
+            document.getElementById('loader').style.display = 'none';
+        }
+
+        // --- The rest of the functions (rendering, event listeners, etc.) are largely unchanged ---
+        // (Copied from previous version for completeness)
+
+        function populateStaticElements() {
+            const sectionFilter = document.getElementById('filter-section');
+            allData.sections.forEach(s => sectionFilter.innerHTML += `<option value="${s.id}">${s.name}</option>`);
+            const sectionList = document.getElementById('section-list');
+            const branchSectionSelect = document.getElementById('branch-section-select');
+            const assignSectionSelect = document.getElementById('assign-section-select');
+            sectionList.innerHTML = '';
+            branchSectionSelect.innerHTML = '<option value="" disabled selected>Assign to Section...</option>';
+            assignSectionSelect.innerHTML = '<option value="" disabled selected>Select a section...</option>';
+            allData.sections.forEach(s => {
+                sectionList.innerHTML += `<li class="list-group-item">${s.name}</li>`;
+                branchSectionSelect.innerHTML += `<option value="${s.id}">${s.name}</option>`;
+                assignSectionSelect.innerHTML += `<option value="${s.id}">${s.name}</option>`;
+            });
+            const branchList = document.getElementById('branch-list');
+            branchList.innerHTML = '';
+            allData.branches.forEach(b => {
+                const sectionName = allData.sections.find(s => s.id === b.sectionId)?.name || 'N/A';
+                branchList.innerHTML += `<li class="list-group-item">${b.name} <span class="badge bg-secondary float-end">${sectionName}</span></li>`;
+            });
+        }
+        function renderTaskTable() {
+            const tableBody = document.getElementById('task-table-body');
+            tableBody.innerHTML = '';
+            const sectionFilter = document.getElementById('filter-section').value;
+            const branchFilter = document.getElementById('filter-branch').value;
+            let filteredTasks = allData.tasks;
+            if (sectionFilter !== 'all') {
+                const branchesInSection = allData.branches.filter(b => b.sectionId === sectionFilter).map(b => b.id);
+                filteredTasks = filteredTasks.filter(t => branchesInSection.includes(t.assignedToBranchId));
+            }
+            if (branchFilter !== 'all') {
+                filteredTasks = filteredTasks.filter(t => t.assignedToBranchId === branchFilter);
+            }
+            if (filteredTasks.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">No tasks found.</td></tr>`;
+                return;
+            }
+            filteredTasks.forEach(task => {
+                const branchName = allData.branches.find(b => b.id === task.assignedToBranchId)?.name || 'N/A';
+                const isChecked = task.completionStatus === 'Done';
+                const row = `
+                    <tr>
+                        <td>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" ${isChecked ? 'checked' : ''} 
+                                       onchange="handleCompletionToggle('${task.assignmentId}', this.checked)"
+                                       ${task.status === 'Closed' ? 'disabled' : ''}>
+                            </div>
+                        </td>
+                        <td>${task.title}</td>
+                        <td>${branchName}</td>
+                        <td><span class="badge ${task.status === 'Open' ? 'bg-success' : 'bg-secondary'}">${task.status}</span></td>
+                        <td>${task.assignedTimestamp}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-danger action-btn" onclick="handleTaskStatusChange('${task.assignmentId}', 'Closed')" ${task.status === 'Closed' ? 'disabled' : ''}>Close</button>
+                            <button class="btn btn-sm btn-outline-primary action-btn" onclick="handleTaskStatusChange('${task.assignmentId}', 'Open')" ${task.status !== 'Closed' ? 'disabled' : ''}>Re-Open</button>
+                        </td>
+                    </tr>`;
+                tableBody.innerHTML += row;
+            });
+        }
+        function updateBranchFilter() {
+            const sectionId = document.getElementById('filter-section').value;
+            const branchFilter = document.getElementById('filter-branch');
+            branchFilter.innerHTML = '<option value="all">All Branches</option>';
+            if(sectionId !== 'all') {
+                allData.branches.filter(b => b.sectionId === sectionId).forEach(b => {
+                    branchFilter.innerHTML += `<option value="${b.id}">${b.name}</option>`;
+                });
+            }
+            renderTaskTable();
+        }
+        function addEventListeners() {
+            document.getElementById('task-type').addEventListener('change', (e) => {
+                document.getElementById('time-period-div').style.display = e.target.value === 'Timed' ? 'block' : 'none';
+            });
+            document.getElementById('assign-section-select').addEventListener('change', (e) => {
+                const sectionId = e.target.value;
+                const checklistDiv = document.getElementById('assign-branch-checklist');
+                checklistDiv.innerHTML = '';
+                const branches = allData.branches.filter(b => b.sectionId === sectionId);
+                if(branches.length > 0) {
+                    branches.forEach(b => {
+                        checklistDiv.innerHTML += `
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="${b.id}" id="br-check-${b.id}">
+                                <label class="form-check-label" for="br-check-${b.id}">${b.name}</label>
+                            </div>`;
+                    });
+                } else {
+                    checklistDiv.innerHTML = '<small class="text-muted">No branches found for this section.</small>';
+                }
+            });
+            document.getElementById('submit-new-task').addEventListener('click', handleNewTaskSubmit);
+            document.getElementById('add-section-form').addEventListener('submit', handleAddSection);
+            document.getElementById('add-branch-form').addEventListener('submit', handleAddBranch);
+            document.getElementById('filter-section').addEventListener('change', updateBranchFilter);
+            document.getElementById('filter-branch').addEventListener('change', renderTaskTable);
+            document.getElementById('report-type').addEventListener('change', updateReportItemDropdown);
+            document.getElementById('generate-report-btn').addEventListener('click', handleGenerateReport);
+        }
+        function updateReportItemDropdown() {
+            const reportType = document.getElementById('report-type').value;
+            const itemSelect = document.getElementById('report-item');
+            itemSelect.innerHTML = '';
+            itemSelect.disabled = true;
+            if (reportType === 'Section') {
+                allData.sections.forEach(s => itemSelect.innerHTML += `<option value="${s.id}">${s.name}</option>`);
+                itemSelect.disabled = false;
+            } else if (reportType === 'Branch') {
+                allData.branches.forEach(b => itemSelect.innerHTML += `<option value="${b.id}">${b.name}</option>`);
+                itemSelect.disabled = false;
+            }
+        }
+    </script>
+</body>
 </html>
