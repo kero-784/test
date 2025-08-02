@@ -103,11 +103,14 @@
         .report-kpi { border: 1px solid #e2e8f0; border-radius: 0.5rem; padding: 1rem; text-align: center; background: #f8fafc; }
         .report-kpi-value { font-size: 1.75rem; font-weight: 800; display: block; margin-bottom: 0.25rem; }
         .report-kpi-label { font-size: 0.8rem; color: #64748b; font-weight: 500; }
-        .report-table th, .report-table td { padding: 0.75rem 1rem; text-align: right; border-bottom: 1px solid #e2e8f0; font-size: 0.9rem; }
+        .report-table th, .report-table td { padding: 0.75rem 1rem; text-align: right; border-bottom: 1px solid #e2e8f0; font-size: 0.9rem; vertical-align: middle;}
         .report-table th { background-color: #f1f5f9; font-weight: 700; }
         .report-status { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 99px; font-size: 0.75rem; font-weight: 700; color: white; }
         .report-status.done { background-color: var(--green); } .report-status.late-done { background-color: var(--orange); }
         .report-status.pending { background-color: var(--red); } .report-status.not-required { background-color: var(--gray); }
+        .rank-badge { display: inline-block; width: 24px; height: 24px; line-height: 24px; text-align: center; border-radius: 50%; color: white; font-weight: bold; font-size: 0.8rem; margin-left: 8px; }
+        .rank-1 { background-color: var(--green); } .rank-2 { background-color: #60a5fa; } .rank-3 { background-color: var(--orange); }
+        .rank-slowest { background-color: var(--red); }
     </style>
 </head>
 <body>
@@ -129,7 +132,7 @@
 </body>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby_SSBRuS0stOCdfOpFpSwDOlOoucvL9D52cYgHy85ZZN2av5k-k9ppgUZCKQ0T3derHQ/exec';
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxGZ3IrLt3Z4rv3OEHIdy41SDh7Rg44UqdVTFjmTqjA2EAP_lkZUlpgVSfDGll223r3wg/exec';
 
     const contentArea = document.getElementById('contentArea'), headerTitle = document.getElementById('headerTitle'), headerActions = document.getElementById('headerActions');
     const sectionModal = document.getElementById('sectionModal'), addTaskModal = document.getElementById('addTaskModal'), editTaskModal = document.getElementById('editTaskModal'), dateRangeModal = document.getElementById('dateRangeModal'), branchReportModal = document.getElementById('branchReportModal'), reportPreviewModal = document.getElementById('reportPreviewModal');
@@ -139,7 +142,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const apiCall = async (action, method = 'GET', body = null) => { try { const url = new URL(SCRIPT_URL); const options = { method, redirect: 'follow', muteHttpExceptions: true }; if (method === 'POST') options.body = JSON.stringify({ action, ...body }); else { url.searchParams.append('action', action); if (body) Object.keys(body).forEach(key => url.searchParams.append(key, body[key])); } const response = await fetch(url, options); const data = await response.json(); if (!data.success) throw new Error(data.message || 'Unknown API error'); return data; } catch (error) { showNotification(error.message, true); throw error; } };
     const showNotification = (message, isError = true) => { const n = document.createElement('div'); n.className = `notification ${isError ? 'error' : 'success'}`; n.innerHTML = `<i class="fas ${isError ? 'fa-exclamation-circle' : 'fa-check-circle'}"></i><span>${message}</span>`; document.getElementById('notification-container').appendChild(n); setTimeout(() => n.remove(), 4000); };
     const showLoader = (message = 'جاري التحميل...') => { contentArea.innerHTML = `<div class="loader-container"><i class="fas fa-spinner"></i><p>${message}</p></div>`; };
-    const formatDuration = (ms) => { if (!ms || ms < 0 || isNaN(ms)) return '-'; const d = Math.floor(ms / (1000 * 60 * 60 * 24)); const h = Math.floor((ms % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)); const m = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60)); let str = ''; if (d > 0) str += `${d}ي `; if (h > 0) str += `${h}س `; if (m > 0 || str === '') str += `${m}د`; return str.trim() || '0د'; };
+    const formatDuration = (ms) => { if (ms === null || ms < 0 || isNaN(ms)) return '-'; const d = Math.floor(ms / (1000 * 60 * 60 * 24)); const h = Math.floor((ms % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)); const m = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60)); let str = ''; if (d > 0) str += `${d}ي `; if (h > 0) str += `${h}س `; if (m > 0 || str === '') str += `${m}د`; return str.trim() || '0د'; };
     const resetAddTaskModal = () => { addTaskModal.querySelector('#newTaskNameInput').value = ''; addTaskModal.querySelector('#taskTypeStandard').checked = true; document.getElementById('timeLimitedFields').classList.add('hidden'); addTaskModal.querySelector('#taskStartDateInput').value = ''; addTaskModal.querySelector('#taskEndDateInput').value = ''; Array.from(addTaskModal.querySelectorAll('input[name="branch"]')).forEach(cb => cb.checked = false); };
     const formatDateForInput = (isoString) => { if (!isoString) return ''; const date = new Date(isoString); const pad = (num) => num.toString().padStart(2, '0'); return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`; };
 
@@ -177,7 +180,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const handleLoadSections = async () => { try { const data = await apiCall('getSections'); renderSections(data.sections); } catch (e) { contentArea.innerHTML = `<p class="loader-container">فشل تحميل الأقسام. يرجى إعادة تحميل الصفحة.</p>`; } };
     const handleLoadTasks = async (sectionId) => { try { const data = await apiCall('getTasksForSection', 'GET', { sectionID: sectionId }); state.currentTasks = data.tasks; renderTasks(data.tasks); } catch (e) { contentArea.innerHTML = `<p class="loader-container">فشل تحميل المهام.</p>`; } };
-    const handleLoadTaskDetails = async (taskId) => { try { const data = await apiCall('getTaskDetails', 'GET', { taskID: taskId }); state.currentTask = { ...state.currentTask, ...data.task, branches: data.branches }; renderTaskDetail(data); updateHeader(); } catch (e) { navigate('tasks', { section: state.currentSection }); } };
+    const handleLoadTaskDetails = async (taskId) => { try { const data = await apiCall('getTaskDetails', 'GET', { taskID: taskId }); state.currentTask = { ...state.currentTask, ...data.task, branches: data.branches }; renderTaskDetail({ task: state.currentTask, branches: state.currentTask.branches }); updateHeader(); } catch (e) { navigate('tasks', { section: state.currentSection }); } };
     
     const renderSections = (sections) => { if (!sections || !sections.length) { contentArea.innerHTML = `<p class="loader-container">لا توجد أقسام. قم بإضافة قسم جديد.</p>`; return; } contentArea.innerHTML = sections.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)).map(s => `<div class="section-item" data-id="${s.id}" data-name="${s.name}"><div class="item-content"><h3 class="item-name">${s.name}</h3><p class="item-stats">عدد المهام: ${s.taskCount}</p></div><div class="item-footer"><div><button class="delete-btn" data-action="delete-section"><i class="fas fa-trash-alt"></i> حذف</button></div><span class="task-footer-info"><i class="fas fa-calendar-alt"></i> ${new Date(s.createdAt).toLocaleDateString('ar-EG')}</span></div></div>`).join(''); };
     const renderTaskFooter = (task) => { if (task.type === 'TimeLimited' && task.startDate && task.endDate) { return `<span class="task-footer-info" title="وقت البدء"><i class="fas fa-play" style="color:var(--green)"></i> ${new Date(task.startDate).toLocaleDateString('ar-EG')}</span><span class="task-footer-info" title="وقت الإنتهاء"><i class="fas fa-stop" style="color:var(--red)"></i> ${new Date(task.endDate).toLocaleDateString('ar-EG')}</span>`; } return `<span class="task-footer-info"><i class="fas fa-calendar-alt"></i> ${new Date(task.createdAt).toLocaleDateString('ar-EG')}</span>`; };
@@ -190,39 +193,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- EVENT HANDLING ---
     const handleContentClick = (e) => { const section = e.target.closest('.section-item'), task = e.target.closest('.task-item'), actionBtn = e.target.closest('[data-action]'); if (actionBtn) { const action = actionBtn.dataset.action; if (action === 'delete-section') { if (confirm('هل أنت متأكد من حذف هذا القسم وكل مهامه؟')) apiCall('deleteSection', 'POST', { sectionID: section.dataset.id }).then(render); } if (action === 'delete-task') { if (confirm('هل أنت متأكد من حذف هذه المهمة؟')) apiCall('deleteTask', 'POST', { taskID: JSON.parse(task.dataset.json).id }).then(render); } return; } if (task) navigate('taskDetail', { task: JSON.parse(task.dataset.json) }); else if (section) navigate('tasks', { section: { id: section.dataset.id, name: section.dataset.name } }); };
-    const handleHeaderClick = async (e) => {
-        const targetId = e.target.closest('button')?.id;
-        if (!targetId) { if (e.target.closest('.back-btn')) navigate(state.view === 'taskDetail' ? 'tasks' : 'sections', { section: state.currentSection }); return; }
-        const actions = {
-            addSectionBtn: () => sectionModal.classList.remove('hidden'),
-            addTaskBtn: async () => { resetAddTaskModal(); const bc = document.getElementById('branchSelectionContainer'); bc.innerHTML = '<p>جاري تحميل الفروع...</p>'; addTaskModal.classList.remove('hidden'); if (state.allBranches.length === 0) { try { state.allBranches = (await apiCall('getBranches')).branches; } catch(e) {} } bc.innerHTML = state.allBranches.length > 0 ? state.allBranches.map(b => `<label class="branch-checkbox-item"><span>${b.name}</span><input type="checkbox" name="branch" value="${b.id}"></label>`).join('') : '<p>فشل تحميل الفروع.</p>'; },
-            toggleTaskStatusBtn: () => { const newStatus = e.target.closest('button').dataset.newStatus; if (confirm(`هل أنت متأكد من ${newStatus === 'Closed' ? 'إغلاق' : 'فتح'} هذه المهمة؟`)) apiCall('updateTaskStatus', 'POST', { taskID: state.currentTask.id, newStatus }).then(() => handleLoadTaskDetails(state.currentTask.id)); },
-            editTaskBtn: () => { editTaskModal.querySelector('#editTaskNameInput').value = state.currentTask.name; editTaskModal.querySelector('#editTaskStartDateInput').value = formatDateForInput(state.currentTask.startDate); editTaskModal.querySelector('#editTaskEndDateInput').value = formatDateForInput(state.currentTask.endDate); editTaskModal.classList.remove('hidden'); },
-            sectionReportBtn: () => dateRangeModal.classList.remove('hidden'),
-            taskReportBtn: () => generateAndShowReport('task', { taskId: state.currentTask.id }),
-            branchReportModalBtn: async () => { const select = document.getElementById('branchReportSelect'); select.innerHTML = '<option>جاري تحميل الفروع...</option>'; branchReportModal.classList.remove('hidden'); if (state.allBranches.length === 0) { try { state.allBranches = (await apiCall('getBranches')).branches; } catch(e) {} } select.innerHTML = state.allBranches.length > 0 ? state.allBranches.map(b => `<option value="${b.id}">${b.name}</option>`).join('') : '<option>فشل تحميل الفروع</option>'; }
-        };
-        if (actions[targetId]) actions[targetId]();
-    };
-    const handleStatusChange = async (e) => {
-        if (e.target.name.startsWith('status-')) {
-            const group = e.target.closest('.status-radio-group');
-            const { taskId, branchId } = group.dataset;
-            try {
-                const res = await apiCall('updateStatus', 'POST', { taskID: taskId, branchID: branchId, newStatus: e.target.value });
-                const branchToUpdate = state.currentTask.branches.find(b => b.id === branchId);
-                if (branchToUpdate) {
-                    branchToUpdate.status = res.actualStatus;
-                    branchToUpdate.updatedAt = res.updatedAt;
-                }
-                renderTaskDetail({ task: state.currentTask, branches: state.currentTask.branches });
-                showNotification('تم تحديث الحالة بنجاح.', false);
-            } catch (error) {
-                showNotification('فشل تحديث الحالة.', true);
-                handleLoadTaskDetails(taskId); // Re-fetch on error to ensure consistency
-            }
-        }
-    };
+    const handleHeaderClick = async (e) => { const targetId = e.target.closest('button')?.id; if (!targetId) { if (e.target.closest('.back-btn')) navigate(state.view === 'taskDetail' ? 'tasks' : 'sections', { section: state.currentSection }); return; } const actions = { addSectionBtn: () => sectionModal.classList.remove('hidden'), addTaskBtn: async () => { resetAddTaskModal(); const bc = document.getElementById('branchSelectionContainer'); bc.innerHTML = '<p>جاري تحميل الفروع...</p>'; addTaskModal.classList.remove('hidden'); if (state.allBranches.length === 0) { try { state.allBranches = (await apiCall('getBranches')).branches; } catch(e) {} } bc.innerHTML = state.allBranches.length > 0 ? state.allBranches.map(b => `<label class="branch-checkbox-item"><span>${b.name}</span><input type="checkbox" name="branch" value="${b.id}"></label>`).join('') : '<p>فشل تحميل الفروع.</p>'; }, toggleTaskStatusBtn: () => { const newStatus = e.target.closest('button').dataset.newStatus; if (confirm(`هل أنت متأكد من ${newStatus === 'Closed' ? 'إغلاق' : 'فتح'} هذه المهمة؟`)) apiCall('updateTaskStatus', 'POST', { taskID: state.currentTask.id, newStatus }).then(() => handleLoadTaskDetails(state.currentTask.id)); }, editTaskBtn: () => { editTaskModal.querySelector('#editTaskNameInput').value = state.currentTask.name; editTaskModal.querySelector('#editTaskStartDateInput').value = formatDateForInput(state.currentTask.startDate); editTaskModal.querySelector('#editTaskEndDateInput').value = formatDateForInput(state.currentTask.endDate); editTaskModal.classList.remove('hidden'); }, sectionReportBtn: () => dateRangeModal.classList.remove('hidden'), taskReportBtn: () => generateAndShowReport('task', { taskId: state.currentTask.id }), branchReportModalBtn: async () => { const select = document.getElementById('branchReportSelect'); select.innerHTML = '<option>جاري تحميل الفروع...</option>'; branchReportModal.classList.remove('hidden'); if (state.allBranches.length === 0) { try { state.allBranches = (await apiCall('getBranches')).branches; } catch(e) {} } select.innerHTML = state.allBranches.length > 0 ? state.allBranches.map(b => `<option value="${b.id}">${b.name}</option>`).join('') : '<option>فشل تحميل الفروع</option>'; } }; if (actions[targetId]) actions[targetId](); };
+    const handleStatusChange = async (e) => { if (e.target.name.startsWith('status-')) { const group = e.target.closest('.status-radio-group'); const { taskId, branchId } = group.dataset; try { const res = await apiCall('updateStatus', 'POST', { taskID: taskId, branchID: branchId, newStatus: e.target.value }); const branchToUpdate = state.currentTask.branches.find(b => b.id === branchId); if (branchToUpdate) { branchToUpdate.status = res.actualStatus; branchToUpdate.updatedAt = res.updatedAt; } renderTaskDetail({ task: state.currentTask, branches: state.currentTask.branches }); showNotification('تم تحديث الحالة بنجاح.', false); } catch (error) { showNotification('فشل تحديث الحالة.', true); handleLoadTaskDetails(taskId); } } };
     
     // --- REPORTING ---
     const renderReportTemplate = (data, type, options) => {
@@ -242,23 +214,28 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('report-subtitle').innerText = `النوع: ${data.task.type === 'TimeLimited' ? 'محدد بوقت' : 'قياسي'} | الحالة: ${data.task.status === 'Open' ? 'مفتوحة' : 'مغلقة'}`;
             const stats = data.branches.reduce((acc, b) => { acc[b.status] = (acc[b.status] || 0) + 1; return acc; }, {});
             kpiGrid = `<div class="report-kpi"><span class="report-kpi-value">${data.branches.length}</span><span class="report-kpi-label">إجمالي الفروع</span></div><div class="report-kpi"><span class="report-kpi-value" style="color:var(--green);">${stats['done'] || 0}</span><span class="report-kpi-label">تم بالموعد</span></div><div class="report-kpi"><span class="report-kpi-value" style="color:var(--orange);">${stats['late-done'] || 0}</span><span class="report-kpi-label">تم (متأخر)</span></div><div class="report-kpi"><span class="report-kpi-value" style="color:var(--red);">${stats['pending'] || 0}</span><span class="report-kpi-label">لم يتم</span></div>`;
+            
             const isTimeLimited = data.task.type === 'TimeLimited';
-            tableHead = `<tr><th>اسم الفرع</th><th>الحالة</th>${isTimeLimited ? '<th>زمن الاستجابة</th>' : ''}</tr>`;
-            tableBody = data.branches.map(b => {
-                let responseTimeHtml = '';
-                if (isTimeLimited) {
-                    const responseTime = (b.status === 'done' || b.status === 'late-done') && b.updatedAt && data.task.startDate ? new Date(b.updatedAt) - new Date(data.task.startDate) : null;
-                    responseTimeHtml = `<td>${formatDuration(responseTime)}</td>`;
-                }
-                return `<tr><td>${b.name}</td><td><span class="report-status ${statusClassMap[b.status]}">${statusMap[b.status]}</span></td>${responseTimeHtml}</tr>`;
-            }).join('');
+            if (isTimeLimited) {
+                const rankedBranches = data.branches.map(b => ({ ...b, responseTime: (b.status === 'done' || b.status === 'late-done') && b.updatedAt && data.task.startDate ? new Date(b.updatedAt) - new Date(data.task.startDate) : Infinity })).sort((a, b) => a.responseTime - b.responseTime);
+                const slowestTime = rankedBranches.find(b => b.responseTime !== Infinity)?.responseTime;
+                tableHead = `<tr><th>الترتيب</th><th>اسم الفرع</th><th>الحالة</th><th>زمن الاستجابة</th></tr>`;
+                tableBody = rankedBranches.map((b, index) => {
+                    let rankClass = ``;
+                    if (b.responseTime !== Infinity) { if (index === 0) rankClass = 'rank-1'; else if (index === 1) rankClass = 'rank-2'; else if (index === 2) rankClass = 'rank-3'; if (b.responseTime === slowestTime && rankedBranches.length > 1) rankClass = 'rank-slowest'; }
+                    return `<tr><td><span class="rank-badge ${rankClass}">${b.responseTime !== Infinity ? index + 1 : '-'}</span></td><td>${b.name}</td><td><span class="report-status ${statusClassMap[b.status]}">${statusMap[b.status]}</span></td><td>${formatDuration(b.responseTime === Infinity ? null : b.responseTime)}</td></tr>`;
+                }).join('');
+            } else {
+                tableHead = `<tr><th>اسم الفرع</th><th>الحالة</th></tr>`;
+                tableBody = data.branches.map(b => `<tr><td>${b.name}</td><td><span class="report-status ${statusClassMap[b.status]}">${statusMap[b.status]}</span></td></tr>`).join('');
+            }
         } else if (type === 'branch') {
-            document.getElementById('report-title').innerText = `تقرير الفرع: ${data.branch.name}`;
+            document.getElementById('report-title').innerText = `تقرير أداء الفرع: ${data.branch.name}`;
             document.getElementById('report-subtitle').innerText = `الفترة من ${new Date(options.startDate).toLocaleDateString('ar-EG')} إلى ${new Date(options.endDate).toLocaleDateString('ar-EG')}`;
             const o = data.report.overall;
-            kpiGrid = `<div class="report-kpi"><span class="report-kpi-value">${o.totalTasks}</span><span class="report-kpi-label">مهام مسندة</span></div><div class="report-kpi"><span class="report-kpi-value" style="color:var(--green);">${o.done + o.lateDone}</span><span class="report-kpi-label">إجمالي المنجز</span></div><div class="report-kpi"><span class="report-kpi-value" style="color:var(--red);">${o.pending}</span><span class="report-kpi-label">قيد الانتظار</span></div><div class="report-kpi"><span class="report-kpi-value" style="color:var(--gray);">${o.notRequired}</span><span class="report-kpi-label">غير مطلوب</span></div>`;
-            tableHead = `<tr><th>اسم المهمة</th><th>القسم</th><th>تاريخ الإنشاء</th><th>الحالة</th></tr>`;
-            tableBody = data.report.tasks.map(t => `<tr><td>${t.name}</td><td>${t.sectionName}</td><td>${new Date(t.createdAt).toLocaleDateString('ar-EG')}</td><td><span class="report-status ${statusClassMap[t.status]}">${statusMap[t.status]}</span></td></tr>`).join('');
+            kpiGrid = `<div class="report-kpi"><span class="report-kpi-value">${o.totalTasks}</span><span class="report-kpi-label">مهام مسندة</span></div><div class="report-kpi"><span class="report-kpi-value" style="color:var(--green);">${o.onTimeRate}%</span><span class="report-kpi-label">الإنجاز بالموعد</span></div><div class="report-kpi"><span class="report-kpi-value" style="color:var(--blue);">${formatDuration(o.avgResponseTime)}</span><span class="report-kpi-label">متوسط الاستجابة</span></div><div class="report-kpi"><span class="report-kpi-value" style="color:var(--red);">${o.pending}</span><span class="report-kpi-label">قيد الانتظار</span></div>`;
+            tableHead = `<tr><th>المهمة</th><th>القسم</th><th>الحالة</th><th>زمن الاستجابة</th></tr>`;
+            tableBody = data.report.tasks.map(t => `<tr><td>${t.name}</td><td>${t.sectionName}</td><td><span class="report-status ${statusClassMap[t.status]}">${statusMap[t.status]}</span></td><td>${formatDuration(t.responseTime)}</td></tr>`).join('');
         }
         document.getElementById('report-kpi-grid').innerHTML = kpiGrid;
         document.getElementById('report-table-head').innerHTML = tableHead;
@@ -289,26 +266,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- INITIALIZATION ---
     const initializeApp = () => {
-        document.getElementById('confirmAddTaskBtn').addEventListener('click', async () => {
-            const taskName = document.getElementById('newTaskNameInput').value.trim();
-            if (state.currentTasks.some(t => t.name.trim().toLowerCase() === taskName.toLowerCase())) { return showNotification('يوجد مهمة بنفس الاسم في هذا القسم.', true); }
-            const taskType = document.querySelector('input[name="taskType"]:checked').value, startDate = document.getElementById('taskStartDateInput').value, endDate = document.getElementById('taskEndDateInput').value, selectedBranches = Array.from(document.querySelectorAll('input[name="branch"]:checked')).map(cb => cb.value);
-            if (!taskName || !selectedBranches.length) return showNotification('اسم المهمة واختيار فرع واحد على الأقل مطلوبان.', true);
-            if (taskType === 'TimeLimited' && (!startDate || !endDate)) return showNotification('يجب تحديد وقت البدء والانتهاء.', true);
-            try { await apiCall('createTask', 'POST', { sectionID: state.currentSection.id, taskName, taskType, startDate, endDate, BranchIDs: selectedBranches }); addTaskModal.classList.add('hidden'); render(); } catch (e) {}
-        });
-        document.getElementById('confirmEditTaskBtn').addEventListener('click', async () => {
-            const taskName = document.getElementById('editTaskNameInput').value.trim();
-            const startDate = document.getElementById('editTaskStartDateInput').value;
-            const endDate = document.getElementById('editTaskEndDateInput').value;
-            if (!taskName || !startDate || !endDate) return showNotification('جميع الحقول مطلوبة.', true);
-            try {
-                await apiCall('updateTask', 'POST', { taskID: state.currentTask.id, taskName, startDate, endDate });
-                editTaskModal.classList.add('hidden');
-                showNotification('تم تحديث المهمة بنجاح', false);
-                handleLoadTaskDetails(state.currentTask.id); // Reload to show new details
-            } catch (e) { /* notification is shown by apiCall */}
-        });
+        document.getElementById('confirmAddTaskBtn').addEventListener('click', async () => { const taskName = document.getElementById('newTaskNameInput').value.trim(); if (state.currentTasks.some(t => t.name.trim().toLowerCase() === taskName.toLowerCase())) { return showNotification('يوجد مهمة بنفس الاسم في هذا القسم.', true); } const taskType = document.querySelector('input[name="taskType"]:checked').value, startDate = document.getElementById('taskStartDateInput').value, endDate = document.getElementById('taskEndDateInput').value, selectedBranches = Array.from(document.querySelectorAll('input[name="branch"]:checked')).map(cb => cb.value); if (!taskName || !selectedBranches.length) return showNotification('اسم المهمة واختيار فرع واحد على الأقل مطلوبان.', true); if (taskType === 'TimeLimited' && (!startDate || !endDate)) return showNotification('يجب تحديد وقت البدء والانتهاء.', true); try { await apiCall('createTask', 'POST', { sectionID: state.currentSection.id, taskName, taskType, startDate, endDate, BranchIDs: selectedBranches }); addTaskModal.classList.add('hidden'); render(); } catch (e) {} });
+        document.getElementById('confirmEditTaskBtn').addEventListener('click', async () => { const taskName = document.getElementById('editTaskNameInput').value.trim(); const startDate = document.getElementById('editTaskStartDateInput').value; const endDate = document.getElementById('editTaskEndDateInput').value; if (!taskName || !startDate || !endDate) return showNotification('جميع الحقول مطلوبة.', true); try { await apiCall('updateTask', 'POST', { taskID: state.currentTask.id, taskName, startDate, endDate }); editTaskModal.classList.add('hidden'); showNotification('تم تحديث المهمة بنجاح', false); handleLoadTaskDetails(state.currentTask.id); } catch (e) {} });
         document.getElementById('confirmAddSectionBtn').addEventListener('click', () => { const name = document.getElementById('sectionNameInput').value.trim(); if (!name) return showNotification('اسم القسم مطلوب.', true); apiCall('createSection', 'POST', { sectionName: name }).then(() => { sectionModal.classList.add('hidden'); render(); }); });
         document.getElementById('generateSectionReportBtn').addEventListener('click', () => { const s = document.getElementById('reportStartDate').value, e = document.getElementById('reportEndDate').value; if (!s || !e) return showNotification('الرجاء تحديد تاريخ البدء والانتهاء.', true); dateRangeModal.classList.add('hidden'); generateAndShowReport('section', { sectionId: state.currentSection.id, startDate: s, endDate: e }); });
         document.getElementById('generateBranchReportBtn').addEventListener('click', () => { const b = document.getElementById('branchReportSelect').value, s = document.getElementById('branchReportStartDate').value, e = document.getElementById('branchReportEndDate').value; if (!b || !s || !e) return showNotification('الرجاء اختيار الفرع وتحديد التواريخ.', true); branchReportModal.classList.add('hidden'); generateAndShowReport('branch', { branchId: b, startDate: s, endDate: e }); });
