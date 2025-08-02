@@ -9,444 +9,154 @@
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
     
+    <!-- External Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" integrity="sha512-BNaRQnYJYiPSqHHDb58B0yaPfCu+Wgds8Gp/gU33kqBtgNS4tSPHuGibyoVBL5gI9kLmbG4dZdcxEkHiA1B2jw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    
     <!-- Custom Styles -->
     <style>
-        body {
-            background-color: #f8f9fa;
-        }
-        .nav-link, .action-btn, .form-check-input {
-            cursor: pointer;
-        }
-        #loader {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.85);
-            z-index: 9999;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+        body { background-color: #f8f9fa; }
+        .nav-link, .action-btn, .form-check-input { cursor: pointer; }
+        #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.85); z-index: 9999; display: flex; align-items: center; justify-content: center; }
+        .kpi-card .card-title { font-size: 1.1rem; color: #6c757d; }
+        .kpi-card .card-text { font-size: 2.5rem; font-weight: 700; }
+        .status-ontime { color: #198754; font-weight: 600; }
+        .status-overdue { color: #dc3545; font-weight: 600; }
+        .status-inprogress { color: #0d6efd; font-weight: 600; }
+        .status-nottimed { color: #6c757d; }
     </style>
 </head>
 <body>
-    <!-- Loading Spinner -->
-    <div id="loader">
-        <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Loading...</span>
-        </div>
-    </div>
+    <div id="loader"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>
 
-    <!-- Main Application Container -->
-    <div class="container mt-3">
-        <!-- Header -->
+    <div class="container my-3">
         <header class="d-flex justify-content-between align-items-center p-3 my-3 text-white bg-primary rounded shadow-sm">
             <h4 class="mb-0">Company Task Manager</h4>
             <button class="btn btn-light" data-bs-toggle="modal" data-bs-target="#newTaskModal">＋ Assign New Task</button>
         </header>
         
-        <!-- Main Task Dashboard -->
-        <div class="p-3 bg-white border rounded">
-            <h4 class="mb-3">Active Tasks</h4>
-            <div class="table-responsive">
-                <table class="table table-hover align-middle">
-                    <thead>
-                        <tr>
-                            <th style="width: 45%;">Task Title</th>
-                            <th>Assigned By</th>
-                            <th style="width: 25%;">Overall Progress</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="task-table-body">
-                        <!-- Task rows will be dynamically injected here -->
-                    </tbody>
-                </table>
+        <ul class="nav nav-tabs" id="main-tabs" role="tablist">
+            <li class="nav-item" role="presentation"><button class="nav-link active" id="dashboard-tab" data-bs-toggle="tab" data-bs-target="#dashboard-content" type="button" role="tab">Dashboard</button></li>
+            <li class="nav-item" role="presentation"><button class="nav-link" id="analytics-tab" data-bs-toggle="tab" data-bs-target="#analytics-content" type="button" role="tab">Analytics & Reports</button></li>
+        </ul>
+
+        <div class="tab-content" id="myTabContent">
+            <!-- Dashboard Tab -->
+            <div class="tab-pane fade show active p-3 bg-white border border-top-0" id="dashboard-content" role="tabpanel">
+                <h4 class="mb-3">Active Tasks</h4>
+                <div class="table-responsive"><table class="table table-hover align-middle"><thead><tr><th style="width:45%">Task Title</th><th>Assigned By</th><th style="width:25%">Overall Progress</th><th>Actions</th></tr></thead><tbody id="task-table-body"></tbody></table></div>
+            </div>
+
+            <!-- Analytics & Reports Tab -->
+            <div class="tab-pane fade p-3 bg-white border border-top-0" id="analytics-content" role="tabpanel">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4>Company Performance Analytics</h4>
+                    <button class="btn btn-outline-primary" onclick="downloadReportAsJpg('analytics-report-area', 'company_analytics_report.jpg')"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-camera-fill me-1" viewBox="0 0 16 16"><path d="M10.5 8.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/><path d="M2 4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-1.172a2 2 0 0 1-1.414-.586l-.828-.828A2 2 0 0 0 9.172 2H6.828a2 2 0 0 0-1.414.586l-.828-.828A2 2 0 0 1 3.172 4H2zm.5 2a.5.5 0 1 1 0-1 .5.5 0 0 1 0 1zm9 2.5a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0z"/></svg> Download Report (JPG)</button>
+                </div>
+                <div id="analytics-report-area" class="p-3 bg-light rounded border">
+                    <div class="row">
+                        <div class="col-md-4 mb-3"><div class="card kpi-card text-center h-100"><div class="card-body"><h5 class="card-title">On-Time Completion</h5><p class="card-text text-success" id="kpi-on-time-rate">--%</p></div></div></div>
+                        <div class="col-md-4 mb-3"><div class="card kpi-card text-center h-100"><div class="card-body"><h5 class="card-title">Avg. Response Time</h5><p class="card-text text-primary" id="kpi-avg-response">--</p></div></div></div>
+                        <div class="col-md-4 mb-3"><div class="card kpi-card text-center h-100"><div class="card-body"><h5 class="card-title">Total Completed Tasks</h5><p class="card-text text-secondary" id="kpi-total-completed">--</p></div></div></div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-lg-5 mb-3"><div id="analytics-pie-chart" style="width: 100%; height: 300px;"></div></div>
+                        <div class="col-lg-7"><h6>Performance by Unit</h6><div class="table-responsive" style="max-height: 280px; overflow-y: auto;"><table class="table table-sm table-striped"><thead><tr><th>Unit (Branch/Section)</th><th>Avg. Response</th><th>On-Time Rate</th></tr></thead><tbody id="unit-performance-table"></tbody></table></div></div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- MODAL: Assign New Task -->
-    <div class="modal fade" id="newTaskModal" tabindex="-1" aria-labelledby="newTaskModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="newTaskModalLabel">Assign New Task</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="new-task-form">
-                        <div class="mb-3">
-                            <label for="task-title" class="form-label">Task Title</label>
-                            <input type="text" class="form-control" id="task-title" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="task-description" class="form-label">Description</label>
-                            <textarea class="form-control" id="task-description" rows="2"></textarea>
-                        </div>
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="task-type" class="form-label">Task Type</label>
-                                <select id="task-type" class="form-select">
-                                    <option value="Standard">Standard</option>
-                                    <option value="Timed">Timed</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6" id="time-period-div" style="display:none;">
-                                <label for="task-time-period-hours" class="form-label">Time Period (in hours)</label>
-                                <input type="number" class="form-control" id="task-time-period-hours" min="0.1" step="0.1" placeholder="e.g., 1.5">
-                            </div>
-                        </div>
-                        <hr>
-                        <h6>Assign To</h6>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <label for="assign-section-select" class="form-label">From Section:</label>
-                                <select id="assign-section-select" class="form-select" required>
-                                    <option value="" disabled selected>Select a section...</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">To Branch(es): (Select one or more)</label>
-                                <div id="assign-branch-checklist" class="border p-2 rounded" style="max-height: 150px; overflow-y:auto;">
-                                    <small class="text-muted">Loading branches...</small>
-                                </div>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" id="submit-new-task" class="btn btn-primary">Assign Task</button>
-                </div>
-            </div>
-        </div>
-    </div>
+    <div class="modal fade" id="newTaskModal" tabindex="-1"> <div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Assign New Task</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><form id="new-task-form"><div class="mb-3"><label for="task-title" class="form-label">Task Title</label><input type="text" class="form-control" id="task-title" required></div><div class="mb-3"><label for="task-description" class="form-label">Description</label><textarea class="form-control" id="task-description" rows="2"></textarea></div><div class="row mb-3"><div class="col-md-6"><label for="task-type" class="form-label">Task Type</label><select id="task-type" class="form-select"><option value="Standard">Standard</option><option value="Timed">Timed</option></select></div><div class="col-md-6" id="time-period-div" style="display:none;"><label for="task-time-period-hours" class="form-label">Time Period (in hours)</label><input type="number" class="form-control" id="task-time-period-hours" min="0.1" step="0.1" placeholder="e.g., 1.5"></div></div><hr><h6>Assign To</h6><div class="row"><div class="col-md-6"><label for="assign-section-select" class="form-label">From Section:</label><select id="assign-section-select" class="form-select" required><option value="" disabled selected>Select a section...</option></select></div><div class="col-md-6"><label class="form-label">To Branch(es):</label><div id="assign-branch-checklist" class="border p-2 rounded" style="max-height:150px;overflow-y:auto;"><small class="text-muted">Loading...</small></div></div></div></form></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button><button type="button" id="submit-new-task" class="btn btn-primary">Assign Task</button></div></div></div></div>
 
     <!-- MODAL: Task Details and Branch Progress -->
-    <div class="modal fade" id="taskDetailModal" tabindex="-1" aria-labelledby="taskDetailModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-xl">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="task-detail-title">Task Details</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <p class="lead" id="task-detail-description"></p>
-                    <div class="mb-2">
-                        <small class="text-muted">Task Type: </small>
-                        <strong id="task-detail-type"></strong>
-                    </div>
-                    <hr>
-                    <h5>Branch Assignment Progress</h5>
-                    <div class="table-responsive mb-4">
-                        <table class="table table-sm">
-                            <thead>
-                                <tr>
-                                    <th>Branch</th>
-                                    <th>Status</th>
-                                    <th>Completed?</th>
-                                </tr>
-                            </thead>
-                            <tbody id="branch-assignment-table-body"></tbody>
-                        </table>
-                    </div>
-                    <h5>Complete Event Log</h5>
-                    <ul class="list-group" id="task-detail-log" style="font-size: 0.85rem; max-height: 250px; overflow-y: auto;">
-                        <!-- Log entries will be injected here -->
-                    </ul>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                </div>
-            </div>
-        </div>
-    </div>
+    <div class="modal fade" id="taskDetailModal" tabindex="-1"><div class="modal-dialog modal-xl"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="task-detail-title">Task Details</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div id="task-detail-body" class="modal-body"><p class="lead" id="task-detail-description"></p><div class="mb-2"><small class="text-muted">Task Type: </small><strong id="task-detail-type"></strong></div><hr><h5>Branch Assignment Progress</h5><div class="table-responsive mb-4"><table class="table table-sm"><thead><tr><th>Branch</th><th>Deadline</th><th>Status</th><th>Completed?</th></tr></thead><tbody id="branch-assignment-table-body"></tbody></table></div><h5>Complete Event Log</h5><ul class="list-group" id="task-detail-log" style="font-size:0.85rem;max-height:200px;overflow-y:auto;"></ul></div><div class="modal-footer"><button type="button" class="btn btn-outline-primary" onclick="downloadReportAsJpg('task-detail-body', 'task_report.jpg')">Download Report (JPG)</button><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button></div></div></div></div>
 
-    <!-- Bootstrap JS Bundle -->
+    <!-- SCRIPTS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
-    
-    <!-- Main Application Script -->
     <script>
-        // ==========================================================
-        //  CRITICAL: PASTE YOUR DEPLOYED WEB APP URL HERE
-        // ==========================================================
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwnUv_8L3lvRoQYWlmSSMYEiRjerYVvNECkA2RBvzlOBAz7HYXbX0pncJE86WdTnzUlRw/exec";
-        // ==========================================================
-
-        // --- GLOBAL STATE & INITIALIZATION ---
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxC9TIHfgJLiDph_CeJgttARH62vfH1zSRrp5nsw22c0fBw8VX4RCIKBO9rmE1TsSkIKw/exec";
         let allData = { tasks: [], sections: [], branches: [] };
-        let taskDetailModal = null; // Will hold the Bootstrap Modal instance
+        let taskDetailModal = null;
 
-        /**
-         * Runs when the page is fully loaded. Initializes the app.
-         */
+        // --- INITIALIZATION ---
+        google.charts.load('current', {'packages':['corechart']});
         document.addEventListener('DOMContentLoaded', async () => {
             taskDetailModal = new bootstrap.Modal(document.getElementById('taskDetailModal'));
-            
             try {
                 const initialData = await callAppsScript('getInitialData');
                 onInitialDataSuccess(initialData);
-            } catch (error) {
-                alert('Failed to load initial application data: ' + error.message);
-            } finally {
-                document.getElementById('loader').style.display = 'none';
-            }
-            
+                document.getElementById('analytics-tab').addEventListener('show.bs.tab', loadAnalytics, { once: true });
+            } catch (error) { alert('Failed to load application data: ' + error.message); } 
+            finally { document.getElementById('loader').style.display = 'none'; }
             addEventListeners();
         });
 
-        /**
-         * Sets up all the application's event listeners.
-         */
         function addEventListeners() {
-            document.getElementById('task-type').addEventListener('change', e => {
-                document.getElementById('time-period-div').style.display = e.target.value === 'Timed' ? 'block' : 'none';
-            });
+            document.getElementById('task-type').addEventListener('change', e => document.getElementById('time-period-div').style.display = e.target.value === 'Timed' ? 'block' : 'none');
             document.getElementById('submit-new-task').addEventListener('click', handleNewTaskSubmit);
         }
 
-        /**
-         * Populates the UI after the initial data is successfully fetched.
-         * @param {Object} data The data object from the backend.
-         */
         function onInitialDataSuccess(data) {
             allData = data;
-            
-            // Populate dropdowns in the 'New Task' modal
             const assignSectionSelect = document.getElementById('assign-section-select');
-            assignSectionSelect.innerHTML = '<option value="" disabled selected>Select a section...</option>';
+            assignSectionSelect.innerHTML = '<option value="" disabled selected>Select...</option>';
             allData.sections.forEach(s => assignSectionSelect.innerHTML += `<option value="${s.id}">${s.name}</option>`);
-
             const assignBranchChecklist = document.getElementById('assign-branch-checklist');
             assignBranchChecklist.innerHTML = '';
-            allData.branches.forEach(b => {
-                assignBranchChecklist.innerHTML += `<div class="form-check"><input class="form-check-input" type="checkbox" value="${b.id}" id="br-check-${b.id}"><label class="form-check-label" for="br-check-${b.id}">${b.name}</label></div>`;
-            });
-
+            allData.branches.forEach(b => assignBranchChecklist.innerHTML += `<div class="form-check"><input class="form-check-input" type="checkbox" value="${b.id}" id="br-check-${b.id}"><label class="form-check-label" for="br-check-${b.id}">${b.name}</label></div>`);
             renderTaskTable();
         }
 
+        // --- ASYNC DATA LOADING ---
+        async function loadAnalytics() {
+            try {
+                const analyticsData = await callAppsScript('getPerformanceAnalytics');
+                renderAnalyticsDashboard(analyticsData);
+            } catch(e) {
+                document.getElementById('analytics-content').innerHTML = `<div class="alert alert-danger">Failed to load analytics: ${e.message}</div>`;
+            }
+        }
+
         // --- UI RENDERING & UPDATES ---
-
-        /**
-         * Renders the main task-centric dashboard table.
-         */
-        function renderTaskTable() {
-            const tableBody = document.getElementById('task-table-body');
-            tableBody.innerHTML = '';
-            
-            if (!allData.tasks || allData.tasks.length === 0) {
-                tableBody.innerHTML = `<tr><td colspan="4" class="text-center text-muted">No tasks have been assigned yet.</td></tr>`;
-                return;
-            }
-
-            allData.tasks.forEach(task => {
-                const progress = Math.round(task.progress);
-                const progressColor = progress === 100 ? 'bg-success' : 'bg-primary';
-                const row = `
-                    <tr id="task-row-${task.taskId}">
-                        <td><strong>${task.title}</strong></td>
-                        <td>${task.assignedBySectionName}</td>
-                        <td>
-                            <div class="progress" style="height: 20px;">
-                                <div class="progress-bar ${progressColor} progress-bar-striped progress-bar-animated" role="progressbar" style="width: ${progress}%;" aria-valuenow="${progress}" aria-valuemin="0" aria-valuemax="100">${progress}%</div>
-                            </div>
-                            <div class="text-center text-muted small">${task.completedAssignments} / ${task.totalAssignments} Branches</div>
-                        </td>
-                        <td>
-                            <button class="btn btn-sm btn-outline-info" onclick="handleViewTaskDetails('${task.taskId}')">Details</button>
-                        </td>
-                    </tr>`;
-                tableBody.innerHTML += row;
-            });
-        }
-
-        /**
-         * Updates a single row in the main dashboard table after a change.
-         * @param {string} taskId The ID of the parent task row to update.
-         */
-        function updateTaskRow(taskId) {
-            const task = allData.tasks.find(t => t.taskId === taskId);
-            if (!task) return;
-
-            const rowElement = document.getElementById(`task-row-${taskId}`);
-            if (!rowElement) return;
-
-            const progress = Math.round(task.progress);
-            const progressColor = progress === 100 ? 'bg-success' : 'bg-primary';
-            const isAnimated = progress < 100 ? 'progress-bar-striped progress-bar-animated' : '';
-
-            const progressBar = rowElement.querySelector('.progress-bar');
-            const progressText = rowElement.querySelector('.small');
-            
-            progressBar.style.width = `${progress}%`;
-            progressBar.innerText = `${progress}%`;
-            progressBar.className = `progress-bar ${progressColor} ${isAnimated}`; // Update classes
-            progressText.innerText = `${task.completedAssignments} / ${task.totalAssignments} Branches`;
-        }
-
-        // --- ACTION HANDLERS ---
-
-        /**
-         * Gathers and validates data from the 'New Task' form and sends it to the backend.
-         */
-        function handleNewTaskSubmit() {
-            const form = document.getElementById('new-task-form');
-            if (!form.checkValidity()) {
-                form.reportValidity();
-                return;
-            }
-            const checkedBoxes = document.querySelectorAll('#assign-branch-checklist input:checked');
-            if (checkedBoxes.length === 0) {
-                alert('Please select at least one branch to assign the task to.');
-                return;
-            }
-            
-            const timeInHours = document.getElementById('task-time-period-hours').value;
-            const timeInMinutes = timeInHours ? parseFloat(timeInHours) * 60 : null;
-
-            const taskData = {
-                title: document.getElementById('task-title').value,
-                description: document.getElementById('task-description').value,
-                taskType: document.getElementById('task-type').value,
-                timePeriod: timeInMinutes,
-                assignedBySectionId: document.getElementById('assign-section-select').value,
-                branchIds: Array.from(checkedBoxes).map(cb => cb.value)
-            };
-            handleAction('assignNewTask', { taskData }, 'Task(s) assigned successfully!');
-        }
+        function renderTaskTable() {const tableBody=document.getElementById('task-table-body');tableBody.innerHTML='';if(!allData.tasks||allData.tasks.length===0){tableBody.innerHTML=`<tr><td colspan="4" class="text-center text-muted">No tasks assigned.</td></tr>`;return}allData.tasks.forEach(task=>{const progress=Math.round(task.progress);const progressColor=progress===100?'bg-success':'bg-primary';const isAnimated=progress<100?'progress-bar-striped progress-bar-animated':'';const row=`<tr id="task-row-${task.taskId}"><td><strong>${task.title}</strong></td><td>${task.assignedBySectionName}</td><td><div class="progress" style="height:20px;"><div class="progress-bar ${progressColor} ${isAnimated}" role="progressbar" style="width:${progress}%;" aria-valuenow="${progress}" aria-valuemin="0" aria-valuemax="100">${progress}%</div></div><div class="text-center text-muted small">${task.completedAssignments}/${task.totalAssignments} Branches</div></td><td><button class="btn btn-sm btn-outline-info" onclick="handleViewTaskDetails('${task.taskId}')">Details</button></td></tr>`;tableBody.innerHTML+=row})}
+        function renderAnalyticsDashboard(data) {const {kpis,statusCounts,branchAnalytics,sectionAnalytics}=data;document.getElementById('kpi-on-time-rate').innerText=`${kpis.onTimePercentage.toFixed(1)}%`;document.getElementById('kpi-avg-response').innerText=formatTime(kpis.avgResponseTime);document.getElementById('kpi-total-completed').innerText=kpis.totalCompleted;const chartData=google.visualization.arrayToDataTable([['Status','Count'],['On Time',statusCounts['On Time']],['Overdue',statusCounts['Overdue']],['In Progress (Timed)',statusCounts['In Progress']]]);const options={title:'Task Deadline Status',pieHole:0.4,colors:['#198754','#dc3545','#0d6efd']};const chart=new google.visualization.PieChart(document.getElementById('analytics-pie-chart'));chart.draw(chartData,options);const perfTableBody=document.getElementById('unit-performance-table');perfTableBody.innerHTML='';const allUnits=[...branchAnalytics,...sectionAnalytics];allUnits.forEach(unit=>{if(unit.count===0)return;const avgTime=formatTime(unit.totalTime/unit.count);const onTimeRate=unit.onTime+unit.overdue>0?((unit.onTime/(unit.onTime+unit.overdue))*100).toFixed(0):'N/A';perfTableBody.innerHTML+=`<tr><td>${unit.name}</td><td>${avgTime}</td><td>${onTimeRate}%</td></tr>`})}
         
-        /**
-         * Fetches detailed information for a task and displays it in the modal.
-         * @param {string} taskId The ID of the parent task to view.
-         */
         async function handleViewTaskDetails(taskId) {
             const task = allData.tasks.find(t => t.taskId === taskId);
             if (!task) return;
-
-            // Populate static info
             document.getElementById('task-detail-title').innerText = task.title;
             document.getElementById('task-detail-description').innerText = task.description || 'No description provided.';
-
-            // Display task type and time period (converted back to hours)
-            let typeText = task.taskType;
-            const firstAssignment = task.assignments[0];
-            if (task.taskType === 'Timed' && firstAssignment?.timePeriod) {
-                const timeInHours = parseFloat(firstAssignment.timePeriod) / 60;
+            let typeText = task.assignments[0].TaskType;
+            if (typeText === 'Timed' && task.assignments[0].TimePeriodMinutes) {
+                const timeInHours = parseFloat(task.assignments[0].TimePeriodMinutes) / 60;
                 typeText += ` (${timeInHours.toFixed(1)} hours)`;
             }
             document.getElementById('task-detail-type').innerText = typeText;
-
-            // Populate the branch assignment table
             const branchTableBody = document.getElementById('branch-assignment-table-body');
             branchTableBody.innerHTML = '';
-            task.assignments.forEach(assignment => {
-                const branch = allData.branches.find(b => b.id === assignment.assignedToBranchId);
-                const isChecked = assignment.completionStatus === 'Done';
-                const row = `
-                    <tr>
-                        <td>${branch?.name || 'Unknown Branch'}</td>
-                        <td><span class="badge ${assignment.status === 'Open' ? 'bg-success' : 'bg-secondary'}">${assignment.status}</span></td>
-                        <td>
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" ${isChecked ? 'checked' : ''} 
-                                       onchange="handleCompletionToggle('${assignment.assignmentId}', this.checked, '${task.taskId}')">
-                            </div>
-                        </td>
-                    </tr>`;
-                branchTableBody.innerHTML += row;
+            task.assignments.forEach(a => {
+                const branch = allData.branches.find(b => b.id === a.AssignedToBranchID);
+                const isChecked = a.CompletionStatus === 'Done';
+                const deadlineStatusClass = `status-${a.deadlineStatus.toLowerCase().replace(/\s/g, '')}`;
+                branchTableBody.innerHTML += `<tr><td>${branch?.name||'N/A'}</td><td>${a.deadlineTimestamp||'N/A'}</td><td><span class="${deadlineStatusClass}">${a.deadlineStatus}</span></td><td><div class="form-check form-switch"><input class="form-check-input" type="checkbox" onchange="handleCompletionToggle('${a.AssignmentID}')" ${isChecked?'checked':''}></div></td></tr>`;
             });
-            
             taskDetailModal.show();
-            
-            // Asynchronously fetch and render the logs
             document.getElementById('task-detail-log').innerHTML = '<li class="list-group-item text-muted">Loading logs...</li>';
-            try {
-                const logs = await callAppsScript('getLogsForTask', { taskId });
-                const logList = document.getElementById('task-detail-log');
-                logList.innerHTML = '';
-                if (logs.length > 0) {
-                    logs.forEach(log => {
-                        logList.innerHTML += `<li class="list-group-item"><small><strong>${log.action}</strong> at ${log.timestamp}: ${log.details}</small></li>`;
-                    });
-                } else {
-                    logList.innerHTML = '<li class="list-group-item text-muted">No log entries found for this task.</li>';
-                }
-            } catch (error) {
-                document.getElementById('task-detail-log').innerHTML = '<li class="list-group-item text-danger">Failed to load logs.</li>';
-            }
-        }
-        
-        /**
-         * Handles the "Done/Not Yet" toggle for an individual branch assignment.
-         * @param {string} assignmentId The unique ID of the specific assignment.
-         * @param {boolean} isDone The new state of the toggle.
-         * @param {string} parentTaskId The ID of the parent task, for updating the UI.
-         */
-        function handleCompletionToggle(assignmentId, isDone, parentTaskId) {
-            // Send the update to the backend
-            callAppsScript('updateCompletionStatus', { assignmentId, isDone })
-                .catch(error => {
-                    alert(`Failed to update status: ${error.message}`);
-                    // Optionally, revert the UI toggle on failure
-                });
-
-            // Optimistic UI Update for immediate feedback
-            const task = allData.tasks.find(t => t.taskId === parentTaskId);
-            const assignment = task.assignments.find(a => a.assignmentId === assignmentId);
-            
-            // Update the local data model
-            if (assignment.completionStatus === 'Done' && !isDone) task.completedAssignments--;
-            if (assignment.completionStatus !== 'Done' && isDone) task.completedAssignments++;
-            assignment.completionStatus = isDone ? 'Done' : 'Not Yet';
-            task.progress = (task.totalAssignments > 0) ? (task.completedAssignments / task.totalAssignments) * 100 : 0;
-            
-            // Re-render the main dashboard row for this task
-            updateTaskRow(parentTaskId);
+            try {const logs=await callAppsScript('getLogsForTask',{taskId});const logList=document.getElementById('task-detail-log');logList.innerHTML='';if(logs.length>0){logs.forEach(log=>{logList.innerHTML+=`<li class="list-group-item"><small><strong>${log.action}</strong> at ${log.timestamp}: ${log.details}</small></li>`})}else{logList.innerHTML='<li class="list-group-item text-muted">No logs.</li>'}}catch(e){document.getElementById('task-detail-log').innerHTML=`<li class="list-group-item text-danger">Failed to load logs.</li>`}
         }
 
-        // --- BACKEND COMMUNICATION & GENERIC ACTIONS ---
+        // --- ACTION HANDLERS ---
+        function handleNewTaskSubmit() {const form=document.getElementById('new-task-form');if(!form.checkValidity()){form.reportValidity();return}const checkedBoxes=document.querySelectorAll('#assign-branch-checklist input:checked');if(checkedBoxes.length===0){alert('Please select at least one branch.');return}const timeInHours=document.getElementById('task-time-period-hours').value;const timeInMinutes=timeInHours?parseFloat(timeInHours)*60:null;const taskData={title:document.getElementById('task-title').value,description:document.getElementById('task-description').value,taskType:document.getElementById('task-type').value,timePeriod:timeInMinutes,assignedBySectionId:document.getElementById('assign-section-select').value,branchIds:Array.from(checkedBoxes).map(cb=>cb.value)};handleAction('assignNewTask',{taskData},'Task(s) assigned successfully!')}
+        function handleCompletionToggle(assignmentId) { const assignment=allData.tasks.flatMap(t=>t.assignments).find(a=>a.AssignmentID===assignmentId);const isDone=assignment.CompletionStatus!=='Done';document.getElementById('loader').style.display='flex';callAppsScript('updateCompletionStatus',{assignmentId,isDone}).then(()=>location.reload()).catch(error=>{alert(`Failed to update status: ${error.message}`);location.reload()}) }
 
-        /**
-         * A centralized wrapper for calling backend Apps Script functions.
-         * @param {string} functionName The name of the function to call in Code.gs.
-         * @param {Object} [parameters={}] An object of parameters to pass to the function.
-         * @returns {Promise<any>} The data returned from the backend function.
-         */
-        async function callAppsScript(functionName, parameters = {}) {
-            const res = await fetch(SCRIPT_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify({ functionName, parameters }),
-            });
-            const result = await res.json();
-            if (result.status === 'error') {
-                throw new Error(result.message);
-            }
-            return result.data;
-        }
-
-        /**
-         * A generic handler for actions that result in a full page reload (like adding new data).
-         * @param {string} action The backend function name.
-         * @param {Object} params The parameters for the function.
-         * @param {string} successMessage The message to show the user on success.
-         */
-        async function handleAction(action, params, successMessage) {
-            document.getElementById('loader').style.display = 'flex';
-            try {
-                await callAppsScript(action, params);
-                if (successMessage) alert(successMessage);
-                location.reload(); // Reload the page to get all new data
-            } catch (error) {
-                alert(`An error occurred: ${error.message}`);
-                document.getElementById('loader').style.display = 'none';
-            }
-        }
+        // --- UTILITIES ---
+        function downloadReportAsJpg(elementId,filename) {const reportElement=document.getElementById(elementId);if(!reportElement){console.error("Element not found:",elementId);return}alert("Preparing image... this may take a moment.");html2canvas(reportElement,{useCORS:true,allowTaint:true,scale:2}).then(canvas=>{const link=document.createElement('a');link.download=filename;link.href=canvas.toDataURL('image/jpeg',0.9);link.click()})}
+        function formatTime(ms) {if(!ms||ms===0)return'N/A';const days=Math.floor(ms/864e5);const hours=Math.floor((ms%864e5)/36e5);const mins=Math.round(((ms%864e5)%36e5)/6e4);let str='';if(days>0)str+=`${days}d `;if(hours>0)str+=`${hours}h `;if(mins>0)str+=`${mins}m`;return str.trim()||'~0m'}
+        async function callAppsScript(functionName,parameters={}){const res=await fetch(SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({functionName,parameters})});const result=await res.json();if(result.status==='error')throw new Error(result.message);return result.data}
+        async function handleAction(action,params,successMessage){document.getElementById('loader').style.display='flex';try{await callAppsScript(action,params);if(successMessage)alert(successMessage);location.reload()}catch(error){alert(`An error occurred: ${error.message}`);document.getElementById('loader').style.display='none'}}
     </script>
-
 </body>
 </html>
