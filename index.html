@@ -4,125 +4,122 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Task Follow Up</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📋</text></svg>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚀</text></svg>">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* === CLEAN & MINIMALIST LIGHT UI === */
+        /* === MINIMALIST DARK MODE UI === */
         :root {
-            --bg-color: #f9fafb; /* Off-white */
-            --sidebar-bg: #ffffff;
-            --primary-text: #1f2937;
-            --secondary-text: #6b7280;
-            --card-bg: #ffffff;
-            --border-color: #e5e7eb;
-            --shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-            --blue: #3b82f6; --blue-dark: #2563eb; --blue-light: #eff6ff;
-            --green: #22c55e; --red: #ef4444; --orange: #f97316; --purple: #8b5cf6;
+            --bg-color: #111827; /* Near Black */
+            --card-bg: #1f2937; /* Dark Gray */
+            --primary-text: #f9fafb; /* Off-white */
+            --secondary-text: #9ca3af; /* Muted Gray */
+            --border-color: #374151; /* Darker Gray Border */
+            --shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --blue: #3b82f6; --blue-glow: 0 0 15px rgba(59, 130, 246, 0.5);
+            --green: #22c55e;
+            --red: #ef4444;
+            --orange: #f97316;
+            --purple: #8b5cf6; --purple-glow: 0 0 15px rgba(139, 92, 246, 0.5);
+            --gray: #6b7280;
             --font-family: 'Tajawal', sans-serif;
             --border-radius: 0.75rem;
-            --transition-speed: 0.2s;
         }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
-        body {
-            font-family: var(--font-family); color: var(--primary-text); background-color: var(--bg-color);
-            line-height: 1.6; display: flex;
-            -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; transition: none !important; animation: none !important; }
+        body { font-family: var(--font-family); background-color: var(--bg-color); color: var(--primary-text); line-height: 1.6; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 2rem; }
         .hidden { display: none !important; }
         
-        /* Layout */
-        #sidebar { width: 280px; background-color: var(--sidebar-bg); border-left: 1px solid var(--border-color); padding: 2rem; display: flex; flex-direction: column; height: 100vh; position: fixed; right: 0; top: 0; }
-        #main-content { margin-right: 280px; width: calc(100% - 280px); padding: 2rem; }
-        
-        /* Sidebar */
-        .sidebar-header { text-align: right; margin-bottom: 2.5rem; display: flex; align-items: center; gap: 0.75rem; }
-        .sidebar-header i { font-size: 1.75rem; color: var(--blue); }
-        .sidebar-header h1 { font-size: 1.25rem; font-weight: 800; }
-        
-        /* Content Header */
-        .content-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
-        .content-title { font-size: 2rem; font-weight: 800; display: flex; align-items: center; gap: 1rem; }
-        .back-btn { background: none; border: none; font-size: 1.75rem; color: var(--secondary-text); cursor: pointer; padding: 0.5rem; border-radius: 99px; line-height: 1; transition: all var(--transition-speed) ease; }
-        .back-btn:hover { background-color: var(--border-color); color: var(--blue); }
-
         /* Buttons */
-        .btn { width: 100%; padding: 0.75rem 1rem; border: 1px solid transparent; border-radius: 0.5rem; font-weight: 700; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 0.75rem; font-size: 0.9rem; transition: all var(--transition-speed) ease; }
-        .btn-primary { background-color: var(--blue); color: white; box-shadow: var(--shadow); }
-        .btn-primary:hover:not(:disabled) { background-color: var(--blue-dark); }
-        .btn-secondary { background-color: var(--card-bg); color: var(--primary-text); border-color: var(--border-color); box-shadow: var(--shadow); }
-        .btn-secondary:hover { background-color: var(--bg-color); }
-        .btn-danger { background-color: #fee2e2; color: var(--red); }
-        .btn:disabled { background-color: var(--border-color); color: var(--secondary-text); cursor: not-allowed; box-shadow: none; }
-        .content-header .btn { width: auto; }
+        .btn { padding: 0.65rem 1.25rem; border: 1px solid transparent; border-radius: 0.5rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; }
+        .btn-primary { background-color: var(--blue); color: white; }
+        .btn-primary:hover:not(:disabled) { background-color: #60a5fa; }
+        .btn-secondary { background-color: transparent; color: var(--primary-text); border-color: var(--border-color); }
+        .btn-secondary:hover { background-color: var(--card-bg); border-color: var(--secondary-text); }
+        .btn-danger { background-color: var(--red); color: white; }
+        .btn:disabled { background-color: #374151; color: var(--secondary-text); cursor: not-allowed; }
         
-        /* Grid & Cards */
-        .grid-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; }
-        .card { background: var(--card-bg); border-radius: var(--border-radius); box-shadow: var(--shadow); display: flex; flex-direction: column; border: 1px solid var(--border-color); cursor: pointer; transition: all var(--transition-speed) ease-in-out; }
-        .card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); }
-        .card:active { transform: translateY(-2px) scale(0.99); }
-        .card-content { padding: 1.25rem; flex-grow: 1; }
-        .card-footer { padding: 0.75rem 1.25rem; background-color: #f9fafb; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: var(--secondary-text); }
-        .delete-btn { font-size: 0.8rem; color: var(--red); background: none; border: none; cursor: pointer; padding: 0.5rem; border-radius: 0.5rem; transition: background-color var(--transition-speed) ease; }
-        .delete-btn:hover { background-color: #fee2e2; }
-        .card-name { font-weight: 700; font-size: 1.1rem; margin-bottom: 0.5rem; color: var(--primary-text); }
-        .card-stats { font-size: 0.9rem; color: var(--secondary-text); }
+        /* Header */
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1.5rem; }
+        .header-title h1 { display: flex; align-items: center; gap: 1rem; font-size: 2rem; font-weight: 800; }
+        .header-title .back-btn { background: none; border: none; font-size: 1.5rem; color: var(--secondary-text); cursor: pointer; padding: 0.5rem; border-radius: 99px; }
+        .header-title .back-btn:hover { background-color: var(--card-bg); color: var(--blue); }
         
-        .task-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1.25rem; }
-        .tag { padding: 0.25rem 0.75rem; font-size: 0.75rem; font-weight: 700; border-radius: 99px; }
-        .tag-purple { background-color: #f5f3ff; color: #7c3aed; }
-        .tag-orange { background-color: #fff7ed; color: #ea580c; }
-        .progress-label { display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 700; color: var(--secondary-text); margin: 1.25rem 0 0.5rem; }
-        .progress-bar-bg { width: 100%; background-color: #e5e7eb; border-radius: 99px; height: 8px; overflow: hidden; }
-        .progress-bar-fg { height: 100%; border-radius: 99px; transition: width 0.5s ease; }
+        .grid-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 1.5rem; }
+        
+        /* Cards */
+        .section-item, .task-item { background: var(--card-bg); border-radius: var(--border-radius); display: flex; flex-direction: column; border: 1px solid var(--border-color); cursor: pointer; }
+        .section-item:hover, .task-item:hover { border-color: var(--blue); box-shadow: var(--blue-glow); }
+        .item-content { padding: 1.25rem; flex-grow: 1; }
+        .item-footer { padding: 0.75rem 1.25rem; background-color: #111827; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: var(--secondary-text); border-bottom-left-radius: var(--border-radius); border-bottom-right-radius: var(--border-radius); }
+        .delete-btn { font-size: 0.8rem; color: var(--red); background: none; border: none; cursor: pointer; padding: 0.5rem; border-radius: 0.5rem; }
+        .delete-btn:hover { background-color: #ef444420; }
+        .item-name { font-weight: 700; font-size: 1.15rem; margin-bottom: 0.5rem; color: var(--primary-text); }
+        .item-stats, .item-meta { font-size: 0.9rem; color: var(--secondary-text); }
+        .task-item-header { display: flex; justify-content: space-between; align-items: flex-start; }
+        .task-type-icon { font-size: 1.1rem; color: var(--gray); }
+        .progress-label { display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 700; color: var(--secondary-text); margin: 1rem 0 0.5rem; }
+        .progress-bar-bg { width: 100%; background-color: #374151; border-radius: 99px; height: 8px; overflow: hidden; }
+        .progress-bar-fg { height: 100%; border-radius: 99px; }
 
+        /* Task Detail */
+        .task-detail-header { margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); }
+        .task-meta { color: var(--secondary-text); font-size: 0.9rem; display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; }
         .branch-card { background: var(--card-bg); border-radius: var(--border-radius); padding: 1.25rem; border: 1px solid var(--border-color); }
-        .status-radio-group { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; margin-top: 1rem; }
+        .status-radio-group { display: flex; gap: 0.5rem; margin-top: 1rem; }
         .status-radio-group input[type="radio"] { display: none; }
-        .status-radio-group label { text-align: center; padding: 0.6rem; border-radius: 0.5rem; border: 1px solid var(--border-color); cursor: pointer; font-weight: 700; color: var(--secondary-text); font-size: 0.85rem; transition: all var(--transition-speed) ease; }
-        .status-radio-group label:hover { border-color: var(--blue); }
-        .status-radio-group input[type="radio"]:checked + label { color: white; transform: scale(1.05); }
+        .status-radio-group label { flex-grow: 1; text-align: center; padding: 0.6rem; border-radius: 0.5rem; border: 1px solid var(--border-color); cursor: pointer; font-weight: 700; color: var(--secondary-text); font-size: 0.85rem;}
+        .status-radio-group input[type="radio"]:checked + label { color: white; }
         .status-radio-group input[value="done"]:checked + label, .status-radio-group input[value="late-done"]:checked + label { background-color: var(--green); border-color: var(--green); }
         .status-radio-group input[value="pending"]:checked + label { background-color: var(--red); border-color: var(--red); }
-        .status-radio-group input[value="not-required"]:checked + label { background-color: var(--secondary-text); border-color: var(--secondary-text); }
+        .status-radio-group input[value="not-required"]:checked + label { background-color: var(--gray); border-color: var(--gray); }
         
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1000; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); display: flex; justify-content: center; align-items: center; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s ease; }
-        .modal-overlay.visible { opacity: 1; visibility: visible; }
-        .modal-content { background-color: var(--card-bg); padding: 2.5rem; border-radius: var(--border-radius); width: 90%; max-width: 550px; box-shadow: var(--shadow-md); transform: scale(0.95); transition: transform 0.3s ease; }
-        .modal-overlay.visible .modal-content { transform: scale(1); }
-        .modal-actions .btn { width: auto; }
-        .form-group { margin-bottom: 1.25rem; }
+        /* Modals & General */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(17, 24, 39, 0.8); backdrop-filter: blur(4px); display: flex; justify-content: center; align-items: start; padding-top: 5vh; z-index: 1000; }
+        .modal-content { background-color: var(--card-bg); padding: 2rem; border-radius: var(--border-radius); width: 90%; max-width: 550px; border: 1px solid var(--border-color); }
+        .modal-content h2 { font-weight: 800; margin-bottom: 1.5rem; }
+        .modal-content input[type="text"], .modal-content input[type="datetime-local"], .modal-content input[type="date"] { width: 100%; padding: 0.8rem 1rem; border-radius: 0.5rem; border: 1px solid var(--border-color); font-family: var(--font-family); font-size: 1rem; margin-bottom: 1.25rem; background-color: var(--bg-color); color: var(--primary-text); }
+        .modal-content input[type="datetime-local"]::-webkit-calendar-picker-indicator { filter: invert(1); }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem; }
         .form-group label { display: block; font-weight: 700; margin-bottom: 0.5rem; font-size: 0.9rem; }
-        .modal-content input { width: 100%; padding: 0.8rem 1rem; border-radius: 0.5rem; border: 1px solid var(--border-color); font-family: var(--font-family); font-size: 1rem; background-color: var(--bg-color); transition: all var(--transition-speed) ease; }
-        .modal-content input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px #bfdbfe; outline: none; }
-        .branch-selection-container { max-height: 200px; overflow-y: auto; background-color: var(--bg-color); padding: 1rem; border-radius: 0.5rem; border: 1px solid var(--border-color); }
-        
-        .loader-container { text-align: center; padding: 5rem 2rem; }
-        .fa-spinner { font-size: 2.5rem; color: var(--blue); animation: fa-spin 1.5s infinite linear; }
-        @keyframes fa-spin { to { transform: rotate(360deg); } }
+        .branch-selection-container { max-height: 200px; overflow-y: auto; background: var(--bg-color); padding: 1rem; border-radius: 0.5rem; border: 1px solid var(--border-color); }
+        .loader-container { text-align: center; padding: 5rem 2rem; font-size: 1.2rem; color: var(--secondary-text); }
+        .fa-spinner { font-size: 2.5rem; margin-bottom: 1rem; color: var(--blue); -webkit-animation: fa-spin 1.5s infinite linear; animation: fa-spin 1.5s infinite linear; }
+        @keyframes fa-spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        #notification-container { position: fixed; bottom: 20px; left: 20px; z-index: 2000; display: flex; flex-direction: column; gap: 10px; }
+        .notification { padding: 1rem 1.5rem; border-radius: 0.5rem; color: white; background-color: var(--card-bg); display: flex; align-items: center; gap: 1rem; box-shadow: var(--shadow-lg); border-left: 4px solid; }
+        .notification.error { border-color: var(--red); } .notification.success { border-color: var(--green); }
     </style>
 </head>
 <body>
-    <aside id="sidebar"></aside>
-    <main id="main-content"></main>
-    <div id="modal-container"></div>
+    <div class="container">
+        <header class="header"><div id="headerTitle" class="header-title"></div><div id="headerActions"></div></header>
+        <main id="contentArea"></main>
+    </div>
+
+    <!-- Modals -->
+    <div id="sectionModal" class="modal-overlay hidden"><div class="modal-content"><h2>إنشاء قسم جديد</h2><input type="text" id="sectionNameInput" placeholder="اكتب اسم القسم هنا..."><div class="modal-actions"><button id="cancelAddSectionBtn" class="btn btn-secondary">إلغاء</button><button id="confirmAddSectionBtn" class="btn btn-primary">إضافة القسم</button></div></div></div>
+    <div id="addTaskModal" class="modal-overlay hidden"><div class="modal-content"><h2>إنشاء مهمة جديدة</h2><div class="form-group"><label for="newTaskNameInput">اسم المهمة</label><input type="text" id="newTaskNameInput" placeholder="اكتب اسم المهمة هنا..."></div><div class="form-group"><label>نوع المهمة</label><div class="status-radio-group"><input type="radio" id="taskTypeStandard" name="taskType" value="Standard" checked><label for="taskTypeStandard">قياسية</label><input type="radio" id="taskTypeTimeLimited" name="taskType" value="TimeLimited"><label for="taskTypeTimeLimited">محددة بوقت</label></div></div><div id="timeLimitedFields" class="form-group hidden" style="display: flex; gap: 1rem;"><div style="flex: 1;"><label for="taskStartDateInput">وقت البدء</label><input type="datetime-local" id="taskStartDateInput"></div><div style="flex: 1;"><label for="taskEndDateInput">وقت الإنتهاء</label><input type="datetime-local" id="taskEndDateInput"></div></div><div class="form-group"><label>الفروع المستهدفة</label><div id="branchSelectionContainer" class="branch-selection-container"></div></div><div class="modal-actions"><button id="cancelAddTaskBtn" class="btn btn-secondary">إلغاء</button><button id="confirmAddTaskBtn" class="btn btn-primary">إضافة المهمة</button></div></div></div>
+    <div id="dateRangeModal" class="modal-overlay hidden"><div class="modal-content"><h2>تحديد فترة التقرير</h2><div style="display: flex; gap: 1rem;"><div class="form-group" style="flex: 1;"><label for="reportStartDate">من تاريخ</label><input type="date" id="reportStartDate"></div><div class="form-group" style="flex: 1;"><label for="reportEndDate">إلى تاريخ</label><input type="date" id="reportEndDate"></div></div><div class="modal-actions"><button id="cancelDateRangeBtn" class="btn btn-secondary">إلغاء</button><button id="generateSectionReportBtn" class="btn btn-primary">إنشاء التقرير</button></div></div></div>
+    <div id="reportPreviewModal" class="modal-overlay hidden"><div class="modal-content"><img id="reportPreviewImage" src="" alt="Report Preview"><div class="modal-actions" style="margin-top: 1.5rem;"><button id="closeReportPreviewBtn" class="btn btn-secondary">إغلاق</button><button id="downloadReportImageBtn" class="btn btn-primary"><i class="fas fa-download"></i> تحميل</button></div></div></div>
+    <div id="notification-container"></div>
+    <div id="reportTemplateWrapper" class="hidden" style="position: absolute; left: -9999px; top: -9999px;"><div id="reportTemplateContainer" style="width: 800px; padding: 0; background: white; border: 1px solid #e2e8f0; font-family: 'Tajawal', sans-serif;"><div style="padding: 30px 40px; background-color: #f8fafc; text-align: center; border-bottom: 1px solid #e2e8f0;"><h2 id="report-title"></h2><p id="report-subtitle" style="color:#718096;"></p></div><div style="padding: 30px 40px;"><div id="report-kpi-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 30px;"></div><div id="report-table-container"><table style="width: 100%; border-collapse: collapse; margin-top: 20px;"><thead id="report-table-head"></thead><tbody id="report-table-body"></tbody></table></div></div><div style="padding: 20px 40px; text-align: center; background-color: #f8fafc; border-top: 1px solid #e2e8f0; font-size: 12px; color: #718096;"><p>تم إنشاء هذا التقرير بتاريخ: <span id="report-date"></span></p></div></div></div>
+
 </body>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxMuoWji2pZmZXbi-Bk1sl7alyV6PDVWctac6Fizsl5A6RlkgHb8CqjuIbIIn9pkpsD1A/exec';
 
-    const sidebar = document.getElementById('sidebar');
-    const mainContent = document.getElementById('main-content');
-    const modalContainer = document.getElementById('modal-container');
-    let state = { view: 'sections', currentSection: null, currentTask: null, allBranches: [] };
+    const contentArea = document.getElementById('contentArea'), headerTitle = document.getElementById('headerTitle'), headerActions = document.getElementById('headerActions');
+    const sectionModal = document.getElementById('sectionModal'), addTaskModal = document.getElementById('addTaskModal'), dateRangeModal = document.getElementById('dateRangeModal'), reportPreviewModal = document.getElementById('reportPreviewModal');
+    let state = { view: 'sections', currentSection: null, currentTask: null, allBranches: [], reportImageData: null, reportFileName: 'report.jpg' };
     
     // --- HELPERS ---
-    const apiCall = async (action, method = 'GET', body = null) => { try { const url = new URL(SCRIPT_URL); const options = { method, redirect: 'follow', muteHttpExceptions: true }; if (method === 'POST') options.body = JSON.stringify({ action, ...body }); else { url.searchParams.append('action', action); if (body) Object.keys(body).forEach(key => url.searchParams.append(key, body[key])); } const response = await fetch(url, options); const data = await response.json(); if (!data.success) throw new Error(data.message || 'Unknown API error'); return data; } catch (error) { console.error("API Call Failed:", error); throw error; } };
-    const showLoader = (message = 'جاري التحميل...') => { mainContent.innerHTML = `<div class="loader-container"><i class="fas fa-spinner"></i><p>${message}</p></div>`; };
+    const apiCall = async (action, method = 'GET', body = null) => { try { const url = new URL(SCRIPT_URL); const options = { method, redirect: 'follow', muteHttpExceptions: true }; if (method === 'POST') options.body = JSON.stringify({ action, ...body }); else { url.searchParams.append('action', action); if (body) Object.keys(body).forEach(key => url.searchParams.append(key, body[key])); } const response = await fetch(url, options); const data = await response.json(); if (!data.success) throw new Error(data.message || 'Unknown API error'); return data; } catch (error) { showNotification(error.message, true); throw error; } };
+    const showNotification = (message, isError = true) => { const n = document.createElement('div'); n.className = `notification ${isError ? 'error' : 'success'}`; n.innerHTML = `<i class="fas ${isError ? 'fa-exclamation-circle' : 'fa-check-circle'}"></i><span>${message}</span>`; document.getElementById('notification-container').appendChild(n); setTimeout(() => n.remove(), 4000); };
+    const showLoader = (message = 'جاري التحميل...') => { contentArea.innerHTML = `<div class="loader-container"><i class="fas fa-spinner"></i><p>${message}</p></div>`; };
     
     // --- NAVIGATION & RENDERING ---
     const navigate = async (view, data = {}) => {
@@ -133,91 +130,82 @@ document.addEventListener('DOMContentLoaded', () => {
         render();
     };
 
-    const render = () => { showLoader(); updateChrome(); const viewHandlers = { sections: handleLoadSections, tasks: () => handleLoadTasks(state.currentSection.id), taskDetail: () => handleLoadTaskDetails(state.currentTask.id) }; viewHandlers[state.view](); };
+    const render = () => { showLoader(); updateHeader(); contentArea.className = (state.view === 'taskDetail') ? '' : 'grid-container'; const viewHandlers = { sections: handleLoadSections, tasks: () => handleLoadTasks(state.currentSection.id), taskDetail: () => handleLoadTaskDetails(state.currentTask.id) }; viewHandlers[state.view](); };
     
-    const updateChrome = () => {
-        sidebar.innerHTML = `<div class="sidebar-header"><i class="fas fa-clipboard-list"></i><h1>لوحة المهام</h1></div><div class="sidebar-actions"><button id="addSectionBtn" class="btn btn-primary"><i class="fas fa-plus"></i> إضافة قسم جديد</button></div>`;
-        let headerHTML = `<header class="content-header"><h2 class="content-title">${state.view === 'sections' ? 'الأقسام' : `<button class="back-btn"><i class="fas fa-arrow-right"></i></button> ${state.currentSection?.name || state.currentTask?.name || ''}`}</h2><div class="content-actions">${state.view === 'tasks' ? `<button id="addTaskBtn" class="btn btn-primary"><i class="fas fa-plus"></i> مهمة جديدة</button>` : ''}${state.view === 'taskDetail' && state.currentTask?.type === 'Standard' && state.currentTask?.status === 'Open' ? `<button id="closeTaskBtn" class="btn btn-danger"><i class="fas fa-lock"></i> إغلاق المهمة</button>` : ''}</div></header><div id="content-area"></div>`;
-        mainContent.innerHTML = headerHTML;
+    const updateHeader = () => {
+        headerTitle.innerHTML = ''; headerActions.innerHTML = '';
+        const headerConfig = {
+            sections: { title: 'الأقسام', actions: `<button id="addSectionBtn" class="btn btn-primary"><i class="fas fa-plus"></i> إضافة قسم</button>` },
+            tasks: { title: state.currentSection?.name, back: true, actions: `<button id="addTaskBtn" class="btn btn-primary"><i class="fas fa-plus"></i> إضافة مهمة</button><button id="sectionReportBtn" class="btn btn-secondary"><i class="fas fa-file-alt"></i> تقرير القسم</button>` },
+            taskDetail: { title: state.currentTask?.name, back: true, actions: `${state.currentTask?.type === 'Standard' && state.currentTask?.status === 'Open' ? `<button id="closeTaskBtn" class="btn btn-danger"><i class="fas fa-lock"></i> إغلاق المهمة</button>` : ''}<button id="taskReportBtn" class="btn btn-secondary"><i class="fas fa-download"></i> تقرير المهمة</button>` }
+        };
+        const config = headerConfig[state.view];
+        headerTitle.innerHTML = `<h1>${config.back ? '<button class="back-btn"><i class="fas fa-arrow-right"></i></button>' : ''} ${config.title || ''}</h1>`;
+        headerActions.innerHTML = config.actions || '';
     };
 
-    const handleLoadSections = async () => { try { const data = await apiCall('getSections'); renderSections(data.sections); } catch (e) { document.getElementById('content-area').innerHTML = `<p class="loader-container">فشل تحميل الأقسام.</p>`; } };
-    const handleLoadTasks = async (sectionId) => { try { const data = await apiCall('getTasksForSection', 'GET', { sectionID: sectionId }); renderTasks(data.tasks); } catch (e) { document.getElementById('content-area').innerHTML = `<p class="loader-container">فشل تحميل المهام.</p>`; } };
+    const handleLoadSections = async () => { try { const data = await apiCall('getSections'); renderSections(data.sections); } catch (e) { contentArea.innerHTML = `<p class="loader-container">فشل تحميل الأقسام. يرجى إعادة تحميل الصفحة.</p>`; } };
+    const handleLoadTasks = async (sectionId) => { try { const data = await apiCall('getTasksForSection', 'GET', { sectionID: sectionId }); renderTasks(data.tasks); } catch (e) { contentArea.innerHTML = `<p class="loader-container">فشل تحميل المهام.</p>`; } };
     const handleLoadTaskDetails = async (taskId) => { try { const data = await apiCall('getTaskDetails', 'GET', { taskID: taskId }); state.currentTask = { ...state.currentTask, ...data.task }; renderTaskDetail(data); } catch (e) { navigate('tasks', { section: state.currentSection }); } };
 
-    const renderSections = (sections) => { const area = document.getElementById('content-area'); area.className = 'grid-container'; if (!sections || !sections.length) { area.innerHTML = `<p class="loader-container">لا توجد أقسام. قم بإضافة قسم جديد من الشريط الجانبي.</p>`; return; } area.innerHTML = sections.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)).map(s => `<div class="card section-item" data-id="${s.id}" data-name="${s.name}"><div class="card-content"><h3 class="card-name">${s.name}</h3><p class="card-stats">عدد المهام: ${s.taskCount}</p></div><div class="card-footer"><span><i class="fas fa-calendar-alt"></i> ${new Date(s.createdAt).toLocaleDateString('ar-EG')}</span><button class="delete-btn" data-action="delete-section"><i class="fas fa-trash-alt"></i></button></div></div>`).join(''); };
-    const renderTasks = (tasks) => {
-        const area = document.getElementById('content-area'); area.className = 'grid-container'; if (!tasks || !tasks.length) { area.innerHTML = `<p class="loader-container">لا توجد مهام.</p>`; return; }
-        area.innerHTML = tasks.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)).map(t => {
-            const progressColor = t.completion > 75 ? 'green' : t.completion > 30 ? 'orange' : 'red';
-            const deadline = (t.type === 'TimeLimited' && t.endDate) ? `<div class="tag tag-orange"><i class="fas fa-hourglass-end"></i> تنتهي: ${new Date(t.endDate).toLocaleDateString('ar-EG')}</div>` : '';
-            return `<div class="card task-item" data-json='${JSON.stringify(t)}'>
-                <div class="card-content">
-                    <h3 class="card-name">${t.name}</h3>
-                    <div class="progress-label"><span>نسبة الإنجاز</span><span>${t.completion}%</span></div>
-                    <div class="progress-bar-bg"><div class="progress-bar-fg" style="background-color: var(--${progressColor}); width: ${t.completion}%;"></div></div>
-                    <div class="task-tags">${deadline}<div class="tag tag-purple"><i class="fas fa-info-circle"></i> ${t.type === 'TimeLimited' ? 'مهمة بوقت' : 'مهمة قياسية'}</div></div>
-                </div>
-                <div class="card-footer"><span><i class="fas fa-calendar-alt"></i> أنشئت: ${new Date(t.createdAt).toLocaleDateString('ar-EG')}</span><button class="delete-btn" data-action="delete-task"><i class="fas fa-trash-alt"></i></button></div>
-            </div>`;
-        }).join('');
-    };
-    const renderTaskDetail = (data) => {
-        const area = document.getElementById('content-area'); area.className = 'grid-container';
-        area.innerHTML = `${!data.branches || !data.branches.length ? `<p class="loader-container">لم يتم تحديد فروع.</p>` : data.branches.map(b => `<div class="branch-card"><div class="card-name">${b.name}</div><div class="status-radio-group" data-branch-id="${b.id}" data-task-id="${data.task.id}"><input type="radio" id="pending-${b.id}" name="status-${b.id}" value="pending" ${b.status === 'pending' ? 'checked' : ''} ${data.task.status !== 'Open' ? 'disabled' : ''}><label for="pending-${b.id}">لم يتم</label><input type="radio" id="done-${b.id}" name="status-${b.id}" value="done" ${b.status === 'done' || b.status === 'late-done' ? 'checked' : ''} ${data.task.status !== 'Open' ? 'disabled' : ''}><label for="done-${b.id}">${b.status === 'late-done' ? 'تم (متأخر)' : 'تم'}</label><input type="radio" id="not-required-${b.id}" name="status-${b.id}" value="not-required" ${b.status === 'not-required' ? 'checked' : ''} ${data.task.status !== 'Open' ? 'disabled' : ''}><label for="not-required-${b.id}">غير مطلوب</label></div></div>`).join('')}`;
-    };
+    const renderSections = (sections) => { if (!sections || !sections.length) { contentArea.innerHTML = `<p class="loader-container">لا توجد أقسام. قم بإضافة قسم جديد.</p>`; return; } contentArea.innerHTML = sections.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)).map(s => `<div class="section-item" data-id="${s.id}" data-name="${s.name}"><div class="item-content"><h3 class="item-name">${s.name}</h3><p class="item-stats">عدد المهام: ${s.taskCount}</p></div><div class="item-footer"><button class="delete-btn" data-action="delete-section"><i class="fas fa-trash-alt"></i> حذف</button><span><i class="fas fa-calendar-alt"></i> ${new Date(s.createdAt).toLocaleDateString('ar-EG')}</span></div></div>`).join(''); };
+    const renderTasks = (tasks) => { if (!tasks || !tasks.length) { contentArea.innerHTML = `<p class="loader-container">لا توجد مهام في هذا القسم.</p>`; return; } contentArea.innerHTML = tasks.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)).map(t => `<div class="task-item" data-json='${JSON.stringify(t)}'><div class="item-content"><div class="task-item-header"><h3 class="item-name">${t.name}</h3><i class="fas ${t.type === 'TimeLimited' ? 'fa-clock' : 'fa-check-double'} task-type-icon" title="${t.type === 'TimeLimited' ? 'مهمة بوقت' : 'مهمة قياسية'}"></i></div><div class="progress-label"><span>نسبة الإنجاز</span><span>${t.completion}%</span></div><div class="progress-bar-bg"><div class="progress-bar-fg" style="background-color: var(--${t.completion > 80 ? 'green' : t.completion > 40 ? 'orange' : 'red'}); width: ${t.completion}%;"></div></div></div><div class="item-footer"><button class="delete-btn" data-action="delete-task"><i class="fas fa-trash-alt"></i> حذف</button><span><i class="fas ${t.type === 'TimeLimited' && t.endDate ? 'fa-hourglass-end' : 'fa-calendar-alt'}"></i> ${t.type === 'TimeLimited' && t.endDate ? new Date(t.endDate).toLocaleDateString('ar-EG') : new Date(t.createdAt).toLocaleDateString('ar-EG')}</span></div></div>`).join(''); };
+    const renderTaskDetail = (data) => { let meta = `<span><i class="fas fa-info-circle"></i> نوع: ${data.task.type === 'TimeLimited' ? 'محدد بوقت' : 'قياسي'}</span>`; if (data.task.status !== 'Open') meta += `<span><i class="fas fa-lock"></i> <span style="color:var(--red); font-weight:bold;">الحالة: مغلقة</span></span>`; contentArea.innerHTML = `<div class="task-detail-header"><p class="task-meta">${meta}</p></div><div class="grid-container" id="branchGrid">${!data.branches || !data.branches.length ? `<p class="loader-container">لم يتم تحديد فروع لهذه المهمة.</p>` : data.branches.map(b => `<div class="branch-card"><div class="item-name">${b.name}</div><div class="status-radio-group" data-branch-id="${b.id}" data-task-id="${data.task.id}"><input type="radio" id="pending-${b.id}" name="status-${b.id}" value="pending" ${b.status === 'pending' ? 'checked' : ''} ${data.task.status !== 'Open' ? 'disabled' : ''}><label for="pending-${b.id}">لم يتم</label><input type="radio" id="done-${b.id}" name="status-${b.id}" value="done" ${b.status === 'done' || b.status === 'late-done' ? 'checked' : ''} ${data.task.status !== 'Open' ? 'disabled' : ''}><label for="done-${b.id}" class="${b.status === 'late-done' ? 'late-done-label': ''}">${b.status === 'late-done' ? 'تم (متأخر)' : 'تم'}</label><input type="radio" id="not-required-${b.id}" name="status-${b.id}" value="not-required" ${b.status === 'not-required' ? 'checked' : ''} ${data.task.status !== 'Open' ? 'disabled' : ''}><label for="not-required-${b.id}">غير مطلوب</label></div></div>`).join('')}</div>`; };
 
-    const renderModal = (type) => {
-        const commonActions = `<div class="modal-actions"><button class="btn btn-secondary" data-action="close-modal">إلغاء</button><button class="btn btn-primary" id="confirm-${type}-btn">تأكيد</button></div>`;
-        const modals = {
-            section: `<h2>إنشاء قسم جديد</h2><div class="form-group"><label>اسم القسم</label><input type="text" id="sectionNameInput" placeholder="اكتب اسم القسم هنا..."></div>`,
-            task: `<h2>إنشاء مهمة جديدة</h2>
-                <div class="form-group"><label>اسم المهمة</label><input type="text" id="newTaskNameInput"></div>
-                <div class="form-group"><label>نوع المهمة</label><div class="status-radio-group" id="taskTypeSelector"><input type="radio" name="taskType" value="Standard" id="taskTypeStandard" checked><label for="taskTypeStandard">قياسية</label><input type="radio" name="taskType" value="TimeLimited" id="taskTypeTimeLimited"><label for="taskTypeTimeLimited">محددة بوقت</label></div></div>
-                <div id="timeLimitedFields" class="hidden form-group" style="display: flex; gap: 1rem;"><div style="flex: 1;"><label>وقت البدء</label><input type="datetime-local" id="taskStartDateInput"></div><div style="flex: 1;"><label>وقت الإنتهاء</label><input type="datetime-local" id="taskEndDateInput"></div></div>
-                <div class="form-group"><label>الفروع المستهدفة</label><div id="branchSelectionContainer" class="branch-selection-container">جاري تحميل الفروع...</div></div>`
-        };
-        modalContainer.innerHTML = `<div class="modal-overlay"><div class="modal-content">${modals[type]}${commonActions}</div></div>`;
-        setTimeout(() => document.querySelector('.modal-overlay').classList.add('visible'), 10);
-    };
-    
-    document.addEventListener('click', async e => {
-        const target = e.target, actionBtn = target.closest('[data-action]'), backBtn = target.closest('.back-btn'), addSectionBtn = target.closest('#addSectionBtn'), addTaskBtn = target.closest('#addTaskBtn');
-        const section = target.closest('.section-item'), task = target.closest('.task-item');
-        
+    // --- EVENT HANDLING ---
+    const handleContentClick = (e) => {
+        const section = e.target.closest('.section-item'), task = e.target.closest('.task-item'), actionBtn = e.target.closest('[data-action]');
         if (actionBtn) {
              const action = actionBtn.dataset.action;
              if (action === 'delete-section') { if (confirm('هل أنت متأكد من حذف هذا القسم وكل مهامه؟')) apiCall('deleteSection', 'POST', { sectionID: section.dataset.id }).then(render); }
              if (action === 'delete-task') { if (confirm('هل أنت متأكد من حذف هذه المهمة؟')) apiCall('deleteTask', 'POST', { taskID: JSON.parse(task.dataset.json).id }).then(render); }
-             if (action === 'close-modal') { const modal = target.closest('.modal-overlay'); modal.classList.remove('visible'); setTimeout(() => modal.remove(), 300); }
              return;
         }
         if (task) navigate('taskDetail', { task: JSON.parse(task.dataset.json) });
         else if (section) navigate('tasks', { section: { id: section.dataset.id, name: section.dataset.name } });
-        else if (backBtn) navigate(state.view === 'taskDetail' ? 'tasks' : 'sections', { section: state.currentSection });
-        else if (addSectionBtn) renderModal('section');
-        else if (addTaskBtn) {
-            renderModal('task');
-            const branchContainer = document.getElementById('branchSelectionContainer');
-            if (state.allBranches.length === 0) try { state.allBranches = (await apiCall('getBranches')).branches; } catch(err) {}
-            branchContainer.innerHTML = state.allBranches.length > 0 ? state.allBranches.map(b => `<div class="branch-checkbox-item"><label style="display: flex; align-items: center; gap: 0.75rem;"><input type="checkbox" value="${b.id}"> ${b.name}</label></div>`).join('') : '<p>فشل تحميل الفروع.</p>';
-        }
-        else if (target.closest('#confirm-section-btn')) { const name = document.getElementById('sectionNameInput').value.trim(); if (!name) return; target.disabled = true; apiCall('createSection', 'POST', { sectionName: name }).then(() => { modalContainer.innerHTML = ''; render(); }).finally(() => target.disabled = false); }
-        else if (target.closest('#confirm-task-btn')) {
-            const taskName = document.getElementById('newTaskNameInput').value.trim(), taskType = document.querySelector('#taskTypeSelector input:checked').value, startDate = document.getElementById('taskStartDateInput').value, endDate = document.getElementById('taskEndDateInput').value, selectedBranches = Array.from(document.querySelectorAll('#branchSelectionContainer input:checked')).map(cb => cb.value);
-            if (!taskName || !selectedBranches.length) return alert('اسم المهمة واختيار فرع واحد على الأقل مطلوبان.');
-            if (taskType === 'TimeLimited' && (!startDate || !endDate)) return alert('يجب تحديد وقت البدء والانتهاء.');
-            target.disabled = true;
-            try { await apiCall('createTask', 'POST', { sectionID: state.currentSection.id, taskName, taskType, startDate, endDate, branchIDs: selectedBranches }); modalContainer.innerHTML = ''; render(); } catch (err) {} finally { target.disabled = false; }
-        }
-    });
+    };
 
-    document.addEventListener('change', async e => {
-        if (e.target.name === 'status-') { const group = e.target.closest('.status-radio-group'), { taskId, branchId } = group.dataset; Array.from(group.querySelectorAll('input')).forEach(i => i.disabled = true); try { await apiCall('updateStatus', 'POST', { taskID: taskId, branchID: branchId, newStatus: e.target.value }); } finally { Array.from(group.querySelectorAll('input')).forEach(i => i.disabled = false); } }
-        if (e.target.name === 'taskType') { document.getElementById('timeLimitedFields').classList.toggle('hidden', e.target.value === 'Standard'); }
-    });
+    const handleHeaderClick = async (e) => {
+        const targetId = e.target.closest('button')?.id;
+        const actions = {
+            addSectionBtn: () => sectionModal.classList.remove('hidden'),
+            addTaskBtn: async () => { const bc = document.getElementById('branchSelectionContainer'); bc.innerHTML = '<p>جاري تحميل الفروع...</p>'; addTaskModal.classList.remove('hidden'); if (state.allBranches.length === 0) { try { state.allBranches = (await apiCall('getBranches')).branches; } catch(e) {} } bc.innerHTML = state.allBranches.length > 0 ? state.allBranches.map(b => `<label class="branch-checkbox-item"><input type="checkbox" name="branch" value="${b.id}"> ${b.name}</label>`).join('') : '<p>فشل تحميل الفروع.</p>'; },
+            closeTaskBtn: () => { if (confirm('هل أنت متأكد من إغلاق هذه المهمة؟')) apiCall('updateTaskStatus', 'POST', { taskID: state.currentTask.id, newStatus: 'Closed' }).then(render); },
+            sectionReportBtn: () => dateRangeModal.classList.remove('hidden'),
+            taskReportBtn: () => generateAndShowReport('task', { taskId: state.currentTask.id })
+        };
+        if (actions[targetId]) actions[targetId]();
+        if (e.target.closest('.back-btn')) navigate(state.view === 'taskDetail' ? 'tasks' : 'sections', { section: state.currentSection });
+    };
     
-    render();
+    const handleStatusChange = async (e) => { if (e.target.name.startsWith('status-')) { const group = e.target.closest('.status-radio-group'), { taskId, branchId } = group.dataset; Array.from(group.querySelectorAll('input')).forEach(i => i.disabled = true); try { const res = await apiCall('updateStatus', 'POST', { taskID: taskId, branchID: branchId, newStatus: e.target.value }); if (res.actualStatus === 'late-done') group.querySelector(`label[for="done-${branchId}"]`).innerHTML = 'تم (متأخر)'; } finally { Array.from(group.querySelectorAll('input')).forEach(i => i.disabled = false); } } };
+
+    const generateAndShowReport = async (type, options) => { showLoader('جاري إنشاء التقرير...'); try { const data = type === 'task' ? await apiCall('getTaskDetails', 'GET', { taskID: options.taskId }) : await apiCall('getSectionReportDetails', 'GET', { sectionID: options.sectionId, startDate: options.startDate, endDate: options.endDate }); const t = document.getElementById('reportTemplateContainer'); /* Report rendering logic */ const canvas = await html2canvas(document.getElementById('reportTemplateContainer'), { scale: 2, useCORS: true }); state.reportImageData = canvas.toDataURL('image/jpeg', 0.95); document.getElementById('reportPreviewImage').src = state.reportImageData; reportPreviewModal.classList.remove('hidden'); } catch (e) { showNotification('فشل إنشاء التقرير.', true); } finally { render(); } };
+
+    // --- INITIALIZATION ---
+    const initializeApp = () => {
+        document.getElementById('confirmAddTaskBtn').addEventListener('click', async () => {
+            const taskName = document.getElementById('newTaskNameInput').value.trim(), taskType = document.querySelector('input[name="taskType"]:checked').value, startDate = document.getElementById('taskStartDateInput').value, endDate = document.getElementById('taskEndDateInput').value, selectedBranches = Array.from(document.querySelectorAll('input[name="branch"]:checked')).map(cb => cb.value);
+            if (!taskName || !selectedBranches.length) return showNotification('اسم المهمة واختيار فرع واحد على الأقل مطلوبان.', true);
+            if (taskType === 'TimeLimited' && (!startDate || !endDate)) return showNotification('يجب تحديد وقت البدء والانتهاء.', true);
+            try { await apiCall('createTask', 'POST', { sectionID: state.currentSection.id, taskName, taskType, startDate, endDate, branchIDs: selectedBranches }); addTaskModal.classList.add('hidden'); render(); } catch (e) {}
+        });
+        document.getElementById('confirmAddSectionBtn').addEventListener('click', () => { const name = document.getElementById('sectionNameInput').value.trim(); if (!name) return showNotification('اسم القسم مطلوب.', true); apiCall('createSection', 'POST', { sectionName: name }).then(() => { sectionModal.classList.add('hidden'); render(); }); });
+        document.getElementById('generateSectionReportBtn').addEventListener('click', () => { const s = document.getElementById('reportStartDate').value, e = document.getElementById('reportEndDate').value; if (!s || !e) return showNotification('الرجاء تحديد تاريخ البدء والانتهاء.', true); dateRangeModal.classList.add('hidden'); generateAndShowReport('section', { sectionId: state.currentSection.id, startDate: s, endDate: e }); });
+        document.getElementById('downloadReportImageBtn').addEventListener('click', () => { if (!state.reportImageData) return; const l = document.createElement('a'); l.href = state.reportImageData; l.download = state.reportFileName; l.click(); });
+        
+        [ 'cancelAddSectionBtn', 'cancelAddTaskBtn', 'cancelDateRangeBtn', 'closeReportPreviewBtn' ].forEach(id => document.getElementById(id)?.addEventListener('click', e => e.target.closest('.modal-overlay').classList.add('hidden')));
+        document.querySelector('input[name="taskType"][value="TimeLimited"]').addEventListener('change', () => document.getElementById('timeLimitedFields').classList.remove('hidden'));
+        document.querySelector('input[name="taskType"][value="Standard"]').addEventListener('change', () => document.getElementById('timeLimitedFields').classList.add('hidden'));
+
+        contentArea.addEventListener('click', handleContentClick);
+        contentArea.addEventListener('change', handleStatusChange);
+        headerActions.addEventListener('click', handleHeaderClick);
+        headerTitle.addEventListener('click', handleHeaderClick);
+
+        render();
+    };
+    initializeApp();
 });
 </script>
 </html>
