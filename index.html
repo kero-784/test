@@ -89,14 +89,20 @@
         .form-group { margin-bottom: 1.5rem; }
         .form-group label { display: block; font-weight: 700; margin-bottom: 0.5rem; font-size: 0.9rem; }
         
-        /* Searchable Multi-Select List */
-        .searchable-list-container .search-input { margin-bottom: 0.75rem; }
-        .searchable-list-header { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem; font-size: 0.85rem; }
-        .searchable-list { max-height: 220px; overflow-y: auto; background: var(--bg-color); padding: 0.5rem; border-radius: 0.5rem; border: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 0.25rem; }
-        .searchable-list-item { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; border-radius: 0.5rem; cursor: pointer; color: var(--primary-text); font-size: 1rem; }
-        .searchable-list-item:hover { background-color: #374151; }
-        .searchable-list-item input[type="checkbox"] { width: 1.25rem; height: 1.25rem; accent-color: var(--blue); margin-left: 0; }
-        
+        /* --- NEW: Searchable Multi-Select List --- */
+        .searchable-list-container { border: 1px solid var(--border-color); border-radius: 0.5rem; padding: 0.75rem; background-color: var(--bg-color); }
+        .searchable-list-container .search-input { margin-bottom: 0.75rem; border-color: var(--border-color); }
+        .searchable-list-header { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem; font-size: 0.85rem; color: var(--secondary-text); border-bottom: 1px solid var(--border-color); margin-bottom: 0.5rem; }
+        .searchable-list { max-height: 200px; overflow-y: auto; padding-right: 0.5rem; }
+        .searchable-list-item { display: flex; align-items: center; padding: 0.75rem 0.5rem; border-radius: 0.5rem; cursor: pointer; color: var(--primary-text); font-size: 1rem; }
+        .searchable-list-item:hover { background-color: #37415160; }
+        .searchable-list-item input[type="checkbox"] { display: none; }
+        .searchable-list-item .custom-checkbox { width: 20px; height: 20px; border: 2px solid var(--border-color); border-radius: 0.25rem; margin-left: 12px; display: flex; align-items: center; justify-content: center; }
+        .searchable-list-item .custom-checkbox i { color: white; font-size: 12px; transform: scale(0); transition: transform 0.1s ease-in-out; }
+        .searchable-list-item input[type="checkbox"]:checked + .custom-checkbox { background-color: var(--blue); border-color: var(--blue); }
+        .searchable-list-item input[type="checkbox"]:checked + .custom-checkbox i { transform: scale(1); }
+        .searchable-list-item.selected { background-color: #3b82f630; }
+
         .loader-container { text-align: center; padding: 5rem 2rem; font-size: 1.2rem; color: var(--secondary-text); }
         .fa-spinner { font-size: 2.5rem; margin-bottom: 1rem; color: var(--blue); -webkit-animation: fa-spin 1.5s infinite linear; animation: fa-spin 1.5s infinite linear; }
         @keyframes fa-spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
@@ -139,7 +145,7 @@
 </body>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz9D3_ORSzqzBU5IRqH0zQVIZQ4DEIbpToHbXyG4E79mJUx0rwii79VkgaWYQO8MzY6aw/exec';
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxMuoWji2pZmZXbi-Bk1sl7alyV6PDVWctac6Fizsl5A6RlkgHb8CqjuIbIIn9pkpsD1A/exec';
 
     const contentArea = document.getElementById('contentArea'), headerTitle = document.getElementById('headerTitle'), headerActions = document.getElementById('headerActions');
     const sectionModal = document.getElementById('sectionModal'), addTaskModal = document.getElementById('addTaskModal'), editTaskModal = document.getElementById('editTaskModal'), dateRangeModal = document.getElementById('dateRangeModal'), branchReportModal = document.getElementById('branchReportModal'), reportPreviewModal = document.getElementById('reportPreviewModal');
@@ -204,10 +210,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const handleStatusChange = async (e) => { if (e.target.name.startsWith('status-')) { const group = e.target.closest('.status-radio-group'); const { taskId, branchId } = group.dataset; try { const res = await apiCall('updateStatus', 'POST', { taskID: taskId, branchID: branchId, newStatus: e.target.value }); const branchToUpdate = state.currentTask.branches.find(b => b.id === branchId); if (branchToUpdate) { branchToUpdate.status = res.actualStatus; branchToUpdate.updatedAt = res.updatedAt; } renderTaskDetail({ task: state.currentTask, branches: state.currentTask.branches }); showNotification('تم تحديث الحالة بنجاح.', false); } catch (error) { showNotification('فشل تحديث الحالة.', true); handleLoadTaskDetails(taskId); } } };
     
     function renderSearchableList(container, items, selectedIds = []) {
-        container.innerHTML = `<input type="text" class="search-input" placeholder="ابحث..."><div class="searchable-list-header"><label style="display:flex; align-items:center; gap:0.5rem;"><input type="checkbox" class="select-all"> اختيار الكل</label><span class="selection-count">0/${items.length} محدد</span></div><div class="searchable-list"></div>`;
+        container.innerHTML = `<input type="text" class="search-input" placeholder="ابحث..."><div class="searchable-list-header"><label class="searchable-list-item" style="padding: 0; cursor: pointer;"><input type="checkbox" class="select-all"><div class="custom-checkbox"><i class="fas fa-check"></i></div><span>اختيار الكل</span></label><span class="selection-count">0/${items.length} محدد</span></div><div class="searchable-list"></div>`;
         const searchInput = container.querySelector('.search-input'); const listEl = container.querySelector('.searchable-list'); const selectAllCb = container.querySelector('.select-all'); const countEl = container.querySelector('.selection-count'); let currentSelected = [...selectedIds];
-        const updateList = () => { const query = searchInput.value.toLowerCase(); const filteredItems = items.filter(item => item.name.toLowerCase().includes(query)); listEl.innerHTML = filteredItems.map(item => `<label class="searchable-list-item"><span>${item.name}</span><input type="checkbox" name="branch" value="${item.id}" ${currentSelected.includes(item.id) ? 'checked' : ''}></label>`).join(''); updateCount(); };
-        const updateCount = () => { currentSelected = Array.from(container.querySelectorAll('input[name="branch"]:checked')).map(cb => cb.value); countEl.textContent = `${currentSelected.length}/${items.length} محدد`; selectAllCb.checked = currentSelected.length > 0 && currentSelected.length === items.length; };
+        const updateList = () => { const query = searchInput.value.toLowerCase(); const filteredItems = items.filter(item => item.name.toLowerCase().includes(query)); listEl.innerHTML = filteredItems.map(item => `<label class="searchable-list-item"><input type="checkbox" name="branch" value="${item.id}" ${currentSelected.includes(item.id) ? 'checked' : ''}><div class="custom-checkbox"><i class="fas fa-check"></i></div><span>${item.name}</span></label>`).join(''); updateCount(); };
+        const updateCount = () => { currentSelected = Array.from(container.querySelectorAll('input[name="branch"]:checked')).map(cb => cb.value); countEl.textContent = `${currentSelected.length}/${items.length} محدد`; selectAllCb.checked = currentSelected.length > 0 && currentSelected.length === items.length; Array.from(listEl.children).forEach(child => { const cb = child.querySelector('input'); if(cb) child.classList.toggle('selected', cb.checked); }); };
         container.addEventListener('change', e => { if (e.target.matches('input[name="branch"]')) { updateCount(); } }); searchInput.addEventListener('input', updateList);
         selectAllCb.addEventListener('change', () => { const allVisibleCheckboxes = listEl.querySelectorAll('input[type="checkbox"]'); allVisibleCheckboxes.forEach(cb => cb.checked = selectAllCb.checked); updateCount(); });
         updateList();
