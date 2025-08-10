@@ -1,0 +1,119 @@
+/* ... existing styles ... */
+
+/* --- MOBILE RESPONSIVENESS --- */
+@media (max-width: 768px) {
+    .app-container {
+        flex-direction: column;
+    }
+    
+    #sidebar {
+        width: 100%;
+        position: fixed;
+        z-index: 1000;
+        left: -100%;
+        transition: left 0.3s ease;
+    }
+    
+    #sidebar.active {
+        left: 0;
+    }
+    
+    #main-content {
+        margin-left: 0;
+        padding-top: 60px;
+    }
+    
+    .top-bar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 900;
+    }
+    
+    .content-container {
+        padding: 1rem;
+    }
+}
+
+/* --- CALENDAR VIEW --- */
+#calendar-view {
+    padding: 20px;
+}
+
+.fc-event {
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.fc-event:hover {
+    transform: scale(1.02);
+}
+
+/* --- NOTIFICATIONS --- */
+#notifications-dropdown {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 100%;
+}
+
+#notifications-dropdown.show {
+    display: block;
+}
+
+/* --- PRIORITY BADGES --- */
+.badge.bg-high { background-color: #dc3545 !important; }
+.badge.bg-medium { background-color: #ffc107 !important; color: #000 !important; }
+.badge.bg-low { background-color: #28a745 !important; }
+
+/* --- SKELETON LOADING --- */
+.skeleton {
+    animation: skeleton-loading 1s linear infinite alternate;
+    opacity: 0.7;
+    border-radius: 0.25rem;
+}
+
+@keyframes skeleton-loading {
+    0% { background-color: hsl(200, 20%, 70%); }
+    100% { background-color: hsl(200, 20%, 95%); }
+}
+
+.skeleton-text {
+    width: 100%;
+    height: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.skeleton-text:last-child {
+    margin-bottom: 0;
+    width: 80%;
+}
+
+/* --- ANIMATIONS --- */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.card {
+    animation: fadeIn 0.3s ease-out;
+}
+
+/* --- PRINT STYLES UPDATE --- */
+@media print {
+    /* ... existing print styles ... */
+    
+    .fc-header-toolbar, .fc-footer-toolbar {
+        display: none !important;
+    }
+    
+    .fc-view {
+        height: auto !important;
+        overflow: visible !important;
+    }
+    
+    .fc-event {
+        page-break-inside: avoid;
+    }
+}
