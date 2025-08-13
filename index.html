@@ -18,7 +18,7 @@
     <div id="app-container">
         <!-- Login View -->
         <div id="login-view" class="view">
-            <div id="login-form-container">
+             <div id="login-form-container">
                 <h3><i class="fas fa-lock mr-2"></i>System Login</h3>
                 <p>Please enter your code to continue</p>
                 <form id="login-form">
@@ -36,134 +36,80 @@
         <div id="main-view" class="view">
             <div class="app-header">
                 <h4 id="welcome-message" class="mb-0"></h4>
+                <div id="nav-buttons" class="ml-auto mr-3"></div>
                 <button id="logout-btn" class="btn btn-sm btn-outline-danger"><i class="fas fa-sign-out-alt"></i> Logout</button>
             </div>
             
-            <!-- Branch User View -->
-            <div id="branch-user-content" class="role-content">
-                <div class="card mb-4">
-                    <div class="card-header"><i class="fas fa-pencil-alt mr-2"></i>Item Details & Pricing</div>
-                    <div class="card-body">
-                        <form id="item-details-form">
-                            <div class="form-row">
-                                <div class="form-group col-md-6" style="position: relative;">
-                                    <label for="code">Item Code</label>
-                                    <input type="text" class="form-control" id="code">
-                                    <div id="autocomplete-suggestions" class="autocomplete-box"></div>
-                                </div>
-                                <div class="form-group col-md-6">
-                                    <label for="type">Request Type</label>
-                                    <select class="form-control" id="type"><option value="شراء">شراء</option><option value="مرتجع">مرتجع</option></select>
-                                </div>
-                            </div>
-                            <div class="form-group" id="currentPriceDiv" style="display:none;"><label for="currentPrice">Current Price</label><input type="number" step="0.001" class="form-control" id="currentPrice"></div>
-                            <div class="form-group"><label for="name">Item Name</label><input type="text" class="form-control" id="name" readonly></div>
-                            <div class="form-group"><label for="supplierName">Default Supplier</label><input type="text" class="form-control" id="supplierName" readonly></div>
-                            <div class="form-group"><div class="form-check"><input type="checkbox" class="form-check-input" id="alternateSupplierCheck"><label class="form-check-label" for="alternateSupplierCheck">شراء من مورد اخر (Alternate Supplier)</label></div></div>
-                            <div class="form-group" id="alternateSupplierDiv" style="display: none;"><label for="alternateSupplierName">Alternate Supplier Name</label><input type="text" class="form-control" id="alternateSupplierName"></div>
-                            <hr>
-                            <div class="form-group">
-                                <label for="unitPrice">Final Unit Price</label>
-                                <div class="input-group">
-                                    <input type="number" step="0.001" class="form-control" id="unitPrice">
-                                    <div class="input-group-append"><button class="btn btn-outline-secondary" type="button" id="calc-btn" title="Calculate from Case Cost"><i class="fas fa-calculator"></i></button></div>
-                                </div>
-                            </div>
-                            <button type="button" class="btn btn-success" id="add-to-list-btn"><i class="fas fa-plus"></i> Add Item to List</button>
-                        </form>
-                    </div>
-                </div>
-
-                <div id="submission-list-card" class="card mb-4" style="display:none;">
-                    <div class="card-header">Pending Request Items</div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-sm table-striped">
-                                <thead><tr><th>Code</th><th>Name</th><th>Supplier</th><th>Units</th><th>Disc.</th><th>VAT</th><th>Piece</th><th>Case</th><th>Actions</th></tr></thead>
-                                <tbody id="submission-list-tbody"></tbody>
-                            </table>
-                        </div>
-                        <hr>
-                        <div class="d-flex justify-content-between">
-                             <button class="btn btn-danger" id="clear-list-btn"><i class="fas fa-trash"></i> Clear List</button>
-                             <button class="btn btn-primary" id="submit-all-btn"><i class="fas fa-paper-plane"></i> Submit All Items</button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="card-header"><i class="fas fa-history mr-2"></i>My Submission History</div>
-                    <div class="card-body table-responsive p-0"><table id="branch-requests-table" class="table table-bordered table-hover mb-0"><thead><tr><th>Request ID</th><th>Date</th><th>Status</th></tr></thead><tbody></tbody></table></div>
-                </div>
-            </div>
-
-            <!-- Officer View -->
-            <div id="officer-content" class="role-content">
-                <div class="card">
-                    <div class="card-header"><i class="fas fa-inbox mr-2"></i>All Price Update Requests</div>
-                    <div class="card-body table-responsive p-0">
-                        <table id="officer-requests-table" class="table table-bordered table-hover mb-0">
-                            <thead><tr><th>Request ID</th><th>Date</th><th>Branch</th><th>Submitted By</th><th>Status</th><th>Actions</th></tr></thead>
-                            <tbody></tbody>
-                        </table>
-                    </div>
-                </div>
+            <div id="app-content-area">
+                <!-- Content for Main App, Admin, and Reports will be injected here by script.js -->
             </div>
         </div>
-        
-        <!-- Officer Action Modal -->
-        <div class="modal fade" id="request-details-modal" tabindex="-1">
-            <div class="modal-dialog modal-xl">
-                <div class="modal-content">
-                    <div class="modal-header bg-light">
-                        <h5 class="modal-title">Review Request <span id="modal-request-id-title"></span></h5>
-                        <button type="button" class="close" data-dismiss="modal">&times;</button>
-                    </div>
-                    <div class="modal-body" id="officer-modal-body-exportable">
-                        <div class="form-row align-items-end mb-3 p-3 bg-light border rounded">
-                            <div class="col-md-5"><label for="master-status-select"><strong>Update All Items To:</strong></label><select id="master-status-select" class="form-control form-control-sm"><option value="">-- Select Status --</option><option>تم التعديل</option><option>غير مسموع بالتعديل ويتم رفع الصنف</option><option>تم التعديل جزئيا</option><option>يرجي مراجعة كود الاستثناء</option><option>يتم المراجعة مع المورد</option><option>Pending</option></select></div>
-                        </div>
-                        <div class="table-responsive"><table class="table table-sm table-bordered"><thead><tr><th>Item Code</th><th>Name</th><th>Piece Price</th><th>Case Price</th><th>Status</th></tr></thead><tbody id="modal-items-tbody"></tbody></table></div>
-                    </div>
-                    <div class="modal-footer justify-content-between">
-                        <div>
-                             <button type="button" class="btn btn-outline-secondary" id="export-officer-btn">
-                                <i class="fas fa-file-image"></i> Export as JPG
-                            </button>
-                        </div>
-                        <div>
-                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                            <button type="button" class="btn btn-primary" id="save-item-changes-btn"><i class="fas fa-save"></i> Save Changes</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Branch User View Details Modal -->
-        <div class="modal fade" id="branch-view-details-modal" tabindex="-1">
-            <div class="modal-dialog modal-lg">
-                <div class="modal-content">
-                    <div class="modal-header bg-light">
-                        <h5 class="modal-title">Request Details: <span id="branch-modal-request-id"></span></h5>
-                        <button type="button" class="close" data-dismiss="modal">&times;</button>
-                    </div>
-                    <div class="modal-body" id="branch-modal-body-exportable">
-                        <div class="table-responsive"><table class="table table-sm table-bordered"><thead><tr><th>Code</th><th>Name</th><th>Supplier</th><th>Piece Price</th><th>Status</th></tr></thead><tbody id="branch-modal-items-tbody"></tbody></table></div>
-                    </div>
-                    <div class="modal-footer justify-content-between">
-                        <button type="button" class="btn btn-outline-secondary" id="export-branch-btn">
-                            <i class="fas fa-file-image"></i> Export as JPG
-                        </button>
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Calculator Modal -->
-        <div class="modal fade" id="calculatorModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5 class="modal-title"><i class="fas fa-calculator mr-2"></i>Price Calculator</h5><button type="button" class="close" data-dismiss="modal">&times;</button></div><div class="modal-body"><div class="form-group"><label for="modalCost">Case Cost:</label><input type="number" step="0.001" class="form-control" id="modalCost"></div><div class="form-group"><label for="modalUnit">Units per Case:</label><input type="number" class="form-control" id="modalUnit"></div><div class="form-group"><label for="modalDiscount">Discount (%):</label><input type="number" class="form-control" id="modalDiscount" value="0"></div><div class="form-group"><label for="modalVat">VAT (%):</label><select class="form-control" id="modalVat"><option value="0">0%</option><option value="5">5%</option><option value="14">14%</option></select></div><hr><h5 class="text-center">Results</h5><div class="form-group"><label>Final Unit Price:</label><input type="text" class="form-control bg-light" id="modalUnitPriceResult" readonly></div><div class="form-group"><label>Final Case Price:</label><input type="text" class="form-control bg-light" id="modalCasePriceResult" readonly></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button><button type="button" class="btn btn-primary" id="apply-calc-price-btn">Apply Price</button></div></div></div></div>
     </div>
+
+    <!-- MODAL & TEMPLATE DEFINITIONS -->
+    
+    <!-- Officer Action Modal -->
+    <div class="modal fade" id="request-details-modal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header bg-light">
+                    <h5 class="modal-title">Review Request <span id="modal-request-id-title"></span></h5>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body" id="officer-modal-body-exportable">
+                    <div class="form-row align-items-end mb-3 p-3 bg-light border rounded">
+                        <div class="col-md-5"><label for="master-status-select"><strong>Update All Items To:</strong></label><select id="master-status-select" class="form-control form-control-sm"><option value="">-- Select Status --</option><option>تم التعديل</option><option>غير مسموع بالتعديل ويتم رفع الصنف</option><option>تم التعديل جزئيا</option><option>يرجي مراجعة كود الاستثناء</option><option>يتم المراجعة مع المورد</option><option>Pending</option></select></div>
+                    </div>
+                    <div class="table-responsive"><table class="table table-sm table-bordered"><thead><tr><th>Code</th><th>Name</th><th>Type</th><th>Supplier</th><th>Current Price</th><th>Submitted Price</th><th>Status</th></tr></thead><tbody id="modal-items-tbody"></tbody></table></div>
+                </div>
+                <div class="modal-footer justify-content-between">
+                    <div><button type="button" class="btn btn-outline-secondary" id="export-officer-btn"><i class="fas fa-file-image"></i> Export</button></div>
+                    <div><button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button><button type="button" class="btn btn-info" id="save-item-changes-btn"><i class="fas fa-save"></i> Save</button><button type="button" class="btn btn-primary" id="finalize-for-branch-btn"><i class="fas fa-paper-plane"></i> Notify Branch</button></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Branch User View Details Modal -->
+    <div class="modal fade" id="branch-view-details-modal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-light"><h5 class="modal-title">Request Details: <span id="branch-modal-request-id"></span></h5><button type="button" class="close" data-dismiss="modal">&times;</button></div>
+                <div class="modal-body" id="branch-modal-body-exportable"><div class="table-responsive"><table class="table table-sm table-bordered"><thead><tr><th>Code</th><th>Name</th><th>Supplier</th><th>Piece Price</th><th>Status</th></tr></thead><tbody id="branch-modal-items-tbody"></tbody></table></div></div>
+                <div class="modal-footer justify-content-between"><button type="button" class="btn btn-outline-secondary" id="export-branch-btn"><i class="fas fa-file-image"></i> Export</button><div><button type="button" class="btn btn-success" id="confirm-receipt-btn" style="display: none;"><i class="fas fa-check-circle"></i> Confirm Receipt</button><button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button></div></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Management Modal -->
+    <div class="modal fade" id="user-modal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header"><h5 class="modal-title" id="user-modal-title">Add User</h5><button type="button" class="close" data-dismiss="modal">&times;</button></div>
+                <div class="modal-body">
+                    <form id="user-form">
+                        <input type="hidden" id="user-form-original-logincode">
+                        <div class="form-group"><label for="user-logincode">Login Code (cannot be changed after creation)</label><input type="text" id="user-logincode" class="form-control" required></div>
+                        <div class="form-group"><label for="user-displayname">Display Name</label><input type="text" id="user-displayname" class="form-control" required></div>
+                        <div class="form-group"><label for="user-role">Role</label><select id="user-role" class="form-control"><option>Branch</option><option>Officer</option><option>Admin</option></select></div>
+                        <div class="form-group"><label for="user-branch">Branch</label><input type="text" id="user-branch" class="form-control"></div>
+                    </form>
+                </div>
+                <div class="modal-footer"><button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button><button type="button" class="btn btn-primary" id="save-user-btn">Save User</button></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Fullscreen Notification Modal -->
+    <div class="modal fade" id="fullscreen-notification-modal" tabindex="-1" data-backdrop="static" data-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered"><div class="modal-content text-center"><div class="modal-header"><h4 class="modal-title w-100"><i class="fas fa-bell text-primary"></i> Notification</h4></div><div class="modal-body py-4"><h3 id="fullscreen-notification-message">تم الاستجابة لطلب التعديل</h3></div><div class="modal-footer justify-content-center"><button type="button" class="btn btn-primary btn-lg" id="fullscreen-notification-ok-btn">OK</button></div></div></div>
+    </div>
+
+    <!-- Calculator Modal -->
+    <div class="modal fade" id="calculatorModal" tabindex="-1">
+         <div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5 class="modal-title"><i class="fas fa-calculator mr-2"></i>Price Calculator</h5><button type="button" class="close" data-dismiss="modal">&times;</button></div><div class="modal-body"><div class="form-group"><label for="modalCost">Case Cost:</label><input type="number" step="0.001" class="form-control" id="modalCost"></div><div class="form-group"><label for="modalUnit">Units per Case:</label><input type="number" class="form-control" id="modalUnit"></div><div class="form-group"><label for="modalDiscount">Discount (%):</label><input type="number" class="form-control" id="modalDiscount" value="0"></div><div class="form-group"><label for="modalVat">VAT (%):</label><select class="form-control" id="modalVat"><option value="0">0%</option><option value="5">5%</option><option value="14">14%</option></select></div><hr><h5 class="text-center">Results</h5><div class="form-group"><label>Final Unit Price:</label><input type="text" class="form-control bg-light" id="modalUnitPriceResult" readonly></div><div class="form-group"><label>Final Case Price:</label><input type="text" class="form-control bg-light" id="modalCasePriceResult" readonly></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button><button type="button" class="btn btn-primary" id="apply-calc-price-btn">Apply Price</button></div></div></div>
+    </div>
+
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
