@@ -1,5 +1,5 @@
 // --- GLOBALS ---
-const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzJIJmBLmlInBcEng9x69pQYusj3r1cZo5VR_ufOxArlj04gl2iK00u8vfC9Jk64HLL/exec";
+const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwCLaPcRNq0BHCDCXBh6FoY90In6iC1y_Sss1RI5tLqW03MUzg6zAj7W5zHioFDNTwB/exec";
 let masterItemDatabase = [];
 let currentUser = null;
 let autocompleteDebounceTimer;
@@ -51,6 +51,7 @@ async function initializeApp() {
     showView('main-view');
     document.getElementById('welcome-message').textContent = `Welcome, ${currentUser.DisplayName} (${currentUser.Role})`;
     document.getElementById('logout-btn').addEventListener('click', handleLogout);
+    startNotificationPolling(); // Start polling immediately
     const dbResult = await apiRequest('getItemDatabase');
     if (dbResult.success) masterItemDatabase = dbResult.data;
     if (currentUser.Role === 'Branch') {
@@ -66,6 +67,7 @@ async function initializeApp() {
 function handleLogout() {
     currentUser = null;
     sessionStorage.removeItem('currentUser');
+    if (notificationInterval) clearInterval(notificationInterval);
     showView('login-view');
     document.getElementById('loginCode').value = '';
 }
@@ -95,13 +97,16 @@ function renderOfficerRequests(requests) {
         tbody.innerHTML = '<tr><td colspan="6" class="text-center">No requests found.</td></tr>';
         return;
     }
-    tbody.innerHTML = requests.map(r => `
-        <tr class="${r.OverallStatus === 'Pending' ? 'table-warning' : ''}">
-            <td>${r.RequestID}</td><td>${new Date(r.SubmissionTimestamp).toLocaleDateString()}</td><td>${r.Branch}</td><td>${r.SubmittedBy}</td>
-            <td><span class="badge ${getStatusClass(r.OverallStatus)}">${r.OverallStatus}</span></td>
-            <td><button class="btn btn-sm btn-primary" onclick="reviewRequest('${r.RequestID}')"><i class="fas fa-search"></i> Review</button></td>
-        </tr>
-    `).join('');
+    tbody.innerHTML = requests.map(r => {
+        const isCompleted = r.OverallStatus === 'Completed';
+        return `
+            <tr class="${isCompleted ? 'table-light text-muted' : (r.OverallStatus === 'Pending' ? 'table-warning' : '')}">
+                <td>${r.RequestID}</td><td>${new Date(r.SubmissionTimestamp).toLocaleDateString()}</td><td>${r.Branch}</td><td>${r.SubmittedBy}</td>
+                <td><span class="badge ${getStatusClass(r.OverallStatus)}">${r.OverallStatus}</span></td>
+                <td><button class="btn btn-sm btn-primary" onclick="reviewRequest('${r.RequestID}')" ${isCompleted ? 'disabled' : ''}><i class="fas fa-search"></i> ${isCompleted ? 'View' : 'Review'}</button></td>
+            </tr>
+        `;
+    }).join('');
 }
 
 // --- BRANCH USER FORM LOGIC ---
@@ -234,6 +239,7 @@ async function reviewRequest(requestID) {
     const result = await apiRequest('getRequestDetails', { requestID: requestID });
     if (result.success && result.data) {
         document.getElementById('modal-request-id-title').textContent = requestID;
+        $('#request-details-modal').data('requestId', requestID);
         renderOfficerModal(result.data);
         document.getElementById('master-status-select').onchange = applyMasterStatus;
         $('#request-details-modal').modal('show');
@@ -259,7 +265,7 @@ function applyMasterStatus() {
     if (!masterStatus) return;
     document.querySelectorAll('.item-status-select').forEach(select => { select.value = masterStatus; });
 }
-async function confirmAllUpdates() {
+async function saveItemChanges() {
     const updates = [];
     document.querySelectorAll('#modal-items-tbody tr').forEach(row => {
         updates.push({ itemID: row.dataset.itemId, newStatus: row.querySelector('.item-status-select').value });
@@ -267,9 +273,20 @@ async function confirmAllUpdates() {
     if (updates.length === 0) { displayMessage("No items to update.", true); return; }
     const result = await apiRequest('updateItemStatuses', { updates: updates });
     if (result.success) {
-        displayMessage(result.message || 'Updates saved successfully!');
-        $('#request-details-modal').modal('hide');
+        displayMessage(result.message || 'Item changes saved successfully!');
         loadOfficerData();
+    }
+}
+async function finalizeRequest() {
+    const requestID = $('#request-details-modal').data('requestId');
+    if (!requestID) { displayMessage("Could not identify the Request ID.", true); return; }
+    if (confirm(`Are you sure you want to finalize and close Request ${requestID}? This action will notify the user and cannot be undone.`)) {
+        const result = await apiRequest('finalizeRequest', { requestID: requestID });
+        if (result.success) {
+            displayMessage(result.message);
+            $('#request-details-modal').modal('hide');
+            loadOfficerData();
+        }
     }
 }
 
@@ -282,9 +299,34 @@ function getStatusClass(status) {
         default: return 'badge-light';
     }
 }
+function startNotificationPolling() {
+    if (notificationInterval) clearInterval(notificationInterval); // Clear any existing interval
+    notificationInterval = setInterval(async () => {
+        if (document.hidden || !currentUser) return;
+        const result = await apiRequest('checkForNotifications', { lastCheck: lastNotificationCheck });
+        if (result.success) {
+            lastNotificationCheck = new Date().toISOString(); // Update timestamp on every successful check
+            if (result.newEvents.length > 0) {
+                displayMessage(result.newEvents.join('\n'), false, 10000);
+                document.getElementById('notification-sound').play().catch(e => console.warn("Audio playback failed.", e));
+                if (currentUser.Role === 'Branch') loadBranchUserData();
+                else if (currentUser.Role === 'Officer') loadOfficerData();
+            }
+        }
+    }, 15000);
+}
 function showView(viewId) { document.querySelectorAll('.view').forEach(v => v.style.display = 'none'); document.getElementById(viewId).style.display = 'block'; }
-function displayMessage(message, isError = false, duration = 3000) { /* ... Unchanged ... */ }
-function showLoginError(message) { /* ... Unchanged ... */ }
+function displayMessage(message, isError = false, duration = 3000) {
+    const el = document.getElementById('message-container');
+    el.textContent = message;
+    el.className = isError ? 'error show' : 'success show';
+    setTimeout(() => { el.classList.remove('show'); }, duration);
+}
+function showLoginError(message) {
+    const el = document.getElementById('login-error');
+    el.textContent = message;
+    el.style.display = 'block';
+}
 document.addEventListener('DOMContentLoaded', function() {
     const storedUser = sessionStorage.getItem('currentUser');
     if (storedUser) {
@@ -294,4 +336,10 @@ document.addEventListener('DOMContentLoaded', function() {
         showView('login-view');
         setupLoginListeners();
     }
+    document.addEventListener('click', function(event) {
+        const suggestionsBox = document.getElementById('autocomplete-suggestions');
+        if (suggestionsBox && !event.target.closest('#code') && !event.target.closest('#autocomplete-suggestions')) {
+            suggestionsBox.style.display = 'none';
+        }
+    });
 });
