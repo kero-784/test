@@ -1,4 +1,4 @@
-<!-- START OF FILE index.html -->
+<!-- START OF FILE index.html (Updated) -->
 <!DOCTYPE html>
 <html lang="en" dir="rtl">
 
@@ -6,6 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Price Request System</title>
+    <!-- This line causes the 404 error if you don't have a favicon.png file. You can delete it. -->
     <link rel="icon" type="image/png" href="favicon.png">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -38,16 +39,19 @@
                     <p>Please log in to continue</p>
                 </div>
                 <div class="card-body">
-                    <div class="form-group">
-                        <label for="username">Username</label>
-                        <input type="text" id="username" class="form-control">
-                    </div>
-                    <div class="form-group">
-                        <label for="password">Password</label>
-                        <input type="password" id="password" class="form-control">
-                    </div>
-                    <button class="btn btn-primary btn-block" onclick="handleLogin()">Login</button>
-                    <div id="login-error" class="error-message mt-2 text-center"></div>
+                    <!-- FIX: Wrapped in a <form> tag to resolve the browser warning -->
+                    <form onsubmit="handleLogin(); return false;">
+                        <div class="form-group">
+                            <label for="username">Username</label>
+                            <input type="text" id="username" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="password">Password</label>
+                            <input type="password" id="password" class="form-control">
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block">Login</button>
+                        <div id="login-error" class="error-message mt-2 text-center"></div>
+                    </form>
                 </div>
             </div>
         </div>
