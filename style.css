@@ -231,3 +231,8 @@ body {
 .role-content {
     display: none;
 }
+
+.modal-footer .btn-info {
+    background-color: var(--info-color);
+    border-color: var(--info-color);
+}
