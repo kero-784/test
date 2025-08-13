@@ -1,7 +1,7 @@
 /*************************************************/
 /*          APP CONFIGURATION & GLOBALS          */
 /*************************************************/
-const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbztbfLtY1H-ZdDRsh93LjGXjCWij9I_qaO13MCNoJLX8jHOieCC3oUVrII1RiUZGw1M/exec"; // PASTE YOUR NEW URL HERE
+const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyGKLtFI7JT0D6BD9ErNK8ArIhRBMAWgdkZYRdPKj4cZdyuWLL72iClgOkhCBPUeN4D/exec"; // PASTE YOUR NEW URL HERE
 let masterItemDatabase = [];
 let currentUser = null;
 let autocompleteDebounceTimer;
