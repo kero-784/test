@@ -1,79 +1,259 @@
+<!-- START OF FILE index.html -->
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" dir="rtl">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Task Management Dashboard</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css' rel='stylesheet' />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Price Request System</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
-    <div class="app-container">
-        <nav id="sidebar" class="bg-dark">
-            <div class="sidebar-header">
-                <h3><i class="bi bi-kanban-fill me-2"></i>TaskFlow</h3>
-                <button class="btn btn-sm btn-outline-light d-md-none" id="sidebar-toggle">
-                    <i class="bi bi-x-lg"></i>
+    <!-- Full-screen loader -->
+    <div id="loading-overlay" style="display: none;">
+        <div class="spinner-border text-primary" role="status"></div>
+        <p id="loading-text">Loading...</p>
+    </div>
+    
+    <!-- Notification sound element -->
+    <audio id="notification-sound" preload="auto">
+        <source src="https://cdn.jsdelivr.net/gh/scottschiller/SoundManager2@master/demo/_mp3/blip.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- App Container -->
+    <div id="app-container">
+        <!-- Message Container -->
+        <div id="message-container"></div>
+        
+        <!-- Login View -->
+        <div id="login-view">
+            <div class="card">
+                <div class="card-header text-center">
+                    <h3>Price Request System</h3>
+                    <p>Please log in to continue</p>
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label for="username">Username</label>
+                        <input type="text" id="username" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" class="form-control">
+                    </div>
+                    <button class="btn btn-primary btn-block" onclick="handleLogin()">Login</button>
+                    <div id="login-error" class="error-message mt-2 text-center"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main App View (Hidden by default) -->
+        <div id="main-app-view" style="display: none;">
+            <!-- App Header -->
+            <div class="app-header">
+                <div>
+                    <h4 id="welcome-message"></h4>
+                    <span id="user-role-badge" class="badge"></span>
+                </div>
+                <button class="btn btn-danger btn-sm" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i> Logout
                 </button>
             </div>
-            <ul class="nav flex-column">
-                <li class="nav-item"><a class="nav-link active" href="#" data-view="dashboard" data-action="show-view"><i class="bi bi-grid-1x2-fill"></i><span>Dashboard</span></a></li>
-                <li class="nav-item"><a class="nav-link" href="#" data-view="tasks" data-action="show-view"><i class="bi bi-list-task"></i><span>Tasks</span></a></li>
-                <li class="nav-item"><a class="nav-link" href="#" data-view="calendar" data-action="show-view"><i class="bi bi-calendar-week"></i><span>Calendar</span></a></li>
-                <li class="nav-item"><a class="nav-link" href="#" data-view="management" data-action="show-view"><i class="bi bi-building-gear"></i><span>Management</span></a></li>
-                <li class="nav-item"><a class="nav-link" href="#" data-view="reports" data-action="show-view"><i class="bi bi-bar-chart-line-fill"></i><span>Reports</span></a></li>
-            </ul>
-        </nav>
-
-        <main id="main-content">
-            <div class="top-bar d-flex justify-content-between align-items-center p-3 bg-white border-bottom">
-                <button class="btn btn-outline-secondary d-md-none" id="mobile-menu-toggle">
-                    <i class="bi bi-list"></i>
-                </button>
-                <div class="position-relative me-3">
-                    <button class="btn btn-light position-relative" id="notifications-btn">
-                        <i class="bi bi-bell"></i>
-                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="notification-badge">0</span>
-                    </button>
-                    <div class="dropdown-menu dropdown-menu-end p-0" id="notifications-dropdown" style="width: 350px; max-height: 400px; overflow-y: auto;">
-                        <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
-                            <h5 class="mb-0">Notifications</h5>
-                            <button class="btn btn-sm btn-outline-secondary" data-action="mark-all-read">Mark all as read</button>
+            <hr>
+            
+            <!-- Branch User Dashboard -->
+            <div id="branch-user-dashboard" style="display: none;">
+                <!-- Request Form -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <i class="fas fa-paper-plane"></i> Submit New Price Request
+                    </div>
+                    <div class="card-body">
+                        <!-- Form content will be injected by JS -->
+                        <div id="request-form-container"></div>
+                    </div>
+                </div>
+                
+                <!-- My Requests Table -->
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-history"></i> My Request History
+                    </div>
+                    <div class="card-body table-container">
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Item Code</th>
+                                        <th>Item Name</th>
+                                        <th>Sent On</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="my-requests-tbody"></tbody>
+                            </table>
                         </div>
-                        <div id="notifications-list"></div>
                     </div>
                 </div>
             </div>
-            
-            <div class="content-container p-4">
-                <div id="dashboard-view" class="view active-view"></div>
-                <div id="tasks-view" class="view"></div>
-                <div id="calendar-view" class="view"></div>
-                <div id="management-view" class="view"></div>
-                <div id="reports-view" class="view"></div>
+
+            <!-- Officer Dashboard -->
+            <div id="officer-dashboard" style="display: none;">
+                <ul class="nav nav-tabs" id="officer-tabs" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link active" id="pending-tab" data-toggle="tab" href="#pending-view" role="tab">
+                            Pending Requests <span id="pending-count-badge" class="badge badge-danger ml-1"></span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="reporting-tab" data-toggle="tab" href="#reporting-view" role="tab">Reporting & Analytics</a>
+                    </li>
+                </ul>
+
+                <div class="tab-content mt-3">
+                    <!-- Pending Requests View -->
+                    <div class="tab-pane fade show active" id="pending-view" role="tabpanel">
+                        <div class="card">
+                             <div class="card-header"><i class="fas fa-inbox"></i> Pending Requests for Review</div>
+                             <div class="card-body table-container">
+                                <div class="table-responsive">
+                                    <table class="table table-bordered table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>Branch</th>
+                                                <th>User</th>
+                                                <th>Item Code</th>
+                                                <th>Sent On</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="pending-requests-tbody"></tbody>
+                                    </table>
+                                </div>
+                             </div>
+                        </div>
+                    </div>
+
+                    <!-- Reporting View -->
+                    <div class="tab-pane fade" id="reporting-view" role="tabpanel">
+                        <div class="card">
+                            <div class="card-header"><i class="fas fa-chart-line"></i> Analytics Dashboard</div>
+                            <div class="card-body">
+                                <!-- Filters -->
+                                <div class="filters-bar form-row">
+                                    <div class="form-group col-md-3"><label>From:</label><input type="date" id="filter-start-date" class="form-control"></div>
+                                    <div class="form-group col-md-3"><label>To:</label><input type="date" id="filter-end-date" class="form-control"></div>
+                                    <div class="form-group col-md-3"><label>Branch:</label><select id="filter-branch" class="form-control"></select></div>
+                                    <div class="form-group col-md-3"><label>Status:</label><select id="filter-status" class="form-control"></select></div>
+                                    <div class="col-12 text-center"><button class="btn btn-primary" onclick="fetchAndRenderReports()">Run Report</button></div>
+                                </div>
+                                <hr>
+                                <!-- KPIs -->
+                                <div class="row kpi-container">
+                                    <div class="col-md-6"><div class="kpi-card"><h4>Total Requests</h4><p id="kpi-total-requests">0</p></div></div>
+                                    <div class="col-md-6"><div class="kpi-card"><h4>Pending Requests</h4><p id="kpi-pending-requests">0</p></div></div>
+                                </div>
+                                <!-- Charts -->
+                                <div class="row chart-container">
+                                    <div class="col-md-6"><canvas id="status-chart"></canvas></div>
+                                    <div class="col-md-6"><canvas id="branch-chart"></canvas></div>
+                                </div>
+                                <!-- Supplier Table -->
+                                <div class="mt-4">
+                                    <h5>Supplier Request Summary</h5>
+                                    <div class="table-responsive">
+                                        <table class="table table-sm table-bordered">
+                                            <thead><tr><th>Supplier</th><th>Total Requests</th><th>Pending</th></tr></thead>
+                                            <tbody id="supplier-report-tbody"></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </main>
+        </div>
+    </div>
+    
+    <!-- Modals -->
+
+    <!-- Price Calculator Modal (Unchanged) -->
+    <div class="modal fade" id="calculatorModal" tabindex="-1">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Price Calculator</h5>
+                    <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group"><label>Case Cost:</label><input type="number" step="0.001" class="form-control" id="modalCost" oninput="calculateInModal()"></div>
+                    <div class="form-group"><label>Units per Case:</label><input type="number" class="form-control" id="modalUnit" oninput="calculateInModal()"></div>
+                    <div class="form-group"><label>Discount (%):</label><input type="number" class="form-control" id="modalDiscount" value="0" oninput="calculateInModal()"></div>
+                    <div class="form-group"><label>VAT (%):</label><select class="form-control" id="modalVat" onchange="calculateInModal()"><option value="0">0</option><option value="5">5</option><option value="14">14</option></select></div>
+                    <hr><h5 class="text-center">Results</h5>
+                    <div class="form-group"><label>Final Unit Price:</label><input type="text" class="form-control bg-light" id="modalUnitPriceResult" readonly></div>
+                    <div class="form-group"><label>Final Case Price:</label><input type="text" class="form-control bg-light" id="modalCasePriceResult" readonly></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="applyCalculatorPrice()">Apply Price</button>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- Modals and overlays remain the same -->
-    <div class="toast-container position-fixed bottom-0 end-0 p-3"></div>
-    <div class="modal fade" id="confirm-modal" tabindex="-1">
-        <!-- ... existing confirm modal ... -->
+    <!-- Request Details & Review Modal -->
+    <div class="modal fade" id="reviewRequestModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Review Request <span id="review-request-id" class="badge badge-info"></span></h5>
+                    <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+                </div>
+                <div class="modal-body">
+                    <div id="review-modal-content"></div>
+                    <hr>
+                    <!-- Officer Action Form (only shown to officers) -->
+                    <div id="officer-action-form" style="display: none;">
+                        <h4>Officer Action</h4>
+                        <div class="form-group">
+                            <label for="update-status">Update Status:</label>
+                            <select id="update-status" class="form-control">
+                                <option value="تم التعديل">تم التعديل</option>
+                                <option value="تم التعديل جزئيا">تم التعديل جزئيا</option>
+                                <option value="غير مسموع بالتعديل ويتم رفع الصنف">غير مسموع بالتعديل ويتم رفع الصنف</option>
+                                <option value="يرجي مراجعة كود الاستثناء">يرجي مراجعة كود الاستثناء</option>
+                                <option value="يتم المراجعة مع المورد">يتم المراجعة مع المورد</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="officer-notes">Notes:</label>
+                            <textarea id="officer-notes" class="form-control" rows="3"></textarea>
+                        </div>
+                        <input type="hidden" id="hidden-request-id">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="submit-update-btn" onclick="handleUpdateRequest()" style="display: none;">Submit Update</button>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="modal fade" id="edit-task-modal" tabindex="-1">
-        <!-- ... existing edit task modal ... -->
-    </div>
-    <div id="loading-overlay"><div class="spinner-border text-light" style="width: 3rem; height: 3rem;" role="status"></div></div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- SCRIPT SECTION -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js'></script>
-    <script src="script.js" defer></script>
+    <script src="script.js"></script>
 </body>
 </html>
