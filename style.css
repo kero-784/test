@@ -2,151 +2,186 @@
     --primary-color: #007bff;
     --primary-color-darker: #0056b3;
     --secondary-color: #6c757d;
-    --background-color: #f4f7f9;
+    --background-color: #f8f9fa; /* Lighter background */
     --card-background: #ffffff;
-    --card-header-background: #e9ecef;
+    --card-header-background: #eef2f7; /* Softer header */
     --text-color-dark: #343a40;
     --text-color-light: #ffffff;
     --success-color: #28a745;
     --danger-color: #dc3545;
     --warning-color: #ffc107;
     --info-color: #17a2b8;
+    --border-color: #dee2e6;
+    --shadow-sm: 0 .125rem .25rem rgba(0,0,0,.075);
+    --shadow-md: 0 .5rem 1rem rgba(0,0,0,.15);
 }
+
 body {
     font-family: 'Cairo', 'Arial', sans-serif;
-    padding: 15px;
     background-color: var(--background-color);
     color: var(--text-color-dark);
 }
+
 #app-container {
-    width: 100%;
-    max-width: 900px;
-    margin: 20px auto;
-    position: relative;
+    max-width: 960px;
+    margin: 1.5rem auto;
+    padding: 0 15px;
 }
-.view { width: 100%; }
+
+.view { display: none; } /* REFINED: Default display is none, controlled by JS */
+
+/* --- REFINED: New Login View Styling --- */
 #login-view {
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 80vh;
+    min-height: 90vh;
 }
-#login-view .card {
-    max-width: 380px;
+#login-form-container {
     width: 100%;
-    margin: 0;
-    border: none;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    max-width: 400px;
+    background: var(--card-background);
+    padding: 2.5rem;
     border-radius: 12px;
-}
-#login-view .card-header {
-    background-color: #f8f9fa;
-    border-bottom: 1px solid #e9ecef;
+    box-shadow: var(--shadow-md);
     text-align: center;
-    padding-top: 20px;
-    padding-bottom: 20px;
-    border-radius: 12px 12px 0 0;
 }
-#login-view .card-header h3 {
-    margin: 0;
-    font-weight: 600;
-    font-size: 1.5rem;
-    color: #333;
+#login-form-container h3 {
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+    color: var(--text-color-dark);
 }
-#login-view .card-body { padding: 25px 30px 30px 30px; }
-#login-view .form-group { margin-bottom: 20px; }
-#login-view label {
-    font-weight: 500;
-    color: #555;
-    margin-bottom: 8px;
-    display: block;
+#login-form-container p {
+    margin-bottom: 2rem;
+    color: var(--secondary-color);
+}
+#login-form .form-group {
+    margin-bottom: 1.5rem;
     text-align: left;
 }
-#login-view .form-control {
-    border-radius: 8px;
-    padding: 12px 15px;
-    border: 1px solid #ced4da;
-    font-size: 1rem;
-    height: auto;
+#login-form label {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
 }
-#login-view .btn-primary {
+#login-form .form-control {
+    border-radius: 8px;
+    padding: 10px 15px;
+    border: 1px solid var(--border-color);
+    transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+}
+#login-form .btn-primary {
     border-radius: 8px;
     padding: 12px 15px;
     font-weight: 600;
     font-size: 1rem;
+    width: 100%;
 }
+
 .app-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1rem;
+    padding: 1rem 1.5rem;
     background-color: var(--card-background);
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-    margin-bottom: 1.5rem;
+    border-radius: 10px;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 2rem;
 }
+#welcome-message {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
 #main-view .card {
     border: none;
     border-radius: 10px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    margin-bottom: 1.5rem;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 2rem;
 }
 #main-view .card-header {
     background-color: var(--card-header-background);
     color: var(--text-color-dark);
-    font-weight: bold;
-    padding: 12px 20px;
-    border-bottom: 1px solid #ddd;
+    font-weight: 700; /* Bolder */
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border-color);
     border-radius: 10px 10px 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+#main-view .card-body {
+    padding: 1.5rem;
 }
 #main-view .form-group label { font-weight: 600; }
-#main-view .form-control { border-radius: 8px; }
 #main-view .form-control:focus {
     border-color: var(--primary-color);
     box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25) !important;
 }
 #main-view .btn { border-radius: 8px; }
+
 .autocomplete-box {
     position: absolute;
     top: 100%;
     left: 0;
     right: 0;
-    z-index: 100;
+    z-index: 1050; /* Higher z-index */
     background: white;
-    border: 1px solid #ddd;
+    border: 1px solid var(--border-color);
     border-radius: 0 0 8px 8px;
-    max-height: 200px;
+    box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+    max-height: 250px;
     overflow-y: auto;
     display: none;
 }
-.autocomplete-item { padding: 8px 12px; cursor: pointer; border-bottom: 1px solid #eee; }
+.autocomplete-item { padding: 10px 15px; cursor: pointer; border-bottom: 1px solid #eee; }
+.autocomplete-item:last-child { border-bottom: none; }
 .autocomplete-item:hover { background-color: #f0f0f0; }
-.table-hover tbody tr:hover { background-color: #f2f2f2; cursor: pointer; }
+.autocomplete-item strong { color: var(--primary-color); }
+
+.table-hover tbody tr:hover { background-color: #e9ecef; }
 .table-responsive { border-radius: 8px; }
-.badge { font-size: 90%; font-weight: 600; padding: 0.4em 0.7em; }
+.table-light.text-muted { color: #888 !important; }
+.table-light.text-muted button { opacity: 0.6; }
+
+.badge { font-size: 0.8rem; font-weight: 700; padding: 0.5em 0.8em; border-radius: 20px; }
 .badge-success { background-color: var(--success-color); }
-.badge-danger { background-color: var(--danger-color); }
-.badge-warning { background-color: var(--warning-color); color: #212529; }
-.badge-info { background-color: var(--info-color); }
 .badge-secondary { background-color: var(--secondary-color); }
-.loading-overlay {
+.badge-info { background-color: var(--info-color); }
+
+/* --- REFINED: Loading Overlay --- */
+#loading-indicator {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background-color: rgba(255, 255, 255, 0.8); display: none;
-    flex-direction: column; justify-content: center; align-items: center; z-index: 1100;
+    background-color: rgba(255, 255, 255, 0.85); display: none;
+    flex-direction: column; justify-content: center; align-items: center; z-index: 9999;
 }
-#message-container {
-    display: none; position: fixed; top: 20px; left: 50%;
-    transform: translateX(-50%); color: var(--text-color-light);
-    padding: 12px 20px; border-radius: 8px; z-index: 1200;
-    opacity: 0; transition: opacity 0.4s ease, top 0.4s ease; top: -50px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+#loading-indicator p { margin-top: 1rem; font-weight: 600; color: var(--text-color-dark); }
+
+/* --- REFINED: Toast Notification Container --- */
+#toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 10000;
+    width: 350px;
 }
-#message-container.show { opacity: 1; top: 20px; }
-#message-container.success { background-color: rgba(40, 167, 69, 0.9); }
-#message-container.error { background-color: rgba(220, 53, 69, 0.9); }
+.toast {
+    opacity: 0;
+    transition: opacity 0.3s, transform 0.3s;
+    transform: translateY(-20px);
+}
+.toast.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
 .role-content { display: none; }
 .modal-footer .btn-info { background-color: var(--info-color); border-color: var(--info-color); }
-.table-flash {
-    transition: background-color 0.5s ease-in-out;
-    background-color: #fff3cd !important;
+.table-flash > thead {
+    animation: flash-animation 1.5s ease-out;
+}
+@keyframes flash-animation {
+    0% { background-color: transparent; }
+    30% { background-color: #fff3cd; }
+    100% { background-color: transparent; }
 }
