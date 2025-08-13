@@ -1,5 +1,5 @@
 // --- GLOBALS ---
-const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwCLaPcRNq0BHCDCXBh6FoY90In6iC1y_Sss1RI5tLqW03MUzg6zAj7W5zHioFDNTwB/exec";
+const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwffi7BFSYXP45ExvF2_iqdKVfv2TY1gUed5cY7GqEdZWAB76-Po8dHe1VmMljtAaKq/exec";
 let masterItemDatabase = [];
 let currentUser = null;
 let autocompleteDebounceTimer;
