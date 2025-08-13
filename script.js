@@ -4,7 +4,7 @@
 /*          APP CONFIGURATION & GLOBALS          */
 /*************************************************/
 // This URL should point to your deployed Google Apps Script.
-const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbygwK2ytrtCXV3v2oi-2Ewy87tLt9o6AAqTaTeNHcli6a4APbaRvXAc3d4sIdDLSTOi/exec";
+const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxVs7ENK8IPrEahW5uxLx-2Zcc5vdcUoEUijni1pWId8_f-NEHJuqpy6TgeNRDZptfJ/exec";
 
 // App State
 let currentUser = null;
