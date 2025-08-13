@@ -1,5 +1,5 @@
 // --- GLOBALS ---
-const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzDIrM1ks6OAVt76JDRVJFa1vJ8Yu0X2cE2aIvGIhXuwENQNSDolz48V5-_c3-4w3Qq/exec";
+const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw1ZP3GhrPpAe-FRlyb2Z-I7yBYiCGOJCziFhrcMs2GMbstqSTxwikHVjVGLNSn6Acx/exec";
 let masterItemDatabase = [];
 let currentUser = null;
 let autocompleteDebounceTimer;
@@ -11,9 +11,8 @@ let lastUsedDiscount = 0;
 let lastUsedVat = 0;
 
 // --- API & AUTH ---
-async function apiRequest(action, data = {}) {
-    const loadingIndicator = document.getElementById('loading-indicator');
-    loadingIndicator.style.display = 'flex';
+async function apiRequest(action, data = {}, showLoader = false) {
+    if (showLoader) document.getElementById('loading-indicator').style.display = 'flex';
     try {
         const payload = { action: action, user: currentUser, data: data };
         const response = await fetch(GAS_WEB_APP_URL, {
@@ -30,7 +29,7 @@ async function apiRequest(action, data = {}) {
         displayMessage(error.message, true);
         return { success: false, error: error.message };
     } finally {
-        loadingIndicator.style.display = 'none';
+        if (showLoader) document.getElementById('loading-indicator').style.display = 'none';
     }
 }
 async function handleLogin(event) {
@@ -38,7 +37,7 @@ async function handleLogin(event) {
     const loginCode = document.getElementById('loginCode').value.trim();
     if (!loginCode) { showLoginError("Login Code is required."); return; }
     currentUser = null;
-    const result = await apiRequest('login', { loginCode: loginCode });
+    const result = await apiRequest('login', { loginCode: loginCode }, true);
     if (result.success) {
         currentUser = result.user;
         sessionStorage.setItem('currentUser', JSON.stringify(currentUser));
@@ -51,17 +50,17 @@ async function initializeApp() {
     showView('main-view');
     document.getElementById('welcome-message').textContent = `Welcome, ${currentUser.DisplayName} (${currentUser.Role})`;
     document.getElementById('logout-btn').addEventListener('click', handleLogout);
-    startNotificationPolling(); // Start polling immediately
-    const dbResult = await apiRequest('getItemDatabase');
+    startNotificationPolling();
+    const dbResult = await apiRequest('getItemDatabase', {}, true);
     if (dbResult.success) masterItemDatabase = dbResult.data;
     if (currentUser.Role === 'Branch') {
         document.getElementById('branch-user-content').style.display = 'block';
         document.getElementById('officer-content').style.display = 'none';
-        loadBranchUserData();
+        await loadBranchUserData(true);
     } else if (currentUser.Role === 'Officer') {
         document.getElementById('branch-user-content').style.display = 'none';
         document.getElementById('officer-content').style.display = 'block';
-        loadOfficerData();
+        await loadOfficerData(true);
     }
 }
 function handleLogout() {
@@ -73,13 +72,19 @@ function handleLogout() {
 }
 
 // --- DATA LOADING & RENDERING ---
-async function loadBranchUserData() {
-    const result = await apiRequest('getRequests');
-    if (result.success) renderBranchRequests(result.data);
+async function loadBranchUserData(showLoader = false) {
+    const result = await apiRequest('getRequests', {}, showLoader);
+    if (result.success) {
+        renderBranchRequests(result.data);
+        flashTable('branch-requests-table');
+    }
 }
-async function loadOfficerData() {
-    const result = await apiRequest('getRequests');
-    if (result.success) renderOfficerRequests(result.data);
+async function loadOfficerData(showLoader = false) {
+    const result = await apiRequest('getRequests', {}, showLoader);
+    if (result.success) {
+        renderOfficerRequests(result.data);
+        flashTable('officer-requests-table');
+    }
 }
 function renderBranchRequests(requests) {
     const tbody = document.getElementById('branch-requests-table');
@@ -88,7 +93,8 @@ function renderBranchRequests(requests) {
         return;
     }
     tbody.innerHTML = requests.map(r => `
-        <tr><td>${r.RequestID}</td><td>${new Date(r.SubmissionTimestamp).toLocaleDateString()}</td><td><span class="badge ${getStatusClass(r.OverallStatus)}">${r.OverallStatus}</span></td></tr>
+        <tr onclick="viewRequestDetails('${r.RequestID}')" style="cursor: pointer;">
+            <td>${r.RequestID}</td><td>${new Date(r.SubmissionTimestamp).toLocaleDateString()}</td><td><span class="badge ${getStatusClass(r.OverallStatus)}">${r.OverallStatus}</span></td></tr>
     `).join('');
 }
 function renderOfficerRequests(requests) {
@@ -109,7 +115,7 @@ function renderOfficerRequests(requests) {
     }).join('');
 }
 
-// --- BRANCH USER FORM LOGIC ---
+// --- BRANCH USER FORM & LIST LOGIC ---
 function handleCodeInput() {
     clearTimeout(autocompleteDebounceTimer);
     autocompleteDebounceTimer = setTimeout(() => {
@@ -213,7 +219,7 @@ function clearRequestList() {
 async function submitAllRequests() {
     if (requestList.length === 0) { displayMessage("List is empty.", true); return; }
     if (!confirm(`Submit ${requestList.length} item(s) for approval?`)) return;
-    const result = await apiRequest('submitRequest', requestList);
+    const result = await apiRequest('submitRequest', requestList, true);
     if (result.success) {
         displayMessage(result.message || 'Requests submitted!');
         requestList = [];
@@ -233,10 +239,21 @@ function clearRequestForm() {
     toggleCurrentPriceField();
     document.getElementById('code').focus();
 }
+async function viewRequestDetails(requestID) {
+    const result = await apiRequest('getRequestDetails', { requestID: requestID }, true);
+    if (result.success && result.data) {
+        document.getElementById('branch-modal-request-id').textContent = requestID;
+        const tbody = document.getElementById('branch-modal-items-tbody');
+        tbody.innerHTML = result.data.map(item => `
+            <tr><td>${item.ItemCode}</td><td>${item.ItemName}</td><td>${item.SubmittedSupplier}</td><td>${item.SubmittedPiecePrice}</td><td>${item.Status}</td></tr>
+        `).join('');
+        $('#branch-view-details-modal').modal('show');
+    }
+}
 
 // --- OFFICER LOGIC ---
 async function reviewRequest(requestID) {
-    const result = await apiRequest('getRequestDetails', { requestID: requestID });
+    const result = await apiRequest('getRequestDetails', { requestID: requestID }, true);
     if (result.success && result.data) {
         document.getElementById('modal-request-id-title').textContent = requestID;
         $('#request-details-modal').data('requestId', requestID);
@@ -271,7 +288,7 @@ async function saveItemChanges() {
         updates.push({ itemID: row.dataset.itemId, newStatus: row.querySelector('.item-status-select').value });
     });
     if (updates.length === 0) { displayMessage("No items to update.", true); return; }
-    const result = await apiRequest('updateItemStatuses', { updates: updates });
+    const result = await apiRequest('updateItemStatuses', { updates: updates }, true);
     if (result.success) {
         displayMessage(result.message || 'Item changes saved successfully!');
         loadOfficerData();
@@ -281,7 +298,7 @@ async function finalizeRequest() {
     const requestID = $('#request-details-modal').data('requestId');
     if (!requestID) { displayMessage("Could not identify the Request ID.", true); return; }
     if (confirm(`Are you sure you want to finalize and close Request ${requestID}? This action will notify the user and cannot be undone.`)) {
-        const result = await apiRequest('finalizeRequest', { requestID: requestID });
+        const result = await apiRequest('finalizeRequest', { requestID: requestID }, true);
         if (result.success) {
             displayMessage(result.message);
             $('#request-details-modal').modal('hide');
@@ -300,20 +317,31 @@ function getStatusClass(status) {
     }
 }
 function startNotificationPolling() {
-    if (notificationInterval) clearInterval(notificationInterval); // Clear any existing interval
+    if (notificationInterval) clearInterval(notificationInterval);
     notificationInterval = setInterval(async () => {
         if (document.hidden || !currentUser) return;
         const result = await apiRequest('checkForNotifications', { lastCheck: lastNotificationCheck });
         if (result.success) {
-            lastNotificationCheck = new Date().toISOString(); // Update timestamp on every successful check
+            lastNotificationCheck = new Date().toISOString();
             if (result.newEvents.length > 0) {
                 displayMessage(result.newEvents.join('\n'), false, 10000);
                 document.getElementById('notification-sound').play().catch(e => console.warn("Audio playback failed.", e));
-                if (currentUser.Role === 'Branch') loadBranchUserData();
-                else if (currentUser.Role === 'Officer') loadOfficerData();
+                if (currentUser.Role === 'Branch') {
+                    loadBranchUserData();
+                } else if (currentUser.Role === 'Officer') {
+                    loadOfficerData();
+                }
             }
         }
     }, 15000);
+}
+function flashTable(tableId) {
+    const table = document.getElementById(tableId);
+    if (!table) return;
+    const header = table.querySelector('thead');
+    if (!header) return;
+    header.classList.add('table-flash');
+    setTimeout(() => { header.classList.remove('table-flash'); }, 1500);
 }
 function showView(viewId) { document.querySelectorAll('.view').forEach(v => v.style.display = 'none'); document.getElementById(viewId).style.display = 'block'; }
 function displayMessage(message, isError = false, duration = 3000) {
