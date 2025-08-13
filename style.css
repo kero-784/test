@@ -2,9 +2,9 @@
     --primary-color: #007bff;
     --primary-color-darker: #0056b3;
     --secondary-color: #6c757d;
-    --background-color: #f8f9fa; /* Lighter background */
+    --background-color: #f8f9fa;
     --card-background: #ffffff;
-    --card-header-background: #eef2f7; /* Softer header */
+    --card-header-background: #eef2f7;
     --text-color-dark: #343a40;
     --text-color-light: #ffffff;
     --success-color: #28a745;
@@ -28,9 +28,8 @@ body {
     padding: 0 15px;
 }
 
-.view { display: none; } /* REFINED: Default display is none, controlled by JS */
+.view { display: none; }
 
-/* --- REFINED: New Login View Styling --- */
 #login-view {
     display: flex;
     align-items: center;
@@ -102,7 +101,7 @@ body {
 #main-view .card-header {
     background-color: var(--card-header-background);
     color: var(--text-color-dark);
-    font-weight: 700; /* Bolder */
+    font-weight: 700;
     padding: 1rem 1.5rem;
     border-bottom: 1px solid var(--border-color);
     border-radius: 10px 10px 0 0;
@@ -125,7 +124,7 @@ body {
     top: 100%;
     left: 0;
     right: 0;
-    z-index: 1050; /* Higher z-index */
+    z-index: 1050;
     background: white;
     border: 1px solid var(--border-color);
     border-radius: 0 0 8px 8px;
@@ -148,8 +147,9 @@ body {
 .badge-success { background-color: var(--success-color); }
 .badge-secondary { background-color: var(--secondary-color); }
 .badge-info { background-color: var(--info-color); }
+.badge-warning { background-color: var(--warning-color); }
+.badge-primary { background-color: var(--primary-color); }
 
-/* --- REFINED: Loading Overlay --- */
 #loading-indicator {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background-color: rgba(255, 255, 255, 0.85); display: none;
@@ -157,7 +157,6 @@ body {
 }
 #loading-indicator p { margin-top: 1rem; font-weight: 600; color: var(--text-color-dark); }
 
-/* --- REFINED: Toast Notification Container --- */
 #toast-container {
     position: fixed;
     top: 20px;
