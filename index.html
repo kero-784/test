@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Price Management System</title>
-    <!-- UPDATED: Link to your favicon file -->
     <link rel="icon" type="image/png" href="favicon.png">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -12,29 +11,19 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- UPDATED: Pointing to your local sound file -->
     <audio id="notification-sound" src="notification.mp3" preload="auto"></audio>
 
     <!-- Main App Container -->
     <div id="app-container">
         <!-- Login View -->
         <div id="login-view" class="view">
-            <!-- UPDATED: Wrapped in a form tag for best practices -->
             <form id="login-form">
                 <div class="card">
-                    <div class="card-header text-center">
-                        <h3>System Login</h3>
-                    </div>
+                    <div class="card-header"><h3>System Login</h3></div>
                     <div class="card-body">
                         <div id="login-error" class="alert alert-danger" style="display:none;"></div>
-                        <div class="form-group">
-                            <label for="loginCode">Login Code</label>
-                            <input type="text" id="loginCode" class="form-control" required>
-                        </div>
-                        <!-- UPDATED: Button type is "submit" -->
-                        <button id="login-btn" type="submit" class="btn btn-primary btn-block">
-                            <i class="fas fa-sign-in-alt"></i> Login
-                        </button>
+                        <div class="form-group"><label for="loginCode">Login Code</label><input type="text" id="loginCode" class="form-control" required></div>
+                        <button id="login-btn" type="submit" class="btn btn-primary btn-block"><i class="fas fa-sign-in-alt"></i> Login</button>
                     </div>
                 </div>
             </form>
@@ -42,54 +31,56 @@
 
         <!-- Main Application View (hidden by default) -->
         <div id="main-view" class="view" style="display:none;">
-            <div id="loading-indicator" class="loading-overlay">
-                <div class="spinner-border text-primary" role="status"></div>
-                <p>Loading...</p>
-            </div>
-            
-            <div class="app-header">
-                <h4 id="welcome-message">Welcome</h4>
-                <button id="logout-btn" class="btn btn-sm btn-outline-danger"><i class="fas fa-sign-out-alt"></i> Logout</button>
-            </div>
+            <div id="loading-indicator" class="loading-overlay"><div class="spinner-border text-primary" role="status"></div><p>Loading...</p></div>
+            <div class="app-header"><h4 id="welcome-message">Welcome</h4><button id="logout-btn" class="btn btn-sm btn-outline-danger"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
             <div id="message-container"></div>
             
             <!-- Branch User View -->
             <div id="branch-user-content" class="role-content">
+                <!-- UPDATED: Restored the detailed form -->
                 <div class="card mb-3">
                     <div class="card-header">Submit New Price Request</div>
                     <div class="card-body">
                         <div class="form-row">
-                            <div class="form-group col-md-12" style="position: relative;">
+                            <div class="form-group col-md-6" style="position: relative;">
                                 <label for="code">Code:</label>
                                 <input type="text" class="form-control code-input" id="code" oninput="handleCodeInput()">
                                 <div id="autocomplete-suggestions" class="autocomplete-box"></div>
                                 <div id="codeError" class="error-message"></div>
                             </div>
-                        </div>
-                         <div class="form-group">
-                            <label for="name">Name:</label>
-                            <input type="text" class="form-control" id="name" readonly>
-                        </div>
-                        <div class="form-group">
-                            <label for="supplierName">Supplier Name:</label>
-                            <input type="text" class="form-control" id="supplierName" readonly>
-                        </div>
-                         <div class="form-group">
-                            <label for="type">Type:</label>
-                            <select class="form-control type-select" id="type" onchange="toggleCurrentPriceField()">
-                                <option value="شراء">شراء</option>
-                                <option value="مرتجع">مرتجع</option>
-                            </select>
+                            <div class="form-group col-md-6">
+                                <label for="type">Type:</label>
+                                <select class="form-control type-select" id="type" onchange="toggleCurrentPriceField()">
+                                    <option value="شراء">شراء</option>
+                                    <option value="مرتجع">مرتجع</option>
+                                </select>
+                            </div>
                         </div>
                         <div class="form-group" id="currentPriceDiv" style="display:none;">
                             <label for="currentPrice">Current Price:</label>
                             <input type="number" step="0.001" class="form-control price-input" id="currentPrice">
                             <div id="currentPriceError" class="error-message"></div>
                         </div>
+                        <div class="form-group"><label for="name">Name:</label><input type="text" class="form-control" id="name" readonly></div>
+                        <div class="form-group"><label for="supplierName">Supplier Name:</label><input type="text" class="form-control" id="supplierName" readonly></div>
                         <div class="form-group">
-                            <label for="unitPrice">New Unit Price:</label>
-                            <input type="number" step="0.001" class="form-control price-input" id="unitPrice">
-                             <div id="unitPriceError" class="error-message"></div>
+                            <label for="alternateSupplierCheck">شراء من مورد اخر:</label>
+                            <div class="form-check" style="padding-top: 8px; padding-bottom: 8px;">
+                                <input type="checkbox" class="form-check-input" id="alternateSupplierCheck" onchange="toggleAlternateSupplier()" style="margin-left: 0;">
+                                <label class="form-check-label" for="alternateSupplierCheck" style="margin-left: 20px;"></label>
+                            </div>
+                        </div>
+                        <div class="form-group" id="alternateSupplierDiv" style="display: none;"><label for="alternateSupplierName">Alternate Supplier Name:</label><input type="text" class="form-control" id="alternateSupplierName"></div>
+                        <hr>
+                        <div class="form-group">
+                            <label for="unitPrice">Final Unit Price:</label>
+                            <div class="input-group">
+                                <input type="number" step="0.001" class="form-control" id="unitPrice">
+                                <div class="input-group-append">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="openCalculatorModal()" title="Calculate from Case Cost"><i class="fas fa-calculator"></i></button>
+                                </div>
+                            </div>
+                            <div id="unitPriceError" class="error-message w-100"></div>
                         </div>
                         <button class="btn btn-primary" onclick="submitRequest()"><i class="fas fa-paper-plane"></i> Submit Request</button>
                     </div>
@@ -97,32 +88,15 @@
 
                 <div class="card">
                     <div class="card-header">My Submitted Requests</div>
-                    <div class="card-body table-responsive">
-                        <table class="table table-bordered table-striped">
-                            <thead>
-                                <tr><th>ID</th><th>Date</th><th>Item</th><th>Status</th><th>Officer</th></tr>
-                            </thead>
-                            <tbody id="branch-requests-table"></tbody>
-                        </table>
-                    </div>
+                    <div class="card-body table-responsive"><table class="table table-bordered table-striped"><thead><tr><th>ID</th><th>Date</th><th>Item</th><th>Status</th><th>Officer</th></tr></thead><tbody id="branch-requests-table"></tbody></table></div>
                 </div>
             </div>
 
             <!-- Officer View -->
             <div id="officer-content" class="role-content">
                 <div class="card">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <span>All Price Update Requests</span>
-                        <button class="btn btn-info btn-sm" onclick="showReportsView()"><i class="fas fa-chart-line"></i> View Reports</button>
-                    </div>
-                    <div class="card-body table-responsive">
-                        <table class="table table-bordered table-hover">
-                            <thead>
-                                <tr><th>ID</th><th>Date</th><th>Branch</th><th>User</th><th>Item</th><th>Status</th><th>Actions</th></tr>
-                            </thead>
-                            <tbody id="officer-requests-table"></tbody>
-                        </table>
-                    </div>
+                    <div class="card-header d-flex justify-content-between align-items-center"><span>All Price Update Requests</span><button class="btn btn-info btn-sm" onclick="showReportsView()"><i class="fas fa-chart-line"></i> View Reports</button></div>
+                    <div class="card-body table-responsive"><table class="table table-bordered table-hover"><thead><tr><th>ID</th><th>Date</th><th>Branch</th><th>User</th><th>Item</th><th>Status</th><th>Actions</th></tr></thead><tbody id="officer-requests-table"></tbody></table></div>
                 </div>
             </div>
         </div>
@@ -130,62 +104,21 @@
         <!-- Reports View -->
         <div id="reports-view" class="view" style="display:none;">
              <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h3>Reports & Analysis</h3>
-                    <button class="btn btn-secondary btn-sm" onclick="hideReportsView()"><i class="fas fa-arrow-left"></i> Back to Dashboard</button>
-                </div>
+                <div class="card-header d-flex justify-content-between align-items-center"><h3>Reports & Analysis</h3><button class="btn btn-secondary btn-sm" onclick="hideReportsView()"><i class="fas fa-arrow-left"></i> Back to Dashboard</button></div>
                 <div class="card-body">
-                    <div class="form-row mb-3">
-                         <div class="col-md-3"><input type="date" id="report-start-date" class="form-control"></div>
-                         <div class="col-md-3"><input type="date" id="report-end-date" class="form-control"></div>
-                         <div class="col-md-3"><select id="report-status" class="form-control"><option>All</option><option>Pending</option><option>تم التعديل</option><option>غير مسموع بالتعديل ويتم رفع الصنف</option><option>تم التعديل جزئيا</option><option>يرجي مراجعة كود الاستثناء</option><option>يتم المراجعة مع المورد</option></select></div>
-                         <div class="col-md-3"><input type="text" id="report-supplier" class="form-control" placeholder="Filter by Supplier..."></div>
-                    </div>
+                    <div class="form-row mb-3"><div class="col-md-3"><input type="date" id="report-start-date" class="form-control"></div><div class="col-md-3"><input type="date" id="report-end-date" class="form-control"></div><div class="col-md-3"><select id="report-status" class="form-control"><option>All</option><option>Pending</option><option>تم التعديل</option><option>غير مسموع بالتعديل ويتم رفع الصنف</option><option>تم التعديل جزئيا</option><option>يرجي مراجعة كود الاستثناء</option><option>يتم المراجعة مع المورد</option></select></div><div class="col-md-3"><input type="text" id="report-supplier" class="form-control" placeholder="Filter by Supplier..."></div></div>
                     <button class="btn btn-primary mb-3" onclick="generateReport()"><i class="fas fa-filter"></i> Generate Report</button>
-                    <div class="table-responsive">
-                        <table class="table table-sm table-bordered">
-                            <thead>
-                                <tr><th>ID</th><th>Date</th><th>Branch</th><th>Item</th><th>Supplier</th><th>Unit Price</th><th>Status</th><th>Response (Hrs)</th></tr>
-                            </thead>
-                            <tbody id="report-results-table"></tbody>
-                        </table>
-                         <p>Total Records: <span id="report-total-records">0</span> | Average Response Time: <span id="report-avg-response">0</span> Hours</p>
-                    </div>
+                    <div class="table-responsive"><table class="table table-sm table-bordered"><thead><tr><th>ID</th><th>Date</th><th>Branch</th><th>Item</th><th>Supplier</th><th>Unit Price</th><th>Status</th><th>Response (Hrs)</th></tr></thead><tbody id="report-results-table"></tbody></table><p>Total Records: <span id="report-total-records">0</span> | Average Response Time: <span id="report-avg-response">0</span> Hours</p></div>
                 </div>
              </div>
         </div>
     </div>
 
     <!-- Officer Action Modal -->
-    <div class="modal fade" id="request-details-modal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Review Request <span id="modal-request-id"></span></h5>
-                    <button type="button" class="close" data-dismiss="modal">&times;</button>
-                </div>
-                <div class="modal-body">
-                    <div id="modal-request-details"></div>
-                    <hr>
-                    <h5>Update Status</h5>
-                    <div class="form-group">
-                        <label for="modal-status-select">New Status:</label>
-                        <select id="modal-status-select" class="form-control">
-                            <option>تم التعديل</option>
-                            <option>غير مسموع بالتعديل ويتم رفع الصنف</option>
-                            <option>تم التعديل جزئيا</option>
-                            <option>يرجي مراجعة كود الاستثناء</option>
-                            <option>يتم المراجعة مع المورد</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-success" onclick="confirmStatusUpdate()"><i class="fas fa-check"></i> Confirm Update</button>
-                </div>
-            </div>
-        </div>
-    </div>
+    <div class="modal fade" id="request-details-modal" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Review Request <span id="modal-request-id"></span></h5><button type="button" class="close" data-dismiss="modal">&times;</button></div><div class="modal-body"><div id="modal-request-details"></div><hr><h5>Update Status</h5><div class="form-group"><label for="modal-status-select">New Status:</label><select id="modal-status-select" class="form-control"><option>تم التعديل</option><option>غير مسموع بالتعديل ويتم رفع الصنف</option><option>تم التعديل جزئيا</option><option>يرجي مراجعة كود الاستثناء</option><option>يتم المراجعة مع المورد</option></select></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button><button type="button" class="btn btn-success" onclick="confirmStatusUpdate()"><i class="fas fa-check"></i> Confirm Update</button></div></div></div></div>
+
+    <!-- UPDATED: Added Price Calculator Modal back -->
+    <div class="modal fade" id="calculatorModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Price Calculator</h5><button type="button" class="close" data-dismiss="modal">&times;</button></div><div class="modal-body"><div class="form-group"><label for="modalCost">Case Cost:</label><input type="number" step="0.001" class="form-control" id="modalCost" oninput="calculateInModal()"></div><div class="form-group"><label for="modalUnit">Units per Case:</label><input type="number" class="form-control" id="modalUnit" oninput="calculateInModal()"></div><div class="form-group"><label for="modalDiscount">Discount (%):</label><input type="number" class="form-control" id="modalDiscount" value="0" oninput="calculateInModal()"></div><div class="form-group"><label for="modalVat">VAT (%):</label><select class="form-control" id="modalVat" oninput="calculateInModal()"><option value="0">0</option><option value="5">5</option><option value="14">14</option></select></div><hr><h5 class="text-center">Results</h5><div class="form-group"><label>Final Unit Price:</label><input type="text" class="form-control bg-light" id="modalUnitPriceResult" readonly></div><div class="form-group"><label>Final Case Price:</label><input type="text" class="form-control bg-light" id="modalCasePriceResult" readonly></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button><button type="button" class="btn btn-primary" onclick="applyCalculatorPrice()">Apply Price</button></div></div></div></div>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
