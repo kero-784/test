@@ -1,20 +1,25 @@
-// --- GLOBALS ---
+// --- REFINED: Group globals into state and DOM objects ---
 const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw1ZP3GhrPpAe-FRlyb2Z-I7yBYiCGOJCziFhrcMs2GMbstqSTxwikHVjVGLNSn6Acx/exec";
-let masterItemDatabase = [];
-let currentUser = null;
-let autocompleteDebounceTimer;
-let notificationInterval;
-let lastNotificationCheck = new Date().toISOString();
-let requestList = [];
-let lastUsedUnitCount = 1;
-let lastUsedDiscount = 0;
-let lastUsedVat = 0;
+
+const state = {
+    masterItemDatabase: [],
+    currentUser: null,
+    autocompleteDebounceTimer: null,
+    notificationInterval: null,
+    lastNotificationCheck: new Date().toISOString(),
+    requestList: [],
+    lastUsedUnitCount: 1,
+    lastUsedDiscount: 0,
+    lastUsedVat: 0
+};
+
+const dom = {}; // To store cached DOM elements
 
 // --- API & AUTH ---
 async function apiRequest(action, data = {}, showLoader = false) {
-    if (showLoader) document.getElementById('loading-indicator').style.display = 'flex';
+    if (showLoader) dom.loadingIndicator.style.display = 'flex';
     try {
-        const payload = { action: action, user: currentUser, data: data };
+        const payload = { action, user: state.currentUser, data };
         const response = await fetch(GAS_WEB_APP_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -26,49 +31,57 @@ async function apiRequest(action, data = {}, showLoader = false) {
         return result;
     } catch (error) {
         console.error(`API Error (${action}):`, error);
-        displayMessage(error.message, true);
+        showToast(error.message, true);
         return { success: false, error: error.message };
     } finally {
-        if (showLoader) document.getElementById('loading-indicator').style.display = 'none';
+        if (showLoader) dom.loadingIndicator.style.display = 'none';
     }
 }
+
 async function handleLogin(event) {
     if (event) event.preventDefault();
-    const loginCode = document.getElementById('loginCode').value.trim();
+    const loginCode = dom.loginCodeInput.value.trim();
     if (!loginCode) { showLoginError("Login Code is required."); return; }
-    currentUser = null;
-    const result = await apiRequest('login', { loginCode: loginCode }, true);
+    
+    dom.loginError.style.display = 'none';
+    state.currentUser = null;
+    const result = await apiRequest('login', { loginCode }, true);
+
     if (result.success) {
-        currentUser = result.user;
-        sessionStorage.setItem('currentUser', JSON.stringify(currentUser));
+        state.currentUser = result.user;
+        sessionStorage.setItem('currentUser', JSON.stringify(state.currentUser));
         initializeApp();
     } else {
         showLoginError(result.error || "Login failed.");
     }
 }
+
 async function initializeApp() {
     showView('main-view');
-    document.getElementById('welcome-message').textContent = `Welcome, ${currentUser.DisplayName} (${currentUser.Role})`;
-    document.getElementById('logout-btn').addEventListener('click', handleLogout);
+    dom.welcomeMessage.textContent = `Welcome, ${state.currentUser.DisplayName} (${state.currentUser.Role})`;
     startNotificationPolling();
+    
     const dbResult = await apiRequest('getItemDatabase', {}, true);
-    if (dbResult.success) masterItemDatabase = dbResult.data;
-    if (currentUser.Role === 'Branch') {
-        document.getElementById('branch-user-content').style.display = 'block';
-        document.getElementById('officer-content').style.display = 'none';
+    if (dbResult.success) state.masterItemDatabase = dbResult.data;
+
+    if (state.currentUser.Role === 'Branch') {
+        dom.branchContent.style.display = 'block';
+        dom.officerContent.style.display = 'none';
         await loadBranchUserData(true);
-    } else if (currentUser.Role === 'Officer') {
-        document.getElementById('branch-user-content').style.display = 'none';
-        document.getElementById('officer-content').style.display = 'block';
+    } else if (state.currentUser.Role === 'Officer') {
+        dom.branchContent.style.display = 'none';
+        dom.officerContent.style.display = 'block';
         await loadOfficerData(true);
     }
 }
+
 function handleLogout() {
-    currentUser = null;
+    state.currentUser = null;
     sessionStorage.removeItem('currentUser');
-    if (notificationInterval) clearInterval(notificationInterval);
+    if (state.notificationInterval) clearInterval(state.notificationInterval);
     showView('login-view');
-    document.getElementById('loginCode').value = '';
+    dom.loginCodeInput.value = '';
+    dom.loginForm.reset();
 }
 
 // --- DATA LOADING & RENDERING ---
@@ -76,40 +89,53 @@ async function loadBranchUserData(showLoader = false) {
     const result = await apiRequest('getRequests', {}, showLoader);
     if (result.success) {
         renderBranchRequests(result.data);
-        flashTable('branch-requests-table');
+        flashTable(dom.branchRequestsTable);
     }
 }
+
 async function loadOfficerData(showLoader = false) {
     const result = await apiRequest('getRequests', {}, showLoader);
     if (result.success) {
         renderOfficerRequests(result.data);
-        flashTable('officer-requests-table');
+        flashTable(dom.officerRequestsTable);
     }
 }
+
 function renderBranchRequests(requests) {
-    const tbody = document.getElementById('branch-requests-table');
+    const tbody = dom.branchRequestsTable.querySelector('tbody');
     if (!requests || requests.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="3" class="text-center">No submission history.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="3" class="text-center p-4">No submission history found.</td></tr>';
         return;
     }
     tbody.innerHTML = requests.map(r => `
-        <tr onclick="viewRequestDetails('${r.RequestID}')" style="cursor: pointer;">
-            <td>${r.RequestID}</td><td>${new Date(r.SubmissionTimestamp).toLocaleDateString()}</td><td><span class="badge ${getStatusClass(r.OverallStatus)}">${r.OverallStatus}</span></td></tr>
+        <tr data-request-id="${r.RequestID}" style="cursor: pointer;">
+            <td>${r.RequestID}</td>
+            <td>${new Date(r.SubmissionTimestamp).toLocaleDateString()}</td>
+            <td><span class="badge ${getStatusClass(r.OverallStatus)}">${r.OverallStatus}</span></td>
+        </tr>
     `).join('');
 }
+
 function renderOfficerRequests(requests) {
-    const tbody = document.getElementById('officer-requests-table');
+    const tbody = dom.officerRequestsTable.querySelector('tbody');
     if (!requests || requests.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="text-center">No requests found.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center p-4">No pending requests.</td></tr>';
         return;
     }
     tbody.innerHTML = requests.map(r => {
         const isCompleted = r.OverallStatus === 'Completed';
         return `
-            <tr class="${isCompleted ? 'table-light text-muted' : (r.OverallStatus === 'Pending' ? 'table-warning' : '')}">
-                <td>${r.RequestID}</td><td>${new Date(r.SubmissionTimestamp).toLocaleDateString()}</td><td>${r.Branch}</td><td>${r.SubmittedBy}</td>
+            <tr class="${isCompleted ? 'table-light text-muted' : ''}">
+                <td>${r.RequestID}</td>
+                <td>${new Date(r.SubmissionTimestamp).toLocaleDateString()}</td>
+                <td>${r.Branch}</td>
+                <td>${r.SubmittedBy}</td>
                 <td><span class="badge ${getStatusClass(r.OverallStatus)}">${r.OverallStatus}</span></td>
-                <td><button class="btn btn-sm btn-primary" onclick="reviewRequest('${r.RequestID}')" ${isCompleted ? 'disabled' : ''}><i class="fas fa-search"></i> ${isCompleted ? 'View' : 'Review'}</button></td>
+                <td>
+                    <button class="btn btn-sm btn-primary review-btn" data-request-id="${r.RequestID}" ${isCompleted ? 'disabled' : ''}>
+                        <i class="fas fa-search"></i> ${isCompleted ? 'View' : 'Review'}
+                    </button>
+                </td>
             </tr>
         `;
     }).join('');
@@ -117,135 +143,190 @@ function renderOfficerRequests(requests) {
 
 // --- BRANCH USER FORM & LIST LOGIC ---
 function handleCodeInput() {
-    clearTimeout(autocompleteDebounceTimer);
-    autocompleteDebounceTimer = setTimeout(() => {
-        const codeInput = document.getElementById('code');
-        const suggestionsBox = document.getElementById('autocomplete-suggestions');
-        const term = codeInput.value.trim().toLowerCase();
+    clearTimeout(state.autocompleteDebounceTimer);
+    state.autocompleteDebounceTimer = setTimeout(() => {
+        const term = dom.codeInput.value.trim().toLowerCase();
         getItemDetails();
-        if (term.length < 1) { suggestionsBox.style.display = 'none'; return; }
-        const suggestions = masterItemDatabase.filter(item => String(item.code).toLowerCase().includes(term) || String(item.name).toLowerCase().includes(term)).slice(0, 10);
+        if (term.length < 1) {
+            dom.suggestionsBox.style.display = 'none';
+            return;
+        }
+        const suggestions = state.masterItemDatabase.filter(item => 
+            String(item.code).toLowerCase().includes(term) || String(item.name).toLowerCase().includes(term)
+        ).slice(0, 10);
+
         if (suggestions.length > 0) {
-            suggestionsBox.innerHTML = suggestions.map(s => `<div class="autocomplete-item" onclick="selectAutocompleteItem('${s.code}')"><strong>${s.code}</strong> - ${s.name}</div>`).join('');
-            suggestionsBox.style.display = 'block';
+            dom.suggestionsBox.innerHTML = suggestions.map(s => `
+                <div class="autocomplete-item" data-code="${s.code}">
+                    <strong>${s.code}</strong> - ${s.name}
+                </div>
+            `).join('');
+            dom.suggestionsBox.style.display = 'block';
         } else {
-            suggestionsBox.style.display = 'none';
+            dom.suggestionsBox.style.display = 'none';
         }
     }, 250);
 }
+
 function selectAutocompleteItem(code) {
-    document.getElementById('code').value = code;
-    document.getElementById('autocomplete-suggestions').style.display = 'none';
+    dom.codeInput.value = code;
+    dom.suggestionsBox.style.display = 'none';
     getItemDetails();
-    document.getElementById('unitPrice').focus();
+    dom.unitPriceInput.focus();
 }
+
 function getItemDetails() {
-    const code = document.getElementById('code').value.trim();
-    document.getElementById('name').value = '';
-    document.getElementById('supplierName').value = '';
+    const code = dom.codeInput.value.trim();
+    dom.nameInput.value = '';
+    dom.supplierNameInput.value = '';
     if (!code) return;
-    const foundItem = masterItemDatabase.find(item => String(item.code) === code);
+
+    const foundItem = state.masterItemDatabase.find(item => String(item.code) === code);
     if (foundItem) {
-        document.getElementById('name').value = foundItem.name || '';
-        document.getElementById('supplierName').value = foundItem['supplier name'] || '';
+        dom.nameInput.value = foundItem.name || '';
+        dom.supplierNameInput.value = foundItem['supplier name'] || '';
     }
 }
-function toggleAlternateSupplier() { document.getElementById('alternateSupplierDiv').style.display = document.getElementById('alternateSupplierCheck').checked ? 'block' : 'none'; }
-function toggleCurrentPriceField() { document.getElementById('currentPriceDiv').style.display = document.getElementById('type').value === 'مرتجع' ? 'block' : 'none'; }
+
+function toggleAlternateSupplier() {
+    dom.alternateSupplierDiv.style.display = dom.alternateSupplierCheck.checked ? 'block' : 'none';
+}
+function toggleCurrentPriceField() {
+    dom.currentPriceDiv.style.display = dom.typeSelect.value === 'مرتجع' ? 'block' : 'none';
+}
+
 function openCalculatorModal() {
-    document.getElementById('modalCost').value = '';
-    document.getElementById('modalUnit').value = lastUsedUnitCount || '1';
-    document.getElementById('modalDiscount').value = lastUsedDiscount || '0';
-    document.getElementById('modalVat').value = lastUsedVat || '0';
+    dom.modalCost.value = '';
+    dom.modalUnit.value = state.lastUsedUnitCount || '1';
+    dom.modalDiscount.value = state.lastUsedDiscount || '0';
+    dom.modalVat.value = state.lastUsedVat || '0';
     calculateInModal();
     $('#calculatorModal').modal('show');
 }
+
 function calculateInModal() {
-    const cost = parseFloat(document.getElementById('modalCost').value) || 0;
-    const unit = parseInt(document.getElementById('modalUnit').value) || 1;
-    const discount = parseFloat(document.getElementById('modalDiscount').value) || 0;
-    const vatRate = parseFloat(document.getElementById('modalVat').value) || 0;
+    const cost = parseFloat(dom.modalCost.value) || 0;
+    const unit = parseInt(dom.modalUnit.value) || 1;
+    const discount = parseFloat(dom.modalDiscount.value) || 0;
+    const vatRate = parseFloat(dom.modalVat.value) || 0;
+
     const discountedCost = cost * (1 - discount / 100);
     const finalCasePrice = discountedCost * (1 + vatRate / 100);
     const finalUnitPrice = (unit > 0) ? (finalCasePrice / unit) : 0;
-    document.getElementById('modalUnitPriceResult').value = finalUnitPrice.toFixed(3);
-    document.getElementById('modalCasePriceResult').value = finalCasePrice.toFixed(3);
+
+    dom.modalUnitPriceResult.value = finalUnitPrice.toFixed(3);
+    dom.modalCasePriceResult.value = finalCasePrice.toFixed(3);
 }
+
 function applyCalculatorPrice() {
-    document.getElementById('unitPrice').value = document.getElementById('modalUnitPriceResult').value;
-    lastUsedUnitCount = parseInt(document.getElementById('modalUnit').value) || 1;
-    lastUsedDiscount = parseFloat(document.getElementById('modalDiscount').value) || 0;
-    lastUsedVat = parseFloat(document.getElementById('modalVat').value) || 0;
+    dom.unitPriceInput.value = dom.modalUnitPriceResult.value;
+    state.lastUsedUnitCount = parseInt(dom.modalUnit.value) || 1;
+    state.lastUsedDiscount = parseFloat(dom.modalDiscount.value) || 0;
+    state.lastUsedVat = parseFloat(dom.modalVat.value) || 0;
     $('#calculatorModal').modal('hide');
 }
+
 function addToList() {
-    const code = document.getElementById('code').value.trim();
-    const unitPrice = document.getElementById('unitPrice').value;
-    if (!code || !unitPrice) { displayMessage("Code and Final Unit Price are required.", true); return; }
-    const alternateSupplierCheck = document.getElementById('alternateSupplierCheck').checked;
-    const alternateSupplierName = document.getElementById('alternateSupplierName').value.trim();
-    let supplier = document.getElementById('supplierName').value.trim();
+    const code = dom.codeInput.value.trim();
+    const unitPrice = dom.unitPriceInput.value;
+    if (!code || !unitPrice) {
+        showToast("Code and Final Unit Price are required.", true);
+        return;
+    }
+
+    const alternateSupplierCheck = dom.alternateSupplierCheck.checked;
+    const alternateSupplierName = dom.alternateSupplierNameInput.value.trim();
+    let supplier = dom.supplierNameInput.value.trim();
     if(alternateSupplierCheck && alternateSupplierName) supplier = alternateSupplierName;
+
     const finalUnitPrice = parseFloat(unitPrice);
     const newItem = {
-        code: code, name: document.getElementById('name').value.trim(), supplier: supplier,
-        units: lastUsedUnitCount, discount: lastUsedDiscount, vat: lastUsedVat,
-        piece: finalUnitPrice.toFixed(3), case: (finalUnitPrice * lastUsedUnitCount).toFixed(3),
-        type: document.getElementById('type').value, current: document.getElementById('currentPrice').value || '0'
+        code: code,
+        name: dom.nameInput.value.trim(),
+        supplier: supplier,
+        units: state.lastUsedUnitCount,
+        discount: state.lastUsedDiscount,
+        vat: state.lastUsedVat,
+        piece: finalUnitPrice.toFixed(3),
+        case: (finalUnitPrice * state.lastUsedUnitCount).toFixed(3),
+        type: dom.typeSelect.value,
+        current: dom.currentPriceInput.value || '0'
     };
-    requestList.push(newItem);
-    displayMessage("Item added to list.", false, 1500);
+    state.requestList.push(newItem);
+    showToast("Item added to list.", false);
     clearRequestForm();
     renderRequestListTable();
 }
+
 function renderRequestListTable() {
-    const card = document.getElementById('submission-list-card');
-    const tbody = document.getElementById('submission-list-tbody');
-    if (requestList.length === 0) { card.style.display = 'none'; return; }
+    const card = dom.submissionListCard;
+    const tbody = dom.submissionListTbody;
+    // REFINED: Update header with item count
+    const header = card.querySelector('.card-header');
+
+    if (state.requestList.length === 0) {
+        card.style.display = 'none';
+        return;
+    }
     card.style.display = 'block';
-    tbody.innerHTML = requestList.map((item, index) => `
-        <tr><td>${item.code}</td><td>${item.name}</td><td>${item.supplier}</td><td>${item.units}</td><td>${item.discount}</td>
-            <td>${item.vat}</td><td>${item.piece}</td><td>${item.case}</td>
-            <td><button class="btn btn-danger btn-sm" onclick="removeFromList(${index})" title="Remove"><i class="fas fa-times"></i></button></td></tr>
+    header.textContent = `Pending Request Items (${state.requestList.length})`;
+
+    tbody.innerHTML = state.requestList.map((item, index) => `
+        <tr>
+            <td>${item.code}</td><td>${item.name}</td><td>${item.supplier}</td>
+            <td>${item.units}</td><td>${item.discount}%</td><td>${item.vat}%</td>
+            <td>${item.piece}</td><td>${item.case}</td>
+            <td><button class="btn btn-danger btn-sm remove-item-btn" data-index="${index}" title="Remove"><i class="fas fa-times"></i></button></td>
+        </tr>
     `).join('');
 }
-function removeFromList(index) { requestList.splice(index, 1); renderRequestListTable(); }
+
+function removeFromList(index) {
+    state.requestList.splice(index, 1);
+    renderRequestListTable();
+}
+
 function clearRequestList() {
     if (confirm("Are you sure you want to clear the entire pending list?")) {
-        requestList = [];
+        state.requestList = [];
         renderRequestListTable();
     }
 }
+
 async function submitAllRequests() {
-    if (requestList.length === 0) { displayMessage("List is empty.", true); return; }
-    if (!confirm(`Submit ${requestList.length} item(s) for approval?`)) return;
-    const result = await apiRequest('submitRequest', requestList, true);
+    if (state.requestList.length === 0) {
+        showToast("List is empty.", true);
+        return;
+    }
+    if (!confirm(`Submit ${state.requestList.length} item(s) for approval?`)) return;
+
+    const result = await apiRequest('submitRequest', state.requestList, true);
     if (result.success) {
-        displayMessage(result.message || 'Requests submitted!');
-        requestList = [];
+        showToast(result.message || 'Requests submitted successfully!', false, 5000);
+        state.requestList = [];
         renderRequestListTable();
         loadBranchUserData();
     }
 }
+
 function clearRequestForm() {
-    document.getElementById('code').value = '';
-    document.getElementById('name').value = '';
-    document.getElementById('supplierName').value = '';
-    document.getElementById('unitPrice').value = '';
-    document.getElementById('currentPrice').value = '';
-    document.getElementById('alternateSupplierCheck').checked = false;
-    document.getElementById('alternateSupplierName').value = '';
+    dom.itemDetailsForm.reset(); // REFINED: Use form.reset() for cleaner clearing
     toggleAlternateSupplier();
     toggleCurrentPriceField();
-    document.getElementById('code').focus();
+    dom.codeInput.focus();
 }
+
 async function viewRequestDetails(requestID) {
-    const result = await apiRequest('getRequestDetails', { requestID: requestID }, true);
+    const result = await apiRequest('getRequestDetails', { requestID }, true);
     if (result.success && result.data) {
-        document.getElementById('branch-modal-request-id').textContent = requestID;
-        const tbody = document.getElementById('branch-modal-items-tbody');
+        dom.branchModalRequestId.textContent = requestID;
+        const tbody = dom.branchModalItemsTbody;
         tbody.innerHTML = result.data.map(item => `
-            <tr><td>${item.ItemCode}</td><td>${item.ItemName}</td><td>${item.SubmittedSupplier}</td><td>${item.SubmittedPiecePrice}</td><td>${item.Status}</td></tr>
+            <tr>
+                <td>${item.ItemCode}</td><td>${item.ItemName}</td>
+                <td>${item.SubmittedSupplier}</td><td>${item.SubmittedPiecePrice}</td>
+                <td><span class="badge ${getStatusClass(item.Status)}">${item.Status}</span></td>
+            </tr>
         `).join('');
         $('#branch-view-details-modal').modal('show');
     }
@@ -253,54 +334,70 @@ async function viewRequestDetails(requestID) {
 
 // --- OFFICER LOGIC ---
 async function reviewRequest(requestID) {
-    const result = await apiRequest('getRequestDetails', { requestID: requestID }, true);
+    const result = await apiRequest('getRequestDetails', { requestID }, true);
     if (result.success && result.data) {
-        document.getElementById('modal-request-id-title').textContent = requestID;
+        dom.modalRequestIdTitle.textContent = requestID;
         $('#request-details-modal').data('requestId', requestID);
         renderOfficerModal(result.data);
-        document.getElementById('master-status-select').onchange = applyMasterStatus;
         $('#request-details-modal').modal('show');
     }
 }
+
 function renderOfficerModal(items) {
-    const tbody = document.getElementById('modal-items-tbody');
+    const tbody = dom.modalItemsTbody;
     tbody.innerHTML = items.map(item => `
         <tr data-item-id="${item.ItemID}">
-            <td>${item.ItemCode}</td><td>${item.ItemName}</td><td>${item.SubmittedPiecePrice}</td><td>${item.SubmittedCasePrice}</td>
-            <td><select class="form-control form-control-sm item-status-select">
+            <td>${item.ItemCode}</td><td>${item.ItemName}</td><td>${item.SubmittedPiecePrice}</td>
+            <td>${item.SubmittedCasePrice}</td>
+            <td>
+                <select class="form-control form-control-sm item-status-select">
                     <option ${item.Status === 'Pending' ? 'selected' : ''}>Pending</option>
                     <option ${item.Status === 'تم التعديل' ? 'selected' : ''}>تم التعديل</option>
                     <option ${item.Status === 'غير مسموع بالتعديل ويتم رفع الصنف' ? 'selected' : ''}>غير مسموع بالتعديل ويتم رفع الصنف</option>
                     <option ${item.Status === 'تم التعديل جزئيا' ? 'selected' : ''}>تم التعديل جزئيا</option>
                     <option ${item.Status === 'يرجي مراجعة كود الاستثناء' ? 'selected' : ''}>يرجي مراجعة كود الاستثناء</option>
                     <option ${item.Status === 'يتم المراجعة مع المورد' ? 'selected' : ''}>يتم المراجعة مع المورد</option>
-                </select></td></tr>
+                </select>
+            </td>
+        </tr>
     `).join('');
 }
+
 function applyMasterStatus() {
-    const masterStatus = document.getElementById('master-status-select').value;
+    const masterStatus = dom.masterStatusSelect.value;
     if (!masterStatus) return;
-    document.querySelectorAll('.item-status-select').forEach(select => { select.value = masterStatus; });
-}
-async function saveItemChanges() {
-    const updates = [];
-    document.querySelectorAll('#modal-items-tbody tr').forEach(row => {
-        updates.push({ itemID: row.dataset.itemId, newStatus: row.querySelector('.item-status-select').value });
+    dom.modalItemsTbody.querySelectorAll('.item-status-select').forEach(select => {
+        select.value = masterStatus;
     });
-    if (updates.length === 0) { displayMessage("No items to update.", true); return; }
-    const result = await apiRequest('updateItemStatuses', { updates: updates }, true);
+}
+
+async function saveItemChanges() {
+    const updates = Array.from(dom.modalItemsTbody.querySelectorAll('tr')).map(row => ({
+        itemID: row.dataset.itemId,
+        newStatus: row.querySelector('.item-status-select').value
+    }));
+
+    if (updates.length === 0) {
+        showToast("No items to update.", true);
+        return;
+    }
+    const result = await apiRequest('updateItemStatuses', { updates }, true);
     if (result.success) {
-        displayMessage(result.message || 'Item changes saved successfully!');
+        showToast(result.message || 'Item changes saved successfully!', false);
         loadOfficerData();
     }
 }
+
 async function finalizeRequest() {
     const requestID = $('#request-details-modal').data('requestId');
-    if (!requestID) { displayMessage("Could not identify the Request ID.", true); return; }
-    if (confirm(`Are you sure you want to finalize and close Request ${requestID}? This action will notify the user and cannot be undone.`)) {
-        const result = await apiRequest('finalizeRequest', { requestID: requestID }, true);
+    if (!requestID) {
+        showToast("Could not identify the Request ID.", true);
+        return;
+    }
+    if (confirm(`Are you sure you want to finalize and close Request ${requestID}? This will notify the user and cannot be undone.`)) {
+        const result = await apiRequest('finalizeRequest', { requestID }, true);
         if (result.success) {
-            displayMessage(result.message);
+            showToast(result.message, false);
             $('#request-details-modal').modal('hide');
             loadOfficerData();
         }
@@ -309,65 +406,205 @@ async function finalizeRequest() {
 
 // --- UTILITIES & STARTUP ---
 function getStatusClass(status) {
-    switch(status) {
+    switch (status) {
         case 'Pending': return 'badge-secondary';
         case 'Partially Completed': return 'badge-info';
         case 'Completed': return 'badge-success';
-        default: return 'badge-light';
+        default: return 'badge-warning'; // REFINED: A default for other statuses
     }
 }
+
 function startNotificationPolling() {
-    if (notificationInterval) clearInterval(notificationInterval);
-    notificationInterval = setInterval(async () => {
-        if (document.hidden || !currentUser) return;
-        const result = await apiRequest('checkForNotifications', { lastCheck: lastNotificationCheck });
+    if (state.notificationInterval) clearInterval(state.notificationInterval);
+    state.notificationInterval = setInterval(async () => {
+        if (document.hidden || !state.currentUser) return;
+
+        const result = await apiRequest('checkForNotifications', { lastCheck: state.lastNotificationCheck });
         if (result.success) {
-            lastNotificationCheck = new Date().toISOString();
+            state.lastNotificationCheck = new Date().toISOString();
             if (result.newEvents.length > 0) {
-                displayMessage(result.newEvents.join('\n'), false, 10000);
-                document.getElementById('notification-sound').play().catch(e => console.warn("Audio playback failed.", e));
-                if (currentUser.Role === 'Branch') {
+                showToast(result.newEvents.join('\n'), false, 10000);
+                dom.notificationSound.play().catch(e => console.warn("Audio playback failed.", e));
+                if (state.currentUser.Role === 'Branch') {
                     loadBranchUserData();
-                } else if (currentUser.Role === 'Officer') {
+                } else if (state.currentUser.Role === 'Officer') {
                     loadOfficerData();
                 }
             }
         }
     }, 15000);
 }
-function flashTable(tableId) {
-    const table = document.getElementById(tableId);
-    if (!table) return;
-    const header = table.querySelector('thead');
-    if (!header) return;
-    header.classList.add('table-flash');
-    setTimeout(() => { header.classList.remove('table-flash'); }, 1500);
+
+function flashTable(tableElement) {
+    if (!tableElement) return;
+    tableElement.classList.add('table-flash');
+    setTimeout(() => {
+        tableElement.classList.remove('table-flash');
+    }, 1500);
 }
-function showView(viewId) { document.querySelectorAll('.view').forEach(v => v.style.display = 'none'); document.getElementById(viewId).style.display = 'block'; }
-function displayMessage(message, isError = false, duration = 3000) {
-    const el = document.getElementById('message-container');
-    el.textContent = message;
-    el.className = isError ? 'error show' : 'success show';
-    setTimeout(() => { el.classList.remove('show'); }, duration);
+
+function showView(viewId) {
+    document.querySelectorAll('.view').forEach(v => v.style.display = 'none');
+    document.getElementById(viewId).style.display = 'block';
 }
+
+// REFINED: New toast notification function
+function showToast(message, isError = false, duration = 4000) {
+    const toastContainer = dom.toastContainer;
+    const toastId = 'toast-' + Date.now();
+    const toastBG = isError ? 'bg-danger' : 'bg-success';
+    
+    const toastHTML = `
+        <div id="${toastId}" class="toast show ${toastBG} text-white" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-body d-flex justify-content-between">
+                <span>${message}</span>
+                <button type="button" class="ml-2 mb-1 close text-white" data-dismiss="toast" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        </div>
+    `;
+    
+    toastContainer.insertAdjacentHTML('beforeend', toastHTML);
+    const toastElement = document.getElementById(toastId);
+    $(toastElement).toast({ delay: duration, autohide: true });
+    $(toastElement).on('hidden.bs.toast', function () {
+        this.remove();
+    });
+}
+
 function showLoginError(message) {
-    const el = document.getElementById('login-error');
-    el.textContent = message;
-    el.style.display = 'block';
+    dom.loginError.textContent = message;
+    dom.loginError.style.display = 'block';
 }
+
+// REFINED: Centralized event listeners
+function setupEventListeners() {
+    // Login
+    dom.loginForm.addEventListener('submit', handleLogin);
+    dom.logoutBtn.addEventListener('click', handleLogout);
+
+    // Branch Form
+    dom.codeInput.addEventListener('input', handleCodeInput);
+    dom.typeSelect.addEventListener('change', toggleCurrentPriceField);
+    dom.alternateSupplierCheck.addEventListener('change', toggleAlternateSupplier);
+    dom.calcButton.addEventListener('click', openCalculatorModal);
+    dom.addToListBtn.addEventListener('click', addToList);
+    
+    // Autocomplete Selection
+    dom.suggestionsBox.addEventListener('click', e => {
+        if (e.target.classList.contains('autocomplete-item') || e.target.closest('.autocomplete-item')) {
+            const item = e.target.closest('.autocomplete-item');
+            selectAutocompleteItem(item.dataset.code);
+        }
+    });
+
+    // Submission List
+    dom.submissionListCard.addEventListener('click', e => {
+        if (e.target.classList.contains('remove-item-btn') || e.target.closest('.remove-item-btn')) {
+            removeFromList(e.target.closest('.remove-item-btn').dataset.index);
+        } else if (e.target.id === 'clear-list-btn') {
+            clearRequestList();
+        } else if (e.target.id === 'submit-all-btn') {
+            submitAllRequests();
+        }
+    });
+    
+    // History Tables
+    dom.branchRequestsTable.addEventListener('click', e => {
+        const row = e.target.closest('tr[data-request-id]');
+        if(row) viewRequestDetails(row.dataset.requestId);
+    });
+    dom.officerRequestsTable.addEventListener('click', e => {
+        const btn = e.target.closest('.review-btn');
+        if(btn) reviewRequest(btn.dataset.requestId);
+    });
+
+    // Officer Modal
+    dom.masterStatusSelect.addEventListener('change', applyMasterStatus);
+    dom.saveItemChangesBtn.addEventListener('click', saveItemChanges);
+    dom.finalizeRequestBtn.addEventListener('click', finalizeRequest);
+
+    // Calculator Modal
+    dom.modalCost.addEventListener('input', calculateInModal);
+    dom.modalUnit.addEventListener('input', calculateInModal);
+    dom.modalDiscount.addEventListener('input', calculateInModal);
+    dom.modalVat.addEventListener('input', calculateInModal);
+    dom.applyCalcPriceBtn.addEventListener('click', applyCalculatorPrice);
+    
+    // Global listener to hide autocomplete
+    document.addEventListener('click', (event) => {
+        if (!dom.itemDetailsForm.contains(event.target)) {
+            dom.suggestionsBox.style.display = 'none';
+        }
+    });
+}
+
+// REFINED: Cache all DOM elements on startup
+function cacheDOMElements() {
+    // Views
+    dom.loginView = document.getElementById('login-view');
+    dom.mainView = document.getElementById('main-view');
+    // Login
+    dom.loginForm = document.getElementById('login-form');
+    dom.loginCodeInput = document.getElementById('loginCode');
+    dom.loginError = document.getElementById('login-error');
+    // Main App
+    dom.loadingIndicator = document.getElementById('loading-indicator');
+    dom.welcomeMessage = document.getElementById('welcome-message');
+    dom.logoutBtn = document.getElementById('logout-btn');
+    dom.toastContainer = document.getElementById('toast-container');
+    dom.notificationSound = document.getElementById('notification-sound');
+    // Branch Content
+    dom.branchContent = document.getElementById('branch-user-content');
+    dom.itemDetailsForm = document.getElementById('item-details-form');
+    dom.codeInput = document.getElementById('code');
+    dom.suggestionsBox = document.getElementById('autocomplete-suggestions');
+    dom.typeSelect = document.getElementById('type');
+    dom.currentPriceDiv = document.getElementById('currentPriceDiv');
+    dom.currentPriceInput = document.getElementById('currentPrice');
+    dom.nameInput = document.getElementById('name');
+    dom.supplierNameInput = document.getElementById('supplierName');
+    dom.alternateSupplierCheck = document.getElementById('alternateSupplierCheck');
+    dom.alternateSupplierDiv = document.getElementById('alternateSupplierDiv');
+    dom.alternateSupplierNameInput = document.getElementById('alternateSupplierName');
+    dom.unitPriceInput = document.getElementById('unitPrice');
+    dom.calcButton = document.getElementById('calc-btn');
+    dom.addToListBtn = document.getElementById('add-to-list-btn');
+    dom.submissionListCard = document.getElementById('submission-list-card');
+    dom.submissionListTbody = document.getElementById('submission-list-tbody');
+    dom.branchRequestsTable = document.getElementById('branch-requests-table');
+    // Officer Content
+    dom.officerContent = document.getElementById('officer-content');
+    dom.officerRequestsTable = document.getElementById('officer-requests-table');
+    // Modals
+    dom.branchModalRequestId = document.getElementById('branch-modal-request-id');
+    dom.branchModalItemsTbody = document.getElementById('branch-modal-items-tbody');
+    dom.modalRequestIdTitle = document.getElementById('modal-request-id-title');
+    dom.modalItemsTbody = document.getElementById('modal-items-tbody');
+    dom.masterStatusSelect = document.getElementById('master-status-select');
+    dom.saveItemChangesBtn = document.getElementById('save-item-changes-btn');
+    dom.finalizeRequestBtn = document.getElementById('finalize-request-btn');
+    // Calculator Modal
+    dom.modalCost = document.getElementById('modalCost');
+    dom.modalUnit = document.getElementById('modalUnit');
+    dom.modalDiscount = document.getElementById('modalDiscount');
+    dom.modalVat = document.getElementById('modalVat');
+    dom.modalUnitPriceResult = document.getElementById('modalUnitPriceResult');
+    dom.modalCasePriceResult = document.getElementById('modalCasePriceResult');
+    dom.applyCalcPriceBtn = document.getElementById('apply-calc-price-btn');
+}
+
+
 document.addEventListener('DOMContentLoaded', function() {
+    cacheDOMElements();
+    setupEventListeners();
+
     const storedUser = sessionStorage.getItem('currentUser');
     if (storedUser) {
-        currentUser = JSON.parse(storedUser);
+        state.currentUser = JSON.parse(storedUser);
         initializeApp();
     } else {
         showView('login-view');
-        setupLoginListeners();
     }
-    document.addEventListener('click', function(event) {
-        const suggestionsBox = document.getElementById('autocomplete-suggestions');
-        if (suggestionsBox && !event.target.closest('#code') && !event.target.closest('#autocomplete-suggestions')) {
-            suggestionsBox.style.display = 'none';
-        }
-    });
 });
