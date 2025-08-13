@@ -115,18 +115,25 @@
         <div class="modal fade" id="request-details-modal" tabindex="-1">
             <div class="modal-dialog modal-xl">
                 <div class="modal-content">
-                    <div class="modal-header bg-light"><h5 class="modal-title">Review Request <span id="modal-request-id-title"></span></h5><button type="button" class="close" data-dismiss="modal">&times;</button></div>
-                    <div class="modal-body">
+                    <div class="modal-header bg-light">
+                        <h5 class="modal-title">Review Request <span id="modal-request-id-title"></span></h5>
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    </div>
+                    <div class="modal-body" id="officer-modal-body-exportable">
                         <div class="form-row align-items-end mb-3 p-3 bg-light border rounded">
                             <div class="col-md-5"><label for="master-status-select"><strong>Update All Items To:</strong></label><select id="master-status-select" class="form-control form-control-sm"><option value="">-- Select Status --</option><option>تم التعديل</option><option>غير مسموع بالتعديل ويتم رفع الصنف</option><option>تم التعديل جزئيا</option><option>يرجي مراجعة كود الاستثناء</option><option>يتم المراجعة مع المورد</option><option>Pending</option></select></div>
                         </div>
                         <div class="table-responsive"><table class="table table-sm table-bordered"><thead><tr><th>Item Code</th><th>Name</th><th>Piece Price</th><th>Case Price</th><th>Status</th></tr></thead><tbody id="modal-items-tbody"></tbody></table></div>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <div class="modal-footer justify-content-between">
                         <div>
-                            <button type="button" class="btn btn-info" id="save-item-changes-btn"><i class="fas fa-save"></i> Save Changes</button>
-                            <button type="button" class="btn btn-primary" id="finalize-request-btn"><i class="fas fa-check-double"></i> Finalize Request</button>
+                             <button type="button" class="btn btn-outline-secondary" id="export-officer-btn">
+                                <i class="fas fa-file-image"></i> Export as JPG
+                            </button>
+                        </div>
+                        <div>
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                            <button type="button" class="btn btn-primary" id="save-item-changes-btn"><i class="fas fa-save"></i> Save Changes</button>
                         </div>
                     </div>
                 </div>
@@ -137,11 +144,19 @@
         <div class="modal fade" id="branch-view-details-modal" tabindex="-1">
             <div class="modal-dialog modal-lg">
                 <div class="modal-content">
-                    <div class="modal-header bg-light"><h5 class="modal-title">Request Details: <span id="branch-modal-request-id"></span></h5><button type="button" class="close" data-dismiss="modal">&times;</button></div>
-                    <div class="modal-body">
+                    <div class="modal-header bg-light">
+                        <h5 class="modal-title">Request Details: <span id="branch-modal-request-id"></span></h5>
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    </div>
+                    <div class="modal-body" id="branch-modal-body-exportable">
                         <div class="table-responsive"><table class="table table-sm table-bordered"><thead><tr><th>Code</th><th>Name</th><th>Supplier</th><th>Piece Price</th><th>Status</th></tr></thead><tbody id="branch-modal-items-tbody"></tbody></table></div>
                     </div>
-                    <div class="modal-footer"><button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button></div>
+                    <div class="modal-footer justify-content-between">
+                        <button type="button" class="btn btn-outline-secondary" id="export-branch-btn">
+                            <i class="fas fa-file-image"></i> Export as JPG
+                        </button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -151,6 +166,7 @@
     </div>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
