@@ -1,13 +1,12 @@
 /*************************************************/
 /*          APP CONFIGURATION & GLOBALS          */
 /*************************************************/
-const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwPHjkKYwwzuE-dkCjOu8D5M8f-pa7ruqFzb9rmRYRF8Z4P9pQhRzyZ3iz0_KD1AKuI/exec"; // PASTE YOUR NEW URL HERE
+const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbztbfLtY1H-ZdDRsh93LjGXjCWij9I_qaO13MCNoJLX8jHOieCC3oUVrII1RiUZGw1M/exec"; // PASTE YOUR NEW URL HERE
 let masterItemDatabase = [];
 let currentUser = null;
 let autocompleteDebounceTimer;
 let notificationInterval;
 let lastNotificationCheck = new Date().toISOString();
-
 
 /*************************************************/
 /*     API COMMUNICATION LAYER                   */
@@ -15,31 +14,25 @@ let lastNotificationCheck = new Date().toISOString();
 async function apiRequest(method, action, data = {}) {
     const loadingIndicator = document.getElementById('loading-indicator');
     loadingIndicator.style.display = 'flex';
-
     try {
         let url = `${GAS_WEB_APP_URL}?action=${action}`;
         const options = { method: method, headers: { 'Content-Type': 'application/json' } };
-
         if (method === 'GET') {
             if (currentUser) data.user = JSON.stringify(currentUser);
             url += '&' + new URLSearchParams(data).toString();
-        } else { // POST
+        } else {
             if (currentUser) data.user = currentUser;
             options.body = JSON.stringify(data);
-            options.mode = 'no-cors'; // Required for doPost redirects
+            options.mode = 'no-cors'; 
         }
-        
-        // This is a workaround for the 'no-cors' mode which doesn't return a readable response
         if (method === 'POST') {
              await fetch(url, options);
-             // Since we can't read the response, we assume success and refetch data
              return { success: true, message: 'Action submitted. Refreshing data...' };
         } else {
             const response = await fetch(url, options);
             if (!response.ok) throw new Error(`Network error: ${response.statusText}`);
             return await response.json();
         }
-        
     } catch (error) {
         console.error(`API Error (${action}):`, error);
         displayMessage(error.message, true);
@@ -49,36 +42,33 @@ async function apiRequest(method, action, data = {}) {
     }
 }
 
-
 /*************************************************/
 /*     AUTHENTICATION & INITIALIZATION           */
 /*************************************************/
 function setupLoginListeners() {
-    document.getElementById('login-btn').addEventListener('click', handleLogin);
-    document.getElementById('password').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') handleLogin();
-    });
+    // UPDATED: Listens for the form submission event
+    document.getElementById('login-form').addEventListener('submit', handleLogin);
 }
 
-async function handleLogin() {
-    const username = document.getElementById('username').value.trim();
-    const password = document.getElementById('password').value;
-    if (!username || !password) {
-        showLoginError("Username and password are required.");
+// UPDATED: Accepts an 'event' object to prevent form submission
+async function handleLogin(event) {
+    if (event) event.preventDefault(); // This is crucial to stop the page from reloading
+
+    const loginCode = document.getElementById('loginCode').value.trim();
+    if (!loginCode) {
+        showLoginError("Login Code is required.");
         return;
     }
     
-    // Login uses a proper POST request, but we need to handle the response differently.
     const loadingIndicator = document.getElementById('loading-indicator');
     loadingIndicator.style.display = 'flex';
     try {
         const response = await fetch(GAS_WEB_APP_URL, {
             method: 'POST',
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // GAS doPost requirement
-            body: JSON.stringify({ action: 'login', username: username, password: password })
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({ action: 'login', loginCode: loginCode })
         });
         const result = await response.json();
-
         if (result.success) {
             currentUser = result.user;
             sessionStorage.setItem('currentUser', JSON.stringify(currentUser));
@@ -104,6 +94,7 @@ function handleLogout() {
     currentUser = null;
     sessionStorage.removeItem('currentUser');
     clearInterval(notificationInterval);
+    document.getElementById('loginCode').value = '';
     showView('login-view');
 }
 
@@ -111,10 +102,8 @@ async function initializeApp() {
     showView('main-view');
     document.getElementById('welcome-message').textContent = `Welcome, ${currentUser.DisplayName} (${currentUser.Role})`;
     document.getElementById('logout-btn').addEventListener('click', handleLogout);
-
     const dbResult = await apiRequest('GET', 'getItemDatabase');
     if (dbResult.success) masterItemDatabase = dbResult.data;
-
     if (currentUser.Role === 'Branch') {
         document.getElementById('branch-user-content').style.display = 'block';
         document.getElementById('officer-content').style.display = 'none';
@@ -124,7 +113,6 @@ async function initializeApp() {
         document.getElementById('officer-content').style.display = 'block';
         loadOfficerData();
     }
-    
     startNotificationPolling();
 }
 
@@ -133,16 +121,12 @@ async function initializeApp() {
 /*************************************************/
 async function loadBranchUserData() {
     const result = await apiRequest('GET', 'getRequests');
-    if (result.success) {
-        renderBranchRequests(result.data);
-    }
+    if (result.success) renderBranchRequests(result.data);
 }
 
 async function loadOfficerData() {
     const result = await apiRequest('GET', 'getRequests');
-    if (result.success) {
-        renderOfficerRequests(result.data);
-    }
+    if (result.success) renderOfficerRequests(result.data);
 }
 
 function renderBranchRequests(requests) {
@@ -199,7 +183,7 @@ function handleCodeInput() {
         const codeInput = document.getElementById('code');
         const suggestionsBox = document.getElementById('autocomplete-suggestions');
         const term = codeInput.value.trim().toLowerCase();
-        getItemDetails(); // Update fields on every input
+        getItemDetails();
         if (term.length < 1) {
             suggestionsBox.style.display = 'none';
             return;
@@ -207,7 +191,6 @@ function handleCodeInput() {
         const suggestions = masterItemDatabase
             .filter(item => String(item.code).toLowerCase().includes(term) || String(item.name).toLowerCase().includes(term))
             .slice(0, 10);
-            
         if (suggestions.length > 0) {
             suggestionsBox.innerHTML = suggestions.map(s =>
                 `<div class="autocomplete-item" onclick="selectAutocompleteItem('${s.code}')">
@@ -232,12 +215,9 @@ function getItemDetails() {
     const code = document.getElementById('code').value.trim();
     const nameField = document.getElementById('name');
     const supplierField = document.getElementById('supplierName');
-    
     nameField.value = '';
     supplierField.value = '';
-
     if (!code) return;
-
     const foundItem = masterItemDatabase.find(item => String(item.code) === code);
     if (foundItem) {
         nameField.value = foundItem.name || '';
@@ -250,7 +230,6 @@ function toggleCurrentPriceField() {
 }
 
 async function submitRequest() {
-    // Validation
     const code = document.getElementById('code').value.trim();
     const unitPrice = document.getElementById('unitPrice').value;
     if (!code || !unitPrice) {
@@ -262,7 +241,6 @@ async function submitRequest() {
         displayMessage("Item code not found in the database.", true);
         return;
     }
-
     const requestData = {
         code: code,
         name: foundItem.name,
@@ -271,12 +249,11 @@ async function submitRequest() {
         type: document.getElementById('type').value,
         current: document.getElementById('currentPrice').value || '0'
     };
-
     const result = await apiRequest('POST', 'submitRequest', { data: requestData });
     if (result.success) {
         displayMessage('Request submitted successfully!');
         clearRequestForm();
-        loadBranchUserData(); // Refresh the list
+        loadBranchUserData();
     }
 }
 
@@ -290,7 +267,6 @@ function clearRequestForm() {
 }
 
 function reviewRequest(request) {
-    // Populate modal
     const detailsDiv = document.getElementById('modal-request-details');
     detailsDiv.innerHTML = `
         <p><strong>Branch:</strong> ${request.Branch}</p>
@@ -302,7 +278,6 @@ function reviewRequest(request) {
         <p><strong>Requested New Unit Price:</strong> <span class="badge badge-info">${request.SubmittedUnitPrice}</span></p>
         ${request.Type === 'مرتجع' ? `<p><strong>Submitted Current Price:</strong> <span class="badge badge-warning">${request.SubmittedCurrentPrice}</span></p>` : ''}
     `;
-    // Store request ID in the modal for the update function
     $('#request-details-modal').data('requestId', request.RequestID);
     $('#request-details-modal').modal('show');
 }
@@ -310,16 +285,13 @@ function reviewRequest(request) {
 async function confirmStatusUpdate() {
     const requestId = $('#request-details-modal').data('requestId');
     const newStatus = document.getElementById('modal-status-select').value;
-    
     const result = await apiRequest('POST', 'updateRequestStatus', { data: { requestId, newStatus } });
-    
     if (result.success) {
         displayMessage('Status updated successfully!');
         $('#request-details-modal').modal('hide');
-        loadOfficerData(); // Refresh officer dashboard
+        loadOfficerData();
     }
 }
-
 
 /*************************************************/
 /*             NOTIFICATION SYSTEM               */
@@ -327,32 +299,24 @@ async function confirmStatusUpdate() {
 function startNotificationPolling() {
     notificationInterval = setInterval(async () => {
         const result = await apiRequest('GET', 'checkForNotifications', { lastCheck: lastNotificationCheck });
-        
         if (result.success && result.data.newEvents.length > 0) {
-            lastNotificationCheck = new Date().toISOString(); // Update time *before* showing notification
+            lastNotificationCheck = new Date().toISOString();
             const message = result.data.newEvents.join('\n');
-            displayMessage(message, false, 10000); // Show for 10 seconds
-            document.getElementById('notification-sound').play().catch(e => console.warn("Audio playback failed.", e));
-            // Refresh data in the background
+            displayMessage(message, false, 10000);
+            document.getElementById('notification-sound').play().catch(e => console.warn("Audio playback failed. This can happen if the user hasn't interacted with the page yet.", e));
             if (currentUser.Role === 'Branch') loadBranchUserData();
             else if (currentUser.Role === 'Officer') loadOfficerData();
         } else if(result.success) {
-             lastNotificationCheck = new Date().toISOString(); // Still update time to prevent re-checking old events
+             lastNotificationCheck = new Date().toISOString();
         }
-    }, 30000); // Check every 30 seconds
+    }, 30000);
 }
-
 
 /*************************************************/
 /*             REPORTING                         */
 /*************************************************/
-function showReportsView() {
-    showView('reports-view');
-}
-
-function hideReportsView() {
-    showView('main-view');
-}
+function showReportsView() { showView('reports-view'); }
+function hideReportsView() { showView('main-view'); }
 
 async function generateReport() {
     const filters = {
@@ -361,11 +325,8 @@ async function generateReport() {
         status: document.getElementById('report-status').value,
         supplier: document.getElementById('report-supplier').value.trim()
     };
-
     const result = await apiRequest('GET', 'getReportData', { filters: JSON.stringify(filters) });
-    if(result.success) {
-        renderReportResults(result.data);
-    }
+    if(result.success) renderReportResults(result.data);
 }
 
 function renderReportResults(data) {
@@ -376,7 +337,6 @@ function renderReportResults(data) {
         document.getElementById('report-avg-response').textContent = 'N/A';
         return;
     }
-    
     tbody.innerHTML = data.map(r => `
         <tr>
             <td>${r.RequestID}</td>
@@ -389,7 +349,6 @@ function renderReportResults(data) {
             <td>${r.ResponseTimeHours || 'N/A'}</td>
         </tr>
     `).join('');
-
     document.getElementById('report-total-records').textContent = data.length;
     const resolvedRequests = data.filter(r => r.ResponseTimeHours);
     if(resolvedRequests.length > 0) {
@@ -408,22 +367,15 @@ function displayMessage(message, isError = false, duration = 3000) {
     const messageContainer = document.getElementById('message-container');
     messageContainer.textContent = message;
     messageContainer.className = isError ? 'error show' : 'success show';
-    setTimeout(() => {
-        messageContainer.classList.remove('show');
-    }, duration);
+    setTimeout(() => { messageContainer.classList.remove('show'); }, duration);
 }
 
 function getStatusClass(status) {
     switch(status) {
         case 'Pending': return 'badge-secondary';
-        case 'تم التعديل':
-        case 'تم التعديل جزئيا': 
-            return 'badge-success';
-        case 'غير مسموع بالتعديل ويتم رفع الصنف':
-        case 'يرجي مراجعة كود الاستثناء': 
-            return 'badge-danger';
-        case 'يتم المراجعة مع المورد':
-            return 'badge-warning';
+        case 'تم التعديل': case 'تم التعديل جزئيا': return 'badge-success';
+        case 'غير مسموع بالتعديل ويتم رفع الصنف': case 'يرجي مراجعة كود الاستثناء': return 'badge-danger';
+        case 'يتم المراجعة مع المورد': return 'badge-warning';
         default: return 'badge-light';
     }
 }
@@ -440,12 +392,10 @@ document.addEventListener('DOMContentLoaded', function() {
         showView('login-view');
         setupLoginListeners();
     }
-
-    // Global listener to close autocomplete
     document.addEventListener('click', function(event) {
         const suggestionsBox = document.getElementById('autocomplete-suggestions');
-        if (!event.target.closest('#code') && !event.target.closest('#autocomplete-suggestions')) {
-            if(suggestionsBox) suggestionsBox.style.display = 'none';
+        if (suggestionsBox && !event.target.closest('#code') && !event.target.closest('#autocomplete-suggestions')) {
+            suggestionsBox.style.display = 'none';
         }
     });
 });
