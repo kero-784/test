@@ -1,15 +1,14 @@
 // --- GLOBALS ---
-const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxSBtBQAE_39kCz-PSlYHoHWhEgZxwLV74Tt-ZsG6CitComfLyq7SpHYkwntj6RaYhA/exec";
+const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxd6QUuxaDIz0w_1q9BEQUam55sSEbKQNngsZxhpMuKjXJeO4BDVU9_uspafNE724RG/exec";
 
 // PASTE YOUR FIREBASE CONFIG OBJECT HERE
 const firebaseConfig = {
-  apiKey: "AIzaSyArzJBvvr4Zf4mADNWaJH7AnrzXm9lKsYY",
-  authDomain: "price-request-26377.firebaseapp.com",
-  databaseURL: "https://price-request-26377-default-rtdb.firebaseio.com",
-  projectId: "price-request-26377",
-  storageBucket: "price-request-26377.firebasestorage.app",
-  messagingSenderId: "590894085209",
-  appId: "1:590894085209:web:a9d1fdc7ab93e994a2ed48"
+  apiKey: "AIzaSyCUKv_mgtdvebd4mXXiFAcINlijaac2MOA",
+  authDomain: "price-request-b8c5b.firebaseapp.com",
+  projectId: "price-request-b8c5b",
+  storageBucket: "price-request-b8c5b.firebasestorage.app",
+  messagingSenderId: "1066820117560",
+  appId: "1:1066820117560:web:d8a3d41a5c1fefda1cb2cd"
 };
 
 // Initialize Firebase
