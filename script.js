@@ -1,7 +1,23 @@
 // --- GLOBALS ---
-const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxGlEtJlE2ntlJqGfpRbEPHpb9FlIwPPk5fYT6_RQWU2wu99EFqIZp057MDJJUuOL8v/exec";
+const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxcPM0yqquzg4li-pZc63NHz5yUeIoHr7nmWq9jANKTx8fZL4JYMrSyvDNMrRQca_-N/exec";
 
-const state = { masterItemDatabase: [], currentUser: null, autocompleteDebounceTimer: null, notificationInterval: null, lastNotificationCheck: new Date().toISOString(), requestList: [], requests: [], lastUsedUnitCount: 1, lastUsedDiscount: 0, lastUsedVat: 0 };
+// PASTE YOUR FIREBASE CONFIG OBJECT HERE
+const firebaseConfig = {
+  apiKey: "AIzaSyArzJBvvr4Zf4mADNWaJH7AnrzXm9lKsYY",
+  authDomain: "price-request-26377.firebaseapp.com",
+  databaseURL: "https://price-request-26377-default-rtdb.firebaseio.com",
+  projectId: "price-request-26377",
+  storageBucket: "price-request-26377.firebasestorage.app",
+  messagingSenderId: "590894085209",
+  appId: "1:590894085209:web:a9d1fdc7ab93e994a2ed48"
+};
+
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+const database = firebase.database();
+const auth = firebase.auth();
+
+const state = { masterItemDatabase: [], currentUser: null, autocompleteDebounceTimer: null, notificationListener: null, requestList: [], requests: [], lastUsedUnitCount: 1, lastUsedDiscount: 0, lastUsedVat: 0 };
 const dom = {};
 
 // --- API & AUTH ---
@@ -15,13 +31,58 @@ async function handleLogin(event) {
         const loginResult = await apiRequest('login', { loginCode }, true);
         if (!loginResult.success) throw new Error(loginResult.error);
         state.currentUser = loginResult.user;
-        dom.notificationSound.muted = true; try { await dom.notificationSound.play(); } catch (e) { console.warn("Audio context unlock failed."); } dom.notificationSound.muted = false;
+
+        await auth.signInWithCustomToken(loginResult.token);
+        
+        dom.notificationSound.muted = true;
+        try { await dom.notificationSound.play(); } catch (e) { console.warn("Audio context unlock failed, but this is expected on some browsers."); }
+        dom.notificationSound.muted = false;
+
         const dbResult = await apiRequest('getItemDatabase', {}, true);
         if (dbResult.success) { state.masterItemDatabase = dbResult.data; sessionStorage.setItem('currentUser', JSON.stringify(state.currentUser)); initializeApp(); } else { throw new Error("Could not load product database."); }
-    } catch (error) { showLoginError(error.message); state.currentUser = null; }
+    } catch (error) {
+        showLoginError(error.message);
+        state.currentUser = null;
+    }
 }
-async function initializeApp() { showView('main-view'); dom.welcomeMessage.textContent = `Welcome, ${state.currentUser.DisplayName} (${state.currentUser.Role})`; renderNav(); showMainAppView(); startNotificationPolling(); }
-function handleLogout() { state.currentUser = null; sessionStorage.removeItem('currentUser'); if (state.notificationInterval) clearInterval(state.notificationInterval); showView('login-view'); dom.loginForm.reset(); state.requests = []; state.requestList = []; state.masterItemDatabase = []; dom.navButtons.innerHTML = ''; dom.appContentArea.innerHTML = ''; }
+async function initializeApp() { showView('main-view'); dom.welcomeMessage.textContent = `Welcome, ${state.currentUser.DisplayName} (${state.currentUser.Role})`; renderNav(); showMainAppView(); startRealtimeListener(); }
+function handleLogout() { auth.signOut(); state.currentUser = null; sessionStorage.removeItem('currentUser'); if (state.notificationListener) database.ref('notifications').off('child_added', state.notificationListener); showView('login-view'); dom.loginForm.reset(); state.requests = []; state.requestList = []; state.masterItemDatabase = []; dom.navButtons.innerHTML = ''; dom.appContentArea.innerHTML = ''; }
+
+// --- LIVE NOTIFICATIONS ---
+function startRealtimeListener() {
+    if (state.notificationListener) database.ref('notifications').off('child_added', state.notificationListener);
+
+    const notificationsRef = database.ref('notifications');
+    state.notificationListener = notificationsRef.on('child_added', async (snapshot) => {
+        const notification = snapshot.val();
+        snapshot.ref.remove();
+
+        if ($('.modal.show').length > 0 && notification.type === 'fullscreen') { 
+            console.log("Blocking fullscreen notification because a modal is already open.");
+            return;
+        }
+        
+        const isForMe = (notification.recipientRole && notification.recipientRole.includes(state.currentUser.Role)) || 
+                      (notification.recipientLoginCode && notification.recipientLoginCode === state.currentUser.LoginCode);
+
+        if (isForMe) {
+            console.log("Real-time notification received:", notification);
+            dom.notificationSound.play().catch(e => {});
+
+            if (notification.type === 'fullscreen') {
+                showFullscreenNotification({ requestID: notification.requestID });
+            } else {
+                displayMessage(notification.message);
+            }
+
+            const refreshResult = await apiRequest('getRequests', {});
+            if (refreshResult.success) {
+                state.requests = refreshResult.data;
+                renderRequests();
+            }
+        }
+    });
+}
 
 // --- NAVIGATION & VIEW MANAGEMENT ---
 function renderNav() { let navHTML = `<button class="btn btn-sm btn-outline-primary active" id="nav-main-btn">Main App</button>`; if (['Admin', 'Officer'].includes(state.currentUser.Role)) { navHTML += `<button class="btn btn-sm btn-outline-secondary" id="nav-reports-btn">Reports</button>`; } if (state.currentUser.Role === 'Admin') { navHTML += `<button class="btn btn-sm btn-outline-danger" id="nav-admin-btn">Users</button>`; } dom.navButtons.innerHTML = navHTML; }
@@ -113,7 +174,6 @@ function showLoginError(message) { dom.loginError.textContent = message; dom.log
 function getStatusSummary(request) { if (request.BranchConfirmTimestamp) return { badgeClass: 'badge-success', statusText: `✅ Confirmed` }; if (request.OfficerResponseTimestamp) return { badgeClass: 'badge-primary', statusText: `🔵 Awaiting Confirmation` }; if (request.itemsPending === 0 && request.itemsTotal > 0) return { badgeClass: 'badge-secondary', statusText: `☑️ Processed` }; return { badgeClass: 'badge-info', statusText: `⚠️ ${request.itemsPending} / ${request.itemsTotal} Pending` }; }
 function getStatusClass(status) { if (status === 'Pending') return 'badge-secondary'; if (status.includes('مراجعة') || status.includes('مسموع')) return 'badge-warning'; return 'badge-primary'; }
 function displayMessage(message, isError = false, duration = 4000) { const toastContainer = document.getElementById('toast-container'); const toastId = 'toast-' + Date.now(); const toastHTML = `<div id="${toastId}" class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-delay="${duration}" data-autohide="true"><div class="toast-body">${message}</div></div>`; toastContainer.insertAdjacentHTML('beforeend', toastHTML); $('#' + toastId).toast('show').on('hidden.bs.toast', function(){ this.remove(); }); }
-function startNotificationPolling() { if (state.notificationInterval) clearInterval(state.notificationInterval); state.notificationInterval = setInterval(async () => { if (document.hidden || !state.currentUser || $('.modal.show').length > 0) return; const result = await apiRequest('checkForNotifications', { lastCheck: state.lastNotificationCheck }); if (result.success) { state.lastNotificationCheck = new Date().toISOString(); let needsRefresh = false; if (result.data.toastEvents && result.data.toastEvents.length > 0) { displayMessage(result.data.toastEvents.join('\n')); dom.notificationSound.play().catch(e => {}); needsRefresh = true; } if (result.data.modalEvent) { showFullscreenNotification(result.data.modalEvent); dom.notificationSound.play().catch(e => {}); needsRefresh = true; } if (needsRefresh) { await loadAndRenderRequests(); } } }, 15000); }
 function showFullscreenNotification(event) { document.getElementById('fullscreen-notification-ok-btn').dataset.requestId = event.requestID; $('#fullscreen-notification-modal').modal('show'); }
 function cacheDOMElements() { dom.loginView = document.getElementById('login-view'); dom.mainView = document.getElementById('main-view'); dom.loginForm = document.getElementById('login-form'); dom.loginCodeInput = document.getElementById('loginCode'); dom.loginError = document.getElementById('login-error'); dom.loadingIndicator = document.getElementById('loading-indicator'); dom.welcomeMessage = document.getElementById('welcome-message'); dom.logoutBtn = document.getElementById('logout-btn'); dom.notificationSound = document.getElementById('notification-sound'); dom.navButtons = document.getElementById('nav-buttons'); dom.appContentArea = document.getElementById('app-content-area'); }
 function cacheAppDOMElements() { if (document.getElementById('branch-user-content')) { document.getElementById('add-to-list-btn').addEventListener('click', addToList); document.getElementById('code').addEventListener('input', handleCodeInput); document.getElementById('calc-btn').addEventListener('click', openCalculatorModal); document.getElementById('clear-list-btn').addEventListener('click', clearRequestList); document.getElementById('submit-all-btn').addEventListener('click', submitAllRequests); } }
