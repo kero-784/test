@@ -1,5 +1,5 @@
 // --- GLOBALS ---
-const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwoAYHTy9Pz2DRermaYalGP-u_5koxcsTDTa09cfl1qhAIrYIx5R-_-99pRHG3AuY88/exec";
+const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx3PO8xv2B5KTxMKQZxRGLaKeIxxsZ3reP_28glhe7ECdIYVHhMw1dmc1-jxV-oQx0F/exec";
 
 const state = { masterItemDatabase: [], currentUser: null, autocompleteDebounceTimer: null, notificationInterval: null, lastNotificationCheck: new Date().toISOString(), requestList: [], requests: [], lastUsedUnitCount: 1, lastUsedDiscount: 0, lastUsedVat: 0 };
 const dom = {};
