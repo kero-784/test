@@ -1,5 +1,5 @@
 // --- GLOBALS ---
-const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxcPM0yqquzg4li-pZc63NHz5yUeIoHr7nmWq9jANKTx8fZL4JYMrSyvDNMrRQca_-N/exec";
+const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx5feuQHDL_orCTwqivwct9SJGGqDLjx6Wv44kyCxCr_fgD1jxhsgpfSetiEUWTwawg/exec";
 
 // PASTE YOUR FIREBASE CONFIG OBJECT HERE
 const firebaseConfig = {
