@@ -1,5 +1,5 @@
 // --- GLOBALS ---
-const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzvDHcblLlexFMMl4FLyoLGreELdsQyhEwQYGUGRTAzg4MPrhsuKk4zJfLb7u-2FOnu/exec";
+const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyJFkK7IMZdJlubjFFbUhuj-oVMeuw5aZ46MGtH1NRD82Q6RzHBGyoS5x0CLYzmYDMJ/exec";
 
 // PASTE YOUR FIREBASE CONFIG OBJECT HERE
 const firebaseConfig = {
@@ -31,19 +31,11 @@ async function handleLogin(event) {
         const loginResult = await apiRequest('login', { loginCode }, true);
         if (!loginResult.success) throw new Error(loginResult.error);
         state.currentUser = loginResult.user;
-
         await auth.signInWithCustomToken(loginResult.token);
-        
-        dom.notificationSound.muted = true;
-        try { await dom.notificationSound.play(); } catch (e) { console.warn("Audio context unlock failed, but this is expected on some browsers."); }
-        dom.notificationSound.muted = false;
-
+        dom.notificationSound.muted = true; try { await dom.notificationSound.play(); } catch (e) { console.warn("Audio context unlock failed, but this is expected on some browsers."); } dom.notificationSound.muted = false;
         const dbResult = await apiRequest('getItemDatabase', {}, true);
         if (dbResult.success) { state.masterItemDatabase = dbResult.data; sessionStorage.setItem('currentUser', JSON.stringify(state.currentUser)); initializeApp(); } else { throw new Error("Could not load product database."); }
-    } catch (error) {
-        showLoginError(error.message);
-        state.currentUser = null;
-    }
+    } catch (error) { showLoginError(error.message); state.currentUser = null; }
 }
 async function initializeApp() { showView('main-view'); dom.welcomeMessage.textContent = `Welcome, ${state.currentUser.DisplayName} (${state.currentUser.Role})`; renderNav(); showMainAppView(); startRealtimeListener(); }
 function handleLogout() { auth.signOut(); state.currentUser = null; sessionStorage.removeItem('currentUser'); if (state.notificationListener) database.ref('notifications').off('child_added', state.notificationListener); showView('login-view'); dom.loginForm.reset(); state.requests = []; state.requestList = []; state.masterItemDatabase = []; dom.navButtons.innerHTML = ''; dom.appContentArea.innerHTML = ''; }
@@ -51,35 +43,18 @@ function handleLogout() { auth.signOut(); state.currentUser = null; sessionStora
 // --- LIVE NOTIFICATIONS ---
 function startRealtimeListener() {
     if (state.notificationListener) database.ref('notifications').off('child_added', state.notificationListener);
-
     const notificationsRef = database.ref('notifications');
     state.notificationListener = notificationsRef.on('child_added', async (snapshot) => {
         const notification = snapshot.val();
         snapshot.ref.remove();
-
-        if ($('.modal.show').length > 0 && notification.type === 'fullscreen') { 
-            console.log("Blocking fullscreen notification because a modal is already open.");
-            return;
-        }
-        
-        const isForMe = (notification.recipientRole && notification.recipientRole.includes(state.currentUser.Role)) || 
-                      (notification.recipientLoginCode && notification.recipientLoginCode === state.currentUser.LoginCode);
-
+        if ($('.modal.show').length > 0 && notification.type === 'fullscreen') { console.log("Blocking fullscreen notification because a modal is already open."); return; }
+        const isForMe = (notification.recipientRole && notification.recipientRole.includes(state.currentUser.Role)) || (notification.recipientLoginCode && notification.recipientLoginCode === state.currentUser.LoginCode);
         if (isForMe) {
             console.log("Real-time notification received:", notification);
             dom.notificationSound.play().catch(e => {});
-
-            if (notification.type === 'fullscreen') {
-                showFullscreenNotification({ requestID: notification.requestID });
-            } else {
-                displayMessage(notification.message);
-            }
-
+            if (notification.type === 'fullscreen') { showFullscreenNotification({ requestID: notification.requestID }); } else { displayMessage(notification.message); }
             const refreshResult = await apiRequest('getRequests', {});
-            if (refreshResult.success) {
-                state.requests = refreshResult.data;
-                renderRequests();
-            }
+            if (refreshResult.success) { state.requests = refreshResult.data; renderRequests(); }
         }
     });
 }
@@ -171,7 +146,7 @@ function openCalculatorModal() { document.getElementById('modalCost').value = ''
 
 // --- OTHER UTILITIES & STARTUP ---
 function showLoginError(message) { dom.loginError.textContent = message; dom.loginError.style.display = 'block'; }
-function getStatusSummary(request) { if (request.BranchConfirmTimestamp) return { badgeClass: 'badge-success', statusText: `✅ Confirmed` }; if (request.OfficerResponseTimestamp) return { badgeClass: 'badge-primary', statusText: `🔵 Awaiting Confirmation` }; if (request.itemsPending === 0 && request.itemsTotal > 0) return { badgeClass: 'badge-secondary', statusText: `☑️ Processed` }; return { badgeClass: 'badge-info', statusText: `⚠️ ${request.itemsPending} / ${request.itemsTotal} Pending` }; }
+function getStatusSummary(request) { if (request.BranchConfirmTimestamp) return { badgeClass: 'badge-success', statusText: `✅ Confirmed` }; if (request.OfficerResponseTimestamp) return { badgeClass: 'badge-primary', statusText: `🔵 Awaiting Confirmation` }; if (request.itemsPending === 0 && request.itemsTotal > 0) return { badgeClass: 'badge-secondary', statusText: `☑️ Processed` }; return { badgeClass: 'badge-info', statusText: `⚠️ ${request.itemsPending} / ${state.requestList.length} Pending` }; }
 function getStatusClass(status) { if (status === 'Pending') return 'badge-secondary'; if (status.includes('مراجعة') || status.includes('مسموع')) return 'badge-warning'; return 'badge-primary'; }
 function displayMessage(message, isError = false, duration = 4000) { const toastContainer = document.getElementById('toast-container'); const toastId = 'toast-' + Date.now(); const toastHTML = `<div id="${toastId}" class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-delay="${duration}" data-autohide="true"><div class="toast-body">${message}</div></div>`; toastContainer.insertAdjacentHTML('beforeend', toastHTML); $('#' + toastId).toast('show').on('hidden.bs.toast', function(){ this.remove(); }); }
 function showFullscreenNotification(event) { document.getElementById('fullscreen-notification-ok-btn').dataset.requestId = event.requestID; $('#fullscreen-notification-modal').modal('show'); }
