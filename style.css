@@ -55,4 +55,4 @@ body { font-family: 'Cairo', 'Arial', sans-serif; background-color: var(--backgr
 
 /* --- Overlays & Notifications --- */
 #loading-indicator { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(255, 255, 255, 0.85); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; }
-#toast-container { position: fixed; top: 20px; right: 20px; z-index: 10000; width: 350px; }
+#toast-container { position: fixed; top: 20px; right: 20px; z-index: 1060; /* Higher than modals */ }
