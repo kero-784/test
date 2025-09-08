@@ -1,6 +1,6 @@
 // --- CONFIGURATION ---
 // IMPORTANT: Replace this URL with your own Google Apps Script deployment URL for the ReportingAppScript
-const REPORTING_API_URL = 'https://script.google.com/macros/s/AKfycbynZLTpnkuNZVNngkRi_IJYXd-rPSy1LuUp9R1mZe7CMgAwyzJHjJqCqmZXsPhKye8/exec';
+const REPORTING_API_URL = 'https://script.google.com/macros/s/AKfycbxejqQxR8JNPaWBAlpgbVIfQmoD7EgYYLguP3AWd00yVfq4uEUhwfjcX9OmiFLcQiPXoQ/exec';
 
 // --- GLOBAL STATE ---
 let allBranches = [];
