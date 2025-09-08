@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>طلب نواقص الفرع</title>
+    <title>التقارير و تحديث الارصدة</title>
     <link rel="icon" type="image/png" href="../favicon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -24,8 +24,11 @@
             try {
                 currentUserData = JSON.parse(userString);
                 const permissions = currentUserData.permissions || [];
-                if (!permissions.includes('admin') && !permissions.includes('resupply_app')) {
-                    alert("وصول مرفوض."); window.location.href = '../index.html'; return;
+                // This app requires 'update_stock' or 'admin' permission
+                if (!permissions.includes('admin') && !permissions.includes('update_stock')) {
+                    alert("وصول مرفوض. تحتاج إلى صلاحيات إدارية.");
+                    window.location.href = '../index.html';
+                    return;
                 }
                 document.addEventListener('DOMContentLoaded', () => { document.body.style.visibility = 'visible'; });
             } catch (e) {
@@ -41,49 +44,90 @@
     <div id="app-view" class="view active">
         <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
             <div class="container-fluid">
-                <a class="navbar-brand" href="#"><i class="fas fa-boxes-packing me-2"></i>طلب نواقص الفرع</a>
+                <a class="navbar-brand" href="#"><i class="fas fa-chart-line me-2"></i>التقارير و الإدارة</a>
                 <div class="d-flex align-items-center">
                     <a href="../index.html" class="btn btn-outline-secondary btn-sm ms-3"><i class="fas fa-arrow-left"></i> الرئيسية</a>
-                    <span class="navbar-text ms-3 text-white-50">المستخدم: <strong class="text-white" id="loggedInUser"></strong> | الفرع: <strong class="text-white" id="currentBranchName">...</strong></span>
+                    <span class="navbar-text ms-3 text-white-50">المستخدم: <strong class="text-white" id="loggedInUser"></strong></span>
                     <button id="logoutBtn" class="btn btn-outline-light btn-sm">خروج</button>
                 </div>
             </div>
         </nav>
         <div class="container my-4">
-            <div id="branch-selector-view" class="row justify-content-center">
-                <div class="col-md-8 col-lg-6">
-                    <div class="card p-4"><div class="card-body text-center"><i class="fas fa-store fa-3x text-primary mb-3"></i><h4 class="card-title">اختر الفرع</h4><p class="text-muted">يجب اختيار فرع لعرض الارصدة.</p><select class="form-select form-select-lg" id="branchSelect"></select></div></div>
-                </div>
-            </div>
-            <div id="main-content" class="d-none">
-                 <div class="row g-4">
-                       <div class="col-lg-8">
-                            <div id="search-container" class="card mb-4">
-                                <div class="card-body p-4">
-                                    <h5 class="card-title mb-3"> البحث عن الأصناف</h5>
-                                    <div class="row g-2 align-items-end">
-                                        <div class="col-sm-5"><label for="supplierFilter" class="form-label">بحث حسب المورد</label><select id="supplierFilter" class="form-select"></select></div>
-                                        <div class="col-sm-5"><label for="searchTerm" class="form-label">بحث بالاسم او الكود او الباركود</label><div class="input-group"><input type="search" class="form-control" id="searchTerm" placeholder="..."><button class="btn btn-outline-secondary" type="button" id="scanBarcodeBtn" title="مسح باركود بالكاميرا"><i class="fas fa-camera"></i></button></div></div>
-                                        <div class="col-sm-2 d-grid"><button id="searchBtn" class="btn btn-primary w-100">بحث</button></div>
+            <div id="main-content">
+                <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
+                    <li class="nav-item" role="presentation"><button class="nav-link active" id="pills-extract-tab" data-bs-toggle="pill" data-bs-target="#pills-extract">تقرير رصيد مورد</button></li>
+                    <li class="nav-item" role="presentation"><button class="nav-link" id="pills-items-extract-tab" data-bs-toggle="pill" data-bs-target="#pills-items-extract">تقرير رصيد أصناف</button></li>
+                    <li class="nav-item" role="presentation"><button class="nav-link" id="pills-update-tab" data-bs-toggle="pill" data-bs-target="#pills-update">تحديث الارصدة</button></li>
+                </ul>
+                <div class="tab-content" id="pills-tabContent">
+                    <!-- ================= TAB 1: SUPPLIER REPORT ================= -->
+                    <div class="tab-pane fade show active" id="pills-extract" role="tabpanel">
+                        <div class="row justify-content-center"><div class="col-md-10 col-lg-8"><div class="card"><div class="card-body p-4"><h4 class="card-title">تقرير رصيد الموردين</h4><p class="card-subtitle mb-3 text-muted">اختر الفروع والموردين لاستخراج تقرير مفصل بأرصدتهم الحالية.</p><div class="mb-3"><label class="form-label fw-bold">الفروع</label><button id="openBranchModalBtn" class="btn btn-outline-primary w-100 text-start"><i class="fas fa-store me-2"></i><span>اختر الفروع</span> (<span id="branchSelectionCount">0</span>)</button></div><div class="mb-3"><label class="form-label fw-bold">الموردين</label><button id="openSupplierModalBtn" class="btn btn-outline-primary w-100 text-start"><i class="fas fa-truck-field me-2"></i><span>اختر الموردين</span> (<span id="supplierSelectionCount">0</span>)</button></div><div class="border rounded p-3 mb-4"><label class="form-label fw-bold">بحث متقدم (اختياري)</label><p class="small text-muted mb-2">تصفية الأصناف حسب إجمالي الرصيد في الفروع المختارة.</p><div class="row g-2 align-items-center"><div class="col-sm-5"><select class="form-select" id="stockOperator"><option value="all">عرض كل الأرصدة</option><option value="<">الرصيد أصغر من</option><option value=">">الرصيد أكبر من</option><option value="=">الرصيد يساوي</option></select></div><div class="col-sm-7"><input type="number" class="form-control" id="stockValue" placeholder="ادخل قيمة..." disabled></div></div></div><div class="d-grid gap-2 d-sm-flex justify-content-sm-end"><button id="extractStockExcelBtn" class="btn btn-success"><i class="fas fa-file-excel me-2"></i>استخراج Excel</button><button id="extractStockPdfBtn" class="btn btn-danger"><i class="fas fa-file-pdf me-2"></i>معاينة و طباعة PDF</button></div></div></div></div></div>
+                    </div>
+                     <!-- ================= TAB 2: ITEMS REPORT ================= -->
+                    <div class="tab-pane fade" id="pills-items-extract" role="tabpanel">
+                        <div class="row g-4">
+                            <div class="col-lg-8">
+                                <div class="card mb-4">
+                                    <div class="card-body p-4">
+                                        <h5 class="card-title mb-3">1. البحث عن الأصناف للتقرير</h5>
+                                        <div class="row g-2 align-items-end">
+                                            <div class="col-sm-5"><label for="itemReportSupplierFilter" class="form-label">بحث حسب المورد</label><select id="itemReportSupplierFilter" class="form-select"></select></div>
+                                            <div class="col-sm-5">
+                                                <label for="itemReportSearchTerm" class="form-label">بحث بالاسم او الكود او الباركود</label>
+                                                <div class="input-group">
+                                                    <input type="search" class="form-control" id="itemReportSearchTerm" placeholder="...">
+                                                    <button class="btn btn-outline-secondary" type="button" id="itemReportScanBarcodeBtn" title="مسح باركود بالكاميرا"><i class="fas fa-camera"></i></button>
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-2 d-grid"><button id="itemReportSearchBtn" class="btn btn-primary w-100">بحث</button></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card">
+                                    <div class="card-body p-4"><div class="table-responsive table-responsive-scrollable"><table id="itemReportTable" class="table table-hover" style="width:100%"><thead><tr><th style="width: 50px;">اختر</th><th>الاسم</th><th>المورد</th></tr></thead><tbody></tbody></table></div></div>
+                                    <div class="card-footer text-start bg-light p-3"><button id="addItemToReportBtn" class="btn btn-success"><i class="fas fa-plus-circle me-2"></i>إضافة الأصناف المختارة للتقرير</button></div>
+                                </div>
+                            </div>
+                            <div class="col-lg-4">
+                                <div id="itemReportSummaryCard" class="card mb-4">
+                                    <div class="card-body p-4">
+                                        <div class="d-flex justify-content-between align-items-center mb-3">
+                                            <h5 class="card-title mb-0">2. الأصناف المختارة</h5>
+                                            <button id="clearItemReportSelectionBtn" class="btn btn-sm btn-outline-danger">مسح الكل</button>
+                                        </div>
+                                        <div id="itemReportSummaryContent" style="max-height: 250px; overflow-y: auto;">
+                                            <p class="placeholder-text text-center">الأصناف المختارة للتقرير ستظهر هنا.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card">
+                                    <div class="card-body p-4">
+                                        <h5 class="card-title mb-3">3. إعدادات التقرير</h5>
+                                        <div class="mb-3"><label class="form-label fw-bold">الفروع</label><button id="openBranchModalBtnItems" class="btn btn-outline-primary w-100 text-start"><i class="fas fa-store me-2"></i><span>اختر الفروع</span> (<span id="branchSelectionCountItems">0</span>)</button></div>
+                                        <div class="border rounded p-3 mb-4"><label class="form-label fw-bold">بحث متقدم (اختياري)</label><p class="small text-muted mb-2">تصفية حسب إجمالي الرصيد.</p><div class="row g-2 align-items-center"><div class="col-sm-5"><select class="form-select" id="stockOperatorItems"><option value="all">عرض الكل</option><option value="<">&lt;</option><option value=">">&gt;</option><option value="=">=</option></select></div><div class="col-sm-7"><input type="number" class="form-control" id="stockValueItems" placeholder="ادخل قيمة..." disabled></div></div></div>
+                                        <div class="d-grid gap-2">
+                                            <button id="extractItemsStockExcelBtn" class="btn btn-success" disabled><i class="fas fa-file-excel me-2"></i>استخراج Excel</button>
+                                            <button id="extractItemsStockPdfBtn" class="btn btn-danger" disabled><i class="fas fa-file-pdf me-2"></i>معاينة و طباعة PDF</button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="card">
-                                <div class="card-body p-4"><div class="table-responsive table-responsive-scrollable"><table id="itemsTable" class="table table-hover" style="width:100%"><thead><tr><th>الاسم</th><th>المورد</th><th>الكمية الحالية</th><th>الكمية المطلوبة</th></tr></thead><tbody></tbody></table></div></div>
-                                <div class="card-footer text-start bg-light p-3"><button id="addItemsBtn" class="btn btn-success"><i class="fas fa-cart-plus me-2"></i>حفظ الاصناف المختارة</button></div>
-                            </div>
-                       </div>
-                       <div class="col-lg-4">
-                           <div id="order-summary-card" class="card">
-                               <div class="card-body p-4"><h5 class="card-title mb-3"> مراجعة الطلب</h5><div id="order-summary-content"><p class="placeholder-text text-center">الأصناف المختارة</p></div><div class="d-grid mt-3"><button id="exportBtn" class="btn btn-success btn-lg" disabled>استخراج الطلب (<span id="selectionCount">0</span>)</button></div></div>
-                           </div>
-                       </div>
-                   </div>
+                        </div>
+                    </div>
+                    <!-- ================= TAB 3: UPDATE STOCK ================= -->
+                    <div class="tab-pane fade" id="pills-update" role="tabpanel">
+                        <div class="row justify-content-center"><div class="col-md-8 col-lg-6"><div class="card"><div class="card-body p-4"><h4 class="card-title">تحديث الارصدة </h4><p class="card-subtitle mb-3 text-muted">ارفع ملف Excel. سيتم استبدال الارصدة الحالية</p><div id="update-error" class="alert alert-danger d-none"></div><div id="update-success" class="alert alert-success d-none"></div><div class="mb-3"><label for="stockFile" class="form-label">ملف ارصدة الفروع</label><input class="form-control" type="file" id="stockFile" accept=".xlsx, .xls"></div><button id="updateStockBtn" class="btn btn-danger w-100"><i class="fas fa-sync-alt me-2"></i>تحديث الارصدة</button></div></div></div></div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Scanner Modal -->
+    <!-- Modals -->
+    <div class="modal fade" id="branch-selection-modal" tabindex="-1" aria-labelledby="branchModalLabel" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="branchModalLabel">اختر الفروع</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div><div class="modal-body"><div class="mb-3"><input type="text" id="branchSearchInput" class="form-control" placeholder="بحث عن فرع..."></div><div class="d-flex justify-content-between mb-2"><button class="btn btn-sm btn-link" id="modalSelectAllBranches">تحديد الكل</button><button class="btn btn-sm btn-link" id="modalDeselectAllBranches">إلغاء تحديد الكل</button></div><div id="branchListContainer" class="list-group"></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button><button type="button" class="btn btn-primary" id="saveBranchSelectionBtn">حفظ الاختيار</button></div></div></div></div>
+    <div class="modal fade" id="supplier-selection-modal" tabindex="-1" aria-labelledby="supplierModalLabel" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="supplierModalLabel">اختر الموردين</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div><div class="modal-body"><div class="mb-3"><input type="text" id="supplierSearchInput" class="form-control" placeholder="بحث عن مورد..."></div><div class="d-flex justify-content-between mb-2"><button class="btn btn-sm btn-link" id="modalSelectAllSuppliers">تحديد الكل</button><button class="btn btn-sm btn-link" id="modalDeselectAllSuppliers">إلغاء تحديد الكل</button></div><div id="supplierListContainer" class="list-group"></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button><button type="button" class="btn btn-primary" id="saveSupplierSelectionBtn">حفظ الاختيار</button></div></div></div></div>
+    <div class="modal fade" id="pdf-preview-modal" tabindex="-1" aria-labelledby="pdfPreviewModalLabel" aria-hidden="true"><div class="modal-dialog modal-xl modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="pdf-preview-modal-title">معاينة التقرير</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div><div class="modal-body" id="pdf-preview-modal-body"></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button><button type="button" class="btn btn-primary" id="printPdfBtn"><i class="fas fa-print me-2"></i>طباعة</button></div></div></div></div>
     <div class="modal fade" id="barcode-scanner-modal" tabindex="-1" aria-labelledby="scannerModalLabel" aria-hidden="true"><div class="modal-dialog modal-lg modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="scannerModalLabel">مسح باركود</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div><div class="modal-body p-0"><div class="scanner-container"><video id="video-scanner" playsinline autoplay></video><div class="scanner-overlay"><div class="scan-line"></div></div></div><div id="scanner-error" class="alert alert-danger m-3 d-none"></div></div><div class="modal-footer justify-content-center"><button type="button" class="btn btn-secondary" id="scannerSwitchBtn"><i class="fas fa-sync-alt me-2"></i>تبديل الكاميرا</button></div></div></div></div>
 
     <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
