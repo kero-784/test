@@ -3,18 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Product Expiry Report</title>
+    <title>تقرير انتهاء صلاحية المنتجات | Product Expiry Report</title>
     <link rel="icon" type="image/png" href="favicon.png">
     <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 
     <style>
         :root {
-            --font-family: 'Cairo', 'Inter', sans-serif;
+            --font-family: 'Cairo', sans-serif;
             --bg-color: #f8f9fa;
             --card-bg-color: #ffffff;
             --text-primary: #212529;
@@ -23,131 +23,311 @@
             --accent-primary: #0d6efd;
             --accent-primary-hover: #0b5ed7;
             --accent-success: #198754;
+            --accent-success-hover: #157347;
             --accent-danger: #dc3545;
+            --accent-danger-hover: #bb2d3b;
+            --accent-warning: #ffc107;
             --accent-highlight: #dff2e8;
             --shadow-sm: 0 1px 3px rgba(0,0,0,0.04);
             --shadow-md: 0 4px 8px rgba(0,0,0,0.06);
+            --shadow-lg: 0 10px 15px rgba(0,0,0,0.1);
             --border-radius: 12px;
             --transition-speed: 0.3s;
         }
 
-        *, *::before, *::after { box-sizing: border-box; }
+        *, *::before, *::after { 
+            box-sizing: border-box; 
+        }
 
         body, html {
-            margin: 0; padding: 0; font-family: var(--font-family);
-            background-color: var(--bg-color); color: var(--text-primary);
-            -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+            margin: 0; 
+            padding: 0; 
+            font-family: var(--font-family);
+            background-color: var(--bg-color); 
+            color: var(--text-primary);
+            -webkit-font-smoothing: antialiased; 
+            -moz-osx-font-smoothing: grayscale;
             -webkit-tap-highlight-color: transparent;
+            line-height: 1.6;
         }
 
-        #app-container { max-width: 960px; margin: 0 auto; padding: 24px 16px; }
+        #app-container { 
+            max-width: 960px; 
+            margin: 0 auto; 
+            padding: 24px 16px; 
+        }
         
-        h1, h2, h3, p, li, button, input { text-align: start; }
+        /* RTL text alignment */
+        h1, h2, h3, h4, h5, h6, p, li, button, input, td, th {
+            text-align: right;
+        }
 
         .app-header {
-            text-align: center; margin-bottom: 32px;
+            text-align: center; 
+            margin-bottom: 32px;
             background: linear-gradient(45deg, var(--accent-primary), #3a86ff);
-            color: white; padding: 24px; border-radius: var(--border-radius); box-shadow: var(--shadow-md);
+            color: white; 
+            padding: 24px; 
+            border-radius: var(--border-radius); 
+            box-shadow: var(--shadow-md);
         }
-        .app-header h1 { margin: 0; font-size: 1.75rem; font-weight: 700; }
-        .app-header p { margin: 4px 0 0 0; opacity: 0.8; }
-        .app-header a { color: #e9ecef; text-decoration: none; display: block; margin-top: 12px; font-size: 0.9rem; transition: color var(--transition-speed); }
-        .app-header a:hover { color: white; }
+        
+        .app-header h1 { 
+            margin: 0; 
+            font-size: 1.75rem; 
+            font-weight: 700; 
+        }
+        
+        .app-header p { 
+            margin: 4px 0 0 0; 
+            opacity: 0.9; 
+        }
+        
+        .app-header a { 
+            color: #e9ecef; 
+            text-decoration: none; 
+            display: inline-block; 
+            margin-top: 12px; 
+            font-size: 0.9rem; 
+            transition: color var(--transition-speed); 
+            padding: 8px 16px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 6px;
+        }
+        
+        .app-header a:hover { 
+            color: white; 
+            background-color: rgba(255, 255, 255, 0.1);
+        }
 
         .card {
-            background-color: var(--card-bg-color); border-radius: var(--border-radius);
-            padding: 24px; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color);
-            margin-bottom: 24px; transition: all var(--transition-speed) ease;
+            background-color: var(--card-bg-color); 
+            border-radius: var(--border-radius);
+            padding: 24px; 
+            box-shadow: var(--shadow-sm); 
+            border: 1px solid var(--border-color);
+            margin-bottom: 24px; 
+            transition: all var(--transition-speed) ease;
         }
+        
         .card-title {
-            font-size: 1.2rem; font-weight: 600; margin: 0 0 16px 0;
-            display: flex; align-items: center; gap: 8px;
+            font-size: 1.2rem; 
+            font-weight: 600; 
+            margin: 0 0 16px 0;
+            display: flex; 
+            align-items: center; 
+            gap: 8px;
+            color: var(--accent-primary);
         }
-        .card-title .material-icons-outlined { color: var(--accent-primary); }
+        
+        .card-title .material-icons-outlined { 
+            color: var(--accent-primary); 
+        }
 
-        .input-group { display: flex; gap: 12px; align-items: stretch; }
-        .input-wrapper { flex-grow: 1; position: relative; }
-        input[type="text"], input[type="number"] {
-            padding: 12px 16px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 1rem;
-            font-family: var(--font-family); outline: none; transition: all var(--transition-speed) ease;
-            width: 100%; height: 100%; background-color: #fdfdff;
+        .input-group { 
+            display: flex; 
+            gap: 12px; 
+            align-items: stretch; 
         }
-        input:focus-visible { border-color: var(--accent-primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-primary) 20%, transparent); }
+        
+        .input-wrapper { 
+            flex-grow: 1; 
+            position: relative; 
+        }
+        
+        input[type="text"], input[type="number"] {
+            padding: 12px 16px; 
+            border: 1px solid var(--border-color); 
+            border-radius: 8px; 
+            font-size: 1rem;
+            font-family: var(--font-family); 
+            outline: none; 
+            transition: all var(--transition-speed) ease;
+            width: 100%; 
+            height: 100%; 
+            background-color: #fdfdff;
+            text-align: right;
+        }
+        
+        input:focus-visible { 
+            border-color: var(--accent-primary); 
+            box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-primary) 20%, transparent); 
+        }
         
         button {
-            padding: 12px 20px; cursor: pointer; border: none; border-radius: 8px; font-size: 0.95rem;
-            font-weight: 500; font-family: var(--font-family); transition: all var(--transition-speed) ease;
-            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            padding: 12px 20px; 
+            cursor: pointer; 
+            border: none; 
+            border-radius: 8px; 
+            font-size: 0.95rem;
+            font-weight: 500; 
+            font-family: var(--font-family); 
+            transition: all var(--transition-speed) ease;
+            display: inline-flex; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 8px;
             -webkit-tap-highlight-color: transparent;
         }
-        button:disabled { opacity: 0.6; cursor: not-allowed; }
-        .btn-icon { padding: 12px; }
+        
+        button:disabled { 
+            opacity: 0.6; 
+            cursor: not-allowed; 
+        }
+        
+        .btn-icon { 
+            padding: 12px; 
+        }
 
-        .btn-primary { background-color: var(--accent-primary); color: white; }
-        .btn-primary:not(:disabled):hover { background-color: var(--accent-primary-hover); transform: translateY(-2px); box-shadow: var(--shadow-md); }
-        .btn-secondary { background-color: #e9ecef; color: var(--text-primary); }
-        .btn-secondary:not(:disabled):hover { background-color: #dce1e6; }
-        .btn-success { background-color: var(--accent-success); color: white; }
-        .btn-success:not(:disabled):hover { background-color: #157347; transform: translateY(-2px); box-shadow: var(--shadow-md); }
+        .btn-primary { 
+            background-color: var(--accent-primary); 
+            color: white; 
+        }
+        
+        .btn-primary:not(:disabled):hover { 
+            background-color: var(--accent-primary-hover); 
+            transform: translateY(-2px); 
+            box-shadow: var(--shadow-md); 
+        }
+        
+        .btn-secondary { 
+            background-color: #e9ecef; 
+            color: var(--text-primary); 
+        }
+        
+        .btn-secondary:not(:disabled):hover { 
+            background-color: #dce1e6; 
+        }
+        
+        .btn-success { 
+            background-color: var(--accent-success); 
+            color: white; 
+        }
+        
+        .btn-success:not(:disabled):hover { 
+            background-color: var(--accent-success-hover); 
+            transform: translateY(-2px); 
+            box-shadow: var(--shadow-md); 
+        }
+        
+        .btn-danger { 
+            background-color: var(--accent-danger); 
+            color: white; 
+        }
+        
+        .btn-danger:not(:disabled):hover { 
+            background-color: var(--accent-danger-hover); 
+            transform: translateY(-2px); 
+            box-shadow: var(--shadow-md); 
+        }
 
         #workspace-card {
-            overflow: hidden; max-height: 0; padding-top: 0; padding-bottom: 0;
-            margin-bottom: 0; opacity: 0; border: none; transform: translateY(-10px);
+            overflow: hidden; 
+            max-height: 0; 
+            padding-top: 0; 
+            padding-bottom: 0;
+            margin-bottom: 0; 
+            opacity: 0; 
+            border: none; 
+            transform: translateY(-10px);
             visibility: hidden;
             transition: max-height 0.5s ease, padding 0.5s ease, margin 0.5s ease, opacity 0.3s ease, transform 0.3s ease, visibility 0s 0.5s;
         }
+        
         #workspace-card.visible {
-            max-height: 1500px; padding-top: 24px; padding-bottom: 24px;
-            margin-bottom: 24px; opacity: 1; border: 1px solid var(--border-color);
-            transform: translateY(0); visibility: visible; transition-delay: 0s;
+            max-height: 1500px; 
+            padding-top: 24px; 
+            padding-bottom: 24px;
+            margin-bottom: 24px; 
+            opacity: 1; 
+            border: 1px solid var(--border-color);
+            transform: translateY(0); 
+            visibility: visible; 
+            transition-delay: 0s;
         }
 
-        .item-details-list { list-style: none; padding: 0; margin: 0 0 24px 0; display: grid; gap: 12px; }
-        .item-details-list li { display: flex; font-size: 0.95rem; flex-wrap: wrap; }
-        .item-details-list li strong { color: var(--text-secondary); flex-shrink: 0; margin-inline-end: 8px; }
+        .item-details-list { 
+            list-style: none; 
+            padding: 0; 
+            margin: 0 0 24px 0; 
+            display: grid; 
+            gap: 12px; 
+        }
         
-        /* === FINAL REVAMPED EXPIRY INPUT STYLES (SIDE-BY-SIDE) === */
-        #expiry-inputs {
+        .item-details-list li { 
+            display: flex; 
+            font-size: 0.95rem; 
+            flex-wrap: wrap; 
+            padding: 8px 0;
+            border-bottom: 1px solid #f1f3f5;
+        }
+        
+        .item-details-list li:last-child {
+            border-bottom: none;
+        }
+        
+        .item-details-list li strong { 
+            color: var(--text-secondary); 
+            flex-shrink: 0; 
+            margin-left: 8px; 
+            min-width: 120px;
+        }
+        
+        /* Expiry Input Styles */
+        .expiry-input-group {
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 16px;
+            margin-bottom: 16px;
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 16px;
+            background-color: #fafbfc;
+            transition: all var(--transition-speed);
         }
-        .expiry-input-group {
-            display: grid;
-            grid-template-columns: 1fr 100px; /* Flexible date, fixed qty */
-            gap: 8px;
-            align-items: center;
+        
+        .expiry-input-group:focus-within {
+            border-color: var(--accent-primary);
+            box-shadow: var(--shadow-sm);
         }
+        
         .input-container {
             position: relative;
             display: flex;
             align-items: center;
         }
-        .input-container input.expiry-date {
-             /* Space for "Today" and "+1Y" */
-            padding-inline-start: 90px !important;
+        
+        .input-container input {
+            padding-right: 16px;
+            padding-left: 50px; /* Space for the icon/buttons */
         }
-        .input-container input[type="number"] {
-            /* Space for trash icon */
-            padding-inline-start: 50px !important;
-        }
+        
         .date-quick-actions {
             position: absolute;
-            inset-inline-start: 6px; /* Position left in RTL */
+            left: 6px;
             top: 50%;
             transform: translateY(-50%);
             display: flex;
             gap: 4px;
         }
+        
         .date-quick-actions button {
-            font-size: 0.75rem; padding: 4px 8px; border-radius: 6px;
-            background-color: #f1f3f5; color: var(--text-secondary); font-weight: 600;
+            font-size: 0.75rem; 
+            padding: 4px 8px; 
+            border-radius: 6px;
+            background-color: #f1f3f5; 
+            color: var(--text-secondary); 
+            font-weight: 600;
         }
-        .date-quick-actions button:hover { background-color: #e9ecef; color: var(--text-primary); }
+        
+        .date-quick-actions button:hover { 
+            background-color: #e9ecef; 
+            color: var(--text-primary); 
+        }
 
         .remove-row-btn {
             position: absolute;
-            inset-inline-start: 6px; /* Position left in RTL */
+            left: 6px;
             top: 50%;
             transform: translateY(-50%);
             background: #f1f3f5;
@@ -155,53 +335,365 @@
             padding: 8px;
             border-radius: 6px;
         }
-        .remove-row-btn:hover { background: #e9ecef; color: var(--accent-danger); }
-
-        /* === END REVAMPED STYLES === */
         
-        .table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; -webkit-mask-image: linear-gradient(to right, transparent, black 10px, black 95%, transparent); mask-image: linear-gradient(to right, transparent, black 10px, black 95%, transparent); }
-        #records-table { width: 100%; border-collapse: collapse; white-space: nowrap;}
-        #records-table th, #records-table td { padding: 14px 12px; border-bottom: 1px solid var(--border-color); font-size: 0.9rem; vertical-align: middle; }
-        #records-table th { font-weight: 600; color: var(--text-secondary); }
-        .action-cell { display: flex; gap: 8px; }
-        .action-btn { background: none; padding: 6px; border-radius: 50%; }
-        .action-btn:hover { background-color: #e9ecef; }
-        .action-btn .material-icons-outlined { font-size: 20px; }
-        .action-btn.edit-btn { color: var(--accent-primary); }
-        .action-btn.delete-btn { color: var(--accent-danger); }
+        .remove-row-btn:hover { 
+            background: #e9ecef; 
+            color: var(--accent-danger); 
+        }
 
-        #loader-overlay { position: fixed; inset: 0; z-index: 9999; background-color: rgba(255, 255, 255, 0.7); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); display: none; justify-content: center; align-items: center; }
-        #loader-overlay.visible { display: flex; }
-        .spinner { width: 48px; height: 48px; border-radius: 50%; border: 5px solid #dee2e6; border-top-color: var(--accent-primary); animation: spin 1s linear infinite; margin-bottom: 16px; }
-        #loader-text { font-size: 1.1rem; font-weight: 500; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        #toast { position: fixed; bottom: -100px; left: 50%; transform: translateX(-50%); background-color: var(--text-primary); color: white; padding: 12px 24px; border-radius: 8px; box-shadow: var(--shadow-md); font-weight: 500; z-index: 10001; transition: bottom 0.5s ease-in-out; max-width: 90%; text-align: center; }
-        #toast.show { bottom: 24px; }
-        #scanner-modal { position: fixed; inset: 0; z-index: 10000; background-color: rgba(0,0,0,0.8); backdrop-filter: blur(5px); display: none; align-items: center; justify-content: center; flex-direction: column; padding: 20px; }
-        #scanner-modal.visible { display: flex; }
-        .scanner-container { position: relative; width: 100%; max-width: 600px; margin: 20px 0; border-radius: 15px; overflow: hidden; box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.2); }
-        #scanner-video { width: 100%; background-color: #000; display: block; }
-        .scan-line { position: absolute; width: 100%; height: 3px; background: linear-gradient(to right, #ff416c, #ff4b2b); top: 30%; animation: scan 2s infinite ease-in-out; border-radius: 4px; left: 0; }
-        @keyframes scan { 0% { top: 20%; } 50% { top: 80%; } 100% { top: 20%; } }
-        .scanner-controls { margin-top: 20px; display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; }
-        .scanner-controls button { backdrop-filter: blur(10px); color: white; font-weight: bold; transition: all 0.3s ease; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); border: 1px solid rgba(255, 255, 255, 0.2); background: rgba(255, 255, 255, 0.1); }
-        .scanner-controls button:hover { background: rgba(255, 255, 255, 0.2); transform: translateY(-2px); }
-        .scanner-controls #scanner-close-button { background: rgba(220, 53, 69, 0.5); }
-        #scanner-status { color: white; margin-top: 15px; font-style: italic; }
+        /* Table Styles */
+        .table-wrapper { 
+            overflow-x: auto; 
+            -webkit-overflow-scrolling: touch; 
+            border-radius: var(--border-radius);
+            border: 1px solid var(--border-color);
+        }
+        
+        #records-table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            min-width: 600px;
+        }
+        
+        #records-table th, #records-table td { 
+            padding: 14px 12px; 
+            border-bottom: 1px solid var(--border-color); 
+            font-size: 0.9rem; 
+            vertical-align: middle; 
+        }
+        
+        #records-table th { 
+            font-weight: 600; 
+            color: var(--text-secondary);
+            background-color: #f8f9fa;
+            padding: 16px 12px;
+        }
+        
+        #records-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        #records-table tr:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .action-cell { 
+            display: flex; 
+            gap: 8px; 
+            justify-content: flex-end;
+        }
+        
+        .action-btn { 
+            background: none; 
+            padding: 6px; 
+            border-radius: 50%; 
+        }
+        
+        .action-btn:hover { 
+            background-color: #e9ecef; 
+        }
+        
+        .action-btn .material-icons-outlined { 
+            font-size: 20px; 
+        }
+        
+        .action-btn.edit-btn { 
+            color: var(--accent-primary); 
+        }
+        
+        .action-btn.delete-btn { 
+            color: var(--accent-danger); 
+        }
 
-        @media (max-width: 600px) {
-            .app-header h1 { font-size: 1.5rem; }
-            .card { padding: 16px; }
-            .workspace-actions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; }
-            .workspace-actions > #add-expiry-button { flex-basis: 100%; order: 1; }
-            .workspace-actions > div { flex-basis: 100%; display: flex; justify-content: space-between; gap: 12px; order: 2; }
-            .workspace-actions > div > button { flex-grow: 1; }
-            .data-management-buttons { grid-template-columns: 1fr !important; }
+        /* Loader Styles */
+        #loader-overlay { 
+            position: fixed; 
+            inset: 0; 
+            z-index: 9999; 
+            background-color: rgba(255, 255, 255, 0.7); 
+            backdrop-filter: blur(4px); 
+            -webkit-backdrop-filter: blur(4px); 
+            display: none; 
+            justify-content: center; 
+            align-items: center; 
+            flex-direction: column;
+        }
+        
+        #loader-overlay.visible { 
+            display: flex; 
+        }
+        
+        .spinner { 
+            width: 48px; 
+            height: 48px; 
+            border-radius: 50%; 
+            border: 5px solid #dee2e6; 
+            border-top-color: var(--accent-primary); 
+            animation: spin 1s linear infinite; 
+            margin-bottom: 16px; 
+        }
+        
+        #loader-text { 
+            font-size: 1.1rem; 
+            font-weight: 500; 
+        }
+        
+        @keyframes spin { 
+            to { 
+                transform: rotate(360deg); 
+            } 
+        }
+
+        /* Toast Styles */
+        #toast { 
+            position: fixed; 
+            bottom: -100px; 
+            right: 50%; 
+            transform: translateX(50%); 
+            background-color: var(--text-primary); 
+            color: white; 
+            padding: 12px 24px; 
+            border-radius: 8px; 
+            box-shadow: var(--shadow-md); 
+            font-weight: 500; 
+            z-index: 10001; 
+            transition: bottom 0.5s ease-in-out; 
+            max-width: 90%; 
+            text-align: center; 
+        }
+        
+        #toast.show { 
+            bottom: 24px; 
+        }
+
+        /* Scanner Modal Styles */
+        #scanner-modal { 
+            position: fixed; 
+            inset: 0; 
+            z-index: 10000; 
+            background-color: rgba(0,0,0,0.8); 
+            backdrop-filter: blur(5px); 
+            display: none; 
+            align-items: center; 
+            justify-content: center; 
+            flex-direction: column; 
+            padding: 20px; 
+        }
+        
+        #scanner-modal.visible { 
+            display: flex; 
+        }
+        
+        .scanner-container { 
+            position: relative; 
+            width: 100%; 
+            max-width: 600px; 
+            margin: 20px 0; 
+            border-radius: 15px; 
+            overflow: hidden; 
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3); 
+            border: 1px solid rgba(255, 255, 255, 0.2); 
+        }
+        
+        #scanner-video { 
+            width: 100%; 
+            background-color: #000; 
+            display: block; 
+        }
+        
+        .scan-line { 
+            position: absolute; 
+            width: 100%; 
+            height: 3px; 
+            background: linear-gradient(to right, #ff416c, #ff4b2b); 
+            top: 30%; 
+            animation: scan 2s infinite ease-in-out; 
+            border-radius: 4px; 
+            right: 0; 
+        }
+        
+        @keyframes scan { 
+            0% { 
+                top: 20%; 
+            } 
+            50% { 
+                top: 80%; 
+            } 
+            100% { 
+                top: 20%; 
+            } 
+        }
+        
+        .scanner-controls { 
+            margin-top: 20px; 
+            display: flex; 
+            flex-wrap: wrap; 
+            justify-content: center; 
+            gap: 15px; 
+        }
+        
+        .scanner-controls button { 
+            backdrop-filter: blur(10px); 
+            color: white; 
+            font-weight: bold; 
+            transition: all 0.3s ease; 
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); 
+            border: 1px solid rgba(255, 255, 255, 0.2); 
+            background: rgba(255, 255, 255, 0.1); 
+        }
+        
+        .scanner-controls button:hover { 
+            background: rgba(255, 255, 255, 0.2); 
+            transform: translateY(-2px); 
+        }
+        
+        .scanner-controls #scanner-close-button { 
+            background: rgba(220, 53, 69, 0.5); 
+        }
+        
+        #scanner-status { 
+            color: white; 
+            margin-top: 15px; 
+            font-style: italic; 
+        }
+
+        /* Confirmation Dialog */
+        .confirmation-dialog {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 10002;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .confirmation-dialog.visible {
+            display: flex;
+        }
+        
+        .dialog-content {
+            background-color: white;
+            padding: 24px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-lg);
+            max-width: 400px;
+            width: 90%;
+        }
+        
+        .dialog-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin: 0 0 16px 0;
+            color: var(--text-primary);
+        }
+        
+        .dialog-message {
+            margin: 0 0 24px 0;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+        
+        .dialog-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .app-header h1 { 
+                font-size: 1.5rem; 
+            }
+            
+            .card { 
+                padding: 16px; 
+            }
+            
+            .input-group {
+                flex-direction: column;
+            }
+            
+            .workspace-actions {
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+            }
+            
+            .workspace-actions > #add-expiry-button {
+                order: 1;
+            }
+            
+            .workspace-actions > div {
+                order: 2;
+                display: flex;
+                justify-content: space-between;
+                gap: 12px;
+            }
+            
+            .data-management-buttons {
+                grid-template-columns: 1fr !important;
+            }
+            
+            .action-cell {
+                flex-direction: column;
+            }
+            
+            .expiry-input-group {
+                padding: 12px;
+            }
+            
+            .date-quick-actions {
+                position: static;
+                transform: none;
+                margin-bottom: 8px;
+                justify-content: center;
+            }
+            
+            .input-container input {
+                padding-left: 16px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .app-header {
+                padding: 16px;
+            }
+            
+            .app-header h1 {
+                font-size: 1.3rem;
+            }
+            
+            .card-title {
+                font-size: 1.1rem;
+            }
+            
+            .dialog-buttons {
+                flex-direction: column;
+            }
+            
+            .scanner-controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .scanner-controls button {
+                width: 100%;
+            }
         }
     </style>
 </head>
 <body>
-    <div id="loader-overlay"><div style="text-align:center;"><div class="spinner"></div><p id="loader-text">Initializing...</p></div></div>
+    <div id="loader-overlay">
+        <div style="text-align:center;">
+            <div class="spinner"></div>
+            <p id="loader-text">جاري التحميل...</p>
+        </div>
+    </div>
+    
     <div id="toast"></div>
 
     <div id="scanner-modal">
@@ -210,57 +702,107 @@
             <div class="scan-line"></div>
         </div>
         <div class="scanner-controls">
-            <button id="scanner-switch-button"><span class="material-icons-outlined">switch_camera</span>Switch Camera</button>
-            <button id="scanner-close-button"><span class="material-icons-outlined">close</span>Cancel</button>
+            <button id="scanner-switch-button">
+                <span class="material-icons-outlined">switch_camera</span>
+                تبديل الكاميرا
+            </button>
+            <button id="scanner-close-button">
+                <span class="material-icons-outlined">close</span>
+                إلغاء
+            </button>
         </div>
-        <p id="scanner-status">Point camera at a barcode...</p>
+        <p id="scanner-status">وجّه الكاميرا نحو الباركود...</p>
+    </div>
+
+    <!-- Confirmation Dialog -->
+    <div class="confirmation-dialog" id="confirmation-dialog">
+        <div class="dialog-content">
+            <h3 class="dialog-title" id="dialog-title">تأكيد الحذف</h3>
+            <p class="dialog-message" id="dialog-message">هل أنت متأكد من أنك تريد حذف هذا العنصر؟</p>
+            <div class="dialog-buttons">
+                <button class="btn-secondary" id="dialog-cancel">إلغاء</button>
+                <button class="btn-danger" id="dialog-confirm">حذف</button>
+            </div>
+        </div>
     </div>
 
     <div id="app-container">
         <header class="app-header">
-            <h1>Product Expiry Report</h1>
-            <p>Keep The Records.</p>
-            <a href="../index.html">→ العودة إلى لوحة التحكم</a>
+            <h1>تقرير انتهاء صلاحية المنتجات</h1>
+            <p>حافظ على سجلات المنتجات</p>
+            <a href="../index.html">← العودة إلى لوحة التحكم</a>
         </header>
 
         <main>
             <section class="card">
-                <h2 class="card-title"><span class="material-icons-outlined">search</span>Find an Item</h2>
+                <h2 class="card-title">
+                    <span class="material-icons-outlined">search</span>
+                    البحث عن عنصر
+                </h2>
                 <div class="input-group">
                     <div class="input-wrapper">
-                        <input type="text" id="searchBarcodeInput" placeholder="Scan or Enter Barcode...">
+                        <input type="text" id="searchBarcodeInput" placeholder="امسح الباركود أو أدخله يدويًا...">
                     </div>
-                    <button id="scanButton" class="btn-secondary btn-icon" title="Scan Barcode"><span class="material-icons-outlined">camera_alt</span></button>
-                    <button id="searchButton" class="btn-primary" disabled>Search</button>
+                    <button id="scanButton" class="btn-secondary btn-icon" title="مسح الباركود">
+                        <span class="material-icons-outlined">camera_alt</span>
+                    </button>
+                    <button id="searchButton" class="btn-primary" disabled>بحث</button>
                 </div>
             </section>
 
             <section id="workspace-card" class="card">
-                <h2 class="card-title" id="item-title-display"><span class="material-icons-outlined">inventory_2</span>Item Details</h2>
+                <h2 class="card-title" id="item-title-display">
+                    <span class="material-icons-outlined">inventory_2</span>
+                    تفاصيل العنصر
+                </h2>
                 <ul id="item-details-list"></ul>
                 <hr style="border: none; border-top: 1px solid #e9ecef; margin: 24px 0;">
                 
-                <h3 class="card-title" style="font-size: 1.1rem; margin-bottom: 16px;"><span class="material-icons-outlined">edit_calendar</span>Record Expiry &amp; Quantity</h3>
+                <h3 class="card-title" style="font-size: 1.1rem; margin-bottom: 16px;">
+                    <span class="material-icons-outlined">edit_calendar</span>
+                    تسجيل تاريخ الانتهاء والكمية
+                </h3>
                 <div id="expiry-inputs"></div>
+                
                 <div class="workspace-actions" style="margin-top: 16px;">
-                    <button id="add-expiry-button" class="btn-secondary"><span class="material-icons-outlined">add</span>Add Row</button>
+                    <button id="add-expiry-button" class="btn-secondary">
+                        <span class="material-icons-outlined">add</span>
+                        إضافة صف
+                    </button>
                     <div>
-                        <button id="discard-button" class="btn-secondary">Discard</button>
-                        <button id="save-button" class="btn-success" disabled><span class="material-icons-outlined">check_circle</span>Save Entry</button>
+                        <button id="discard-button" class="btn-secondary">تجاهل</button>
+                        <button id="save-button" class="btn-success" disabled>
+                            <span class="material-icons-outlined">check_circle</span>
+                            حفظ الإدخال
+                        </button>
                     </div>
                 </div>
             </section>
 
             <section class="card">
-                <h2 class="card-title"><span class="material-icons-outlined">history</span>Recent Entries</h2>
-                <div class="table-wrapper"><table id="records-table"></table></div>
+                <h2 class="card-title">
+                    <span class="material-icons-outlined">history</span>
+                    الإدخالات الحديثة
+                </h2>
+                <div class="table-wrapper">
+                    <table id="records-table"></table>
+                </div>
             </section>
 
-             <section class="card">
-                <h2 class="card-title"><span class="material-icons-outlined">settings</span>Data Management</h2>
+            <section class="card">
+                <h2 class="card-title">
+                    <span class="material-icons-outlined">settings</span>
+                    إدارة البيانات
+                </h2>
                 <div class="data-management-buttons" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
-                    <button id="syncButton" class="btn-secondary"><span class="material-icons-outlined">sync</span>Sync Data</button>
-                    <button id="exportButton" class="btn-secondary" disabled><span class="material-icons-outlined">download</span>Export & Clear</button>
+                    <button id="syncButton" class="btn-secondary">
+                        <span class="material-icons-outlined">sync</span>
+                        مزامنة البيانات
+                    </button>
+                    <button id="exportButton" class="btn-secondary" disabled>
+                        <span class="material-icons-outlined">download</span>
+                        تصدير ومسح
+                    </button>
                 </div>
             </section>
         </main>
@@ -274,36 +816,82 @@
         const appsScriptUrl = "https://script.google.com/macros/s/AKfycbx0ZJzBcj0Qtz6fgVEdUKC8gIQa_KJGVCe3CmPoz63NRJPcuL9LkLuFaj6nhYnk-QYMdg/exec";
         const DATE_FORMAT = "d-m-Y";
 
-        // === GLOBAL VARIABLES ===
+        // === DOM ELEMENT CACHE ===
+        const el = { 
+            loader: document.getElementById('loader-overlay'), 
+            loaderText: document.getElementById('loader-text'), 
+            toast: document.getElementById('toast'), 
+            searchInput: document.getElementById('searchBarcodeInput'), 
+            searchButton: document.getElementById('searchButton'), 
+            scanButton: document.getElementById('scanButton'),
+            workspace: document.getElementById('workspace-card'), 
+            itemTitle: document.getElementById('item-title-display'), 
+            itemDetails: document.getElementById('item-details-list'), 
+            expiryInputs: document.getElementById('expiry-inputs'), 
+            addExpiryButton: document.getElementById('add-expiry-button'), 
+            discardButton: document.getElementById('discard-button'), 
+            saveButton: document.getElementById('save-button'), 
+            recordsTable: document.getElementById('records-table'), 
+            syncButton: document.getElementById('syncButton'), 
+            exportButton: document.getElementById('exportButton'),
+            scannerModal: document.getElementById('scanner-modal'), 
+            scannerVideo: document.getElementById('scanner-video'),
+            scannerStatus: document.getElementById('scanner-status'), 
+            scannerCloseButton: document.getElementById('scanner-close-button'),
+            scannerSwitchButton: document.getElementById('scanner-switch-button'),
+            confirmationDialog: document.getElementById('confirmation-dialog'),
+            dialogTitle: document.getElementById('dialog-title'),
+            dialogMessage: document.getElementById('dialog-message'),
+            dialogCancel: document.getElementById('dialog-cancel'),
+            dialogConfirm: document.getElementById('dialog-confirm')
+        };
+        
+        // Global variables
         let database = [], currentItem = null, enteredRecords = [];
         let barcodeHeader = '', nameHeader = '';
         let editingRecordIndex = null;
-
-        // === DOM ELEMENT CACHE ===
-        const el = { 
-            loader: document.getElementById('loader-overlay'), loaderText: document.getElementById('loader-text'), 
-            toast: document.getElementById('toast'), searchInput: document.getElementById('searchBarcodeInput'), 
-            searchButton: document.getElementById('searchButton'), scanButton: document.getElementById('scanButton'),
-            workspace: document.getElementById('workspace-card'), itemTitle: document.getElementById('item-title-display'), 
-            itemDetails: document.getElementById('item-details-list'), expiryInputs: document.getElementById('expiry-inputs'), 
-            addExpiryButton: document.getElementById('add-expiry-button'), discardButton: document.getElementById('discard-button'), 
-            saveButton: document.getElementById('save-button'), recordsTable: document.getElementById('records-table'), 
-            syncButton: document.getElementById('syncButton'), exportButton: document.getElementById('exportButton'),
-            scannerModal: document.getElementById('scanner-modal'),
-            scannerVideo: document.getElementById('scanner-video'),
-            scannerStatus: document.getElementById('scanner-status'),
-            scannerCloseButton: document.getElementById('scanner-close-button'),
-            scannerSwitchButton: document.getElementById('scanner-switch-button')
-        };
+        let pendingDeleteIndex = null;
         
         // --- Core App Logic ---
-        const showLoader = (msg) => { el.loader.classList.add('visible'); el.loaderText.textContent = msg; };
-        const hideLoader = () => el.loader.classList.remove('visible');
-        let toastTimeout;
-        const showToast = (msg) => { clearTimeout(toastTimeout); el.toast.textContent = msg; el.toast.classList.add('show'); toastTimeout = setTimeout(() => el.toast.classList.remove('show'), 3000); };
-        const showWorkspace = (item) => { currentItem = item; el.itemTitle.innerHTML = `<span class="material-icons-outlined">inventory_2</span> ${item[nameHeader] || 'Item Details'}`; const detailsToShow = [nameHeader, barcodeHeader, 'supplier name', 'status'].filter(h => item[h]); el.itemDetails.innerHTML = detailsToShow.map(header => `<li><strong>${header.charAt(0).toUpperCase() + header.slice(1)}:</strong> <span>${item[header]}</span></li>`).join(''); el.expiryInputs.innerHTML = ''; addExpiryEntry(); el.workspace.classList.add('visible'); el.saveButton.disabled = false; window.scrollTo({ top: el.workspace.offsetTop - 20, behavior: 'smooth' }); };
-        const hideWorkspace = () => { currentItem = null; editingRecordIndex = null; el.workspace.classList.remove('visible'); el.searchInput.value = ''; el.searchInput.focus(); el.saveButton.disabled = true; };
+        const showLoader = (msg) => { 
+            el.loader.classList.add('visible'); 
+            el.loaderText.textContent = msg; 
+        };
         
+        const hideLoader = () => el.loader.classList.remove('visible');
+        
+        let toastTimeout;
+        const showToast = (msg) => { 
+            clearTimeout(toastTimeout); 
+            el.toast.textContent = msg; 
+            el.toast.classList.add('show'); 
+            toastTimeout = setTimeout(() => el.toast.classList.remove('show'), 3000); 
+        };
+        
+        const showWorkspace = (item) => { 
+            currentItem = item; 
+            el.itemTitle.innerHTML = `<span class="material-icons-outlined">inventory_2</span> ${item[nameHeader] || 'تفاصيل العنصر'}`; 
+            const detailsToShow = [nameHeader, barcodeHeader, 'supplier name', 'status'].filter(h => item[h]); 
+            el.itemDetails.innerHTML = detailsToShow.map(header => 
+                `<li><strong>${header.charAt(0).toUpperCase() + header.slice(1)}:</strong> <span>${item[header]}</span></li>`
+            ).join(''); 
+            el.expiryInputs.innerHTML = ''; 
+            addExpiryEntry(); 
+            el.workspace.classList.add('visible'); 
+            el.saveButton.disabled = false; 
+            window.scrollTo({ top: el.workspace.offsetTop - 20, behavior: 'smooth' }); 
+        };
+        
+        const hideWorkspace = () => { 
+            currentItem = null; 
+            editingRecordIndex = null; 
+            el.workspace.classList.remove('visible'); 
+            el.searchInput.value = ''; 
+            el.searchInput.focus(); 
+            el.saveButton.disabled = true; 
+        };
+        
+        // Add expiry entry function
         const addExpiryEntry = (date = '', quantity = '') => {
             const div = document.createElement('div');
             div.className = 'expiry-input-group';
@@ -311,13 +899,13 @@
                 <div class="input-container">
                     <input type="text" placeholder="${DATE_FORMAT.replace('Y','yyyy').replace('m','mm').replace('d','dd')}" class="expiry-date" value="${date}">
                     <div class="date-quick-actions">
-                        <button type="button" class="quick-date-btn" data-action="today">Today</button>
-                        <button type="button" class="quick-date-btn" data-action="plus_one_year">+1Y</button>
+                        <button type="button" class="quick-date-btn" data-action="today">اليوم</button>
+                        <button type="button" class="quick-date-btn" data-action="plus_one_year">+1 سنة</button>
                     </div>
                 </div>
                 <div class="input-container">
                     <input type="number" placeholder="الكمية" min="1" value="${quantity}">
-                    <button type="button" class="btn-icon remove-row-btn" title="Remove row" onclick="this.closest('.expiry-input-group').remove()">
+                    <button type="button" class="btn-icon remove-row-btn" title="إزالة الصف" onclick="this.closest('.expiry-input-group').remove()">
                         <span class="material-icons-outlined">delete_outline</span>
                     </button>
                 </div>
@@ -325,7 +913,22 @@
             el.expiryInputs.appendChild(div);
             
             const dateInput = div.querySelector('.expiry-date');
-            const fpInstance = flatpickr(dateInput, { dateFormat: DATE_FORMAT, allowInput: true, minDate: "today" });
+            const fpInstance = flatpickr(dateInput, { 
+                dateFormat: DATE_FORMAT, 
+                allowInput: true, 
+                minDate: "today",
+                locale: {
+                    firstDayOfWeek: 6, // Saturday for Arabic locales
+                    weekdays: {
+                        shorthand: ["أحد", "اثنين", "ثلاثاء", "أربعاء", "خميس", "جمعة", "سبت"],
+                        longhand: ["الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"]
+                    },
+                    months: {
+                        shorthand: ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"],
+                        longhand: ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"]
+                    }
+                }
+            });
             
             div.querySelectorAll('.quick-date-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
@@ -339,38 +942,293 @@
             if (!date) dateInput.focus();
         };
 
-        async function initializeApp() { showLoader('Syncing database...'); loadDataFromLocalStorage(); try { const inventoryData = await fetchDataFromGoogleSheet(); if (inventoryData?.length) { database = inventoryData; const headers = Object.keys(database[0]); barcodeHeader = headers.find(h => h.toLowerCase().includes('barcode')) || ''; nameHeader = headers.find(h => h.toLowerCase().includes('name')) || ''; if (!barcodeHeader || !nameHeader) { alert("Data Error: Sheet needs 'barcode' and 'name' columns."); enableButtons(false); } else { localStorage.setItem('barcodeHeader', barcodeHeader); localStorage.setItem('nameHeader', nameHeader); enableButtons(true); showToast('Data synced successfully!'); } } else { showToast('Sync failed or database is empty.'); enableButtons(database.length > 0); } } catch(e) { showToast('An error occurred during sync.'); } finally { hideLoader(); } }
-        const fetchDataFromGoogleSheet = async () => { if (!appsScriptUrl || appsScriptUrl.includes("PASTE_YOUR")) return null; const response = await fetch(appsScriptUrl); return response.ok ? await response.json() : null; };
-        const loadDataFromLocalStorage = () => { enteredRecords = JSON.parse(localStorage.getItem('enteredRecords') || '[]'); barcodeHeader = localStorage.getItem('barcodeHeader') || ''; nameHeader = localStorage.getItem('nameHeader') || ''; renderEnteredRecords(); };
-        const enableButtons = (isEnabled) => { [el.searchButton, el.exportButton, el.scanButton].forEach(btn => btn.disabled = !isEnabled); };
-        const handleSearch = () => { const barcode = el.searchInput.value.trim(); if (!barcode) return; const foundItem = database.find(item => item[barcodeHeader]?.toString() === barcode); if (foundItem) showWorkspace(foundItem); else showToast('Item not found!'); };
-        const saveEntry = () => { const entryNodes = el.expiryInputs.querySelectorAll('.expiry-input-group'); if (entryNodes.length === 0) return showToast('Please add at least one expiry entry.'); const recordData = editingRecordIndex !== null ? { ...enteredRecords[editingRecordIndex] } : { ...currentItem }; Object.keys(recordData).forEach(key => { if (key.startsWith('expiryDate') || key.startsWith('quantity')) { delete recordData[key]; } }); let hasError = false; entryNodes.forEach((node, i) => { const dateInput = node.querySelector('.expiry-date'); const qtyInput = node.querySelector('input[type="number"]'); if (!dateInput.value || !qtyInput.value) { hasError = true; } recordData[`expiryDate${i + 1}`] = dateInput.value; recordData[`quantity${i + 1}`] = parseInt(qtyInput.value, 10) || ''; }); if(hasError) return showToast('Please fill all date and quantity fields.'); recordData.recordTime = new Date().toLocaleString('en-GB'); if (editingRecordIndex !== null) { enteredRecords[editingRecordIndex] = recordData; showToast('Entry updated successfully!'); } else { enteredRecords.unshift(recordData); showToast(`Entry saved with ${entryNodes.length} expiry date(s)!`); } localStorage.setItem('enteredRecords', JSON.stringify(enteredRecords)); renderEnteredRecords(); hideWorkspace(); };
-        const renderEnteredRecords = () => { const table = el.recordsTable; if (enteredRecords.length === 0) { table.innerHTML = '<tbody><tr><td colspan="5" style="text-align:center; padding: 48px; color: var(--text-secondary);">No entries recorded yet.</td></tr></tbody>'; return; } let maxExpiryPairs = 0; enteredRecords.forEach(rec => { const keys = Object.keys(rec).filter(k => k.startsWith('expiryDate')); if (keys.length > maxExpiryPairs) maxExpiryPairs = keys.length; }); let headers = ['Item', 'Barcode']; for (let i = 1; i <= maxExpiryPairs; i++) { headers.push(`Expiry ${i}`); headers.push(`Qty ${i}`); } headers.push('Actions'); const head = `<thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead>`; const body = `<tbody>${enteredRecords.map((rec, index) => { let rowHtml = `<tr data-index="${index}"><td>${rec[nameHeader] || '–'}</td><td>${rec[barcodeHeader] || '–'}</td>`; for (let i = 1; i <= maxExpiryPairs; i++) { rowHtml += `<td>${rec[`expiryDate${i}`] || ''}</td><td>${rec[`quantity${i}`] || ''}</td>`; } rowHtml += `<td class="action-cell"><button class="action-btn edit-btn" onclick="handleEdit(${index})"><span class="material-icons-outlined">edit</span></button><button class="action-btn delete-btn" onclick="handleDelete(${index})"><span class="material-icons-outlined">delete</span></button></td></tr>`; return rowHtml; }).join('')}</tbody>`; table.innerHTML = head + body; };
-        const handleDelete = (index) => { if (confirm(`Are you sure you want to delete the entry for "${enteredRecords[index][nameHeader]}"?`)) { enteredRecords.splice(index, 1); localStorage.setItem('enteredRecords', JSON.stringify(enteredRecords)); renderEnteredRecords(); showToast('Entry deleted.'); } };
-        const handleEdit = (index) => { editingRecordIndex = index; const recordToEdit = enteredRecords[index]; showWorkspace(recordToEdit); el.expiryInputs.innerHTML = ''; let i = 1; while (recordToEdit[`expiryDate${i}`]) { addExpiryEntry(recordToEdit[`expiryDate${i}`], recordToEdit[`quantity${i}`]); i++; } };
+        // Initialize the application
+        async function initializeApp() { 
+            showLoader('جاري مزامنة البيانات...'); 
+            loadDataFromLocalStorage(); 
+            try { 
+                const inventoryData = await fetchDataFromGoogleSheet(); 
+                if (inventoryData?.length) { 
+                    database = inventoryData; 
+                    const headers = Object.keys(database[0]); 
+                    barcodeHeader = headers.find(h => h.toLowerCase().includes('barcode')) || ''; 
+                    nameHeader = headers.find(h => h.toLowerCase().includes('name')) || ''; 
+                    if (!barcodeHeader || !nameHeader) { 
+                        showToast("خطأ في البيانات: يجب أن تحتوي الجداول على أعمدة 'barcode' و 'name'"); 
+                        enableButtons(false); 
+                    } else { 
+                        localStorage.setItem('barcodeHeader', barcodeHeader); 
+                        localStorage.setItem('nameHeader', nameHeader); 
+                        enableButtons(true); 
+                        showToast('تم مزامنة البيانات بنجاح!'); 
+                    } 
+                } else { 
+                    showToast('فشل المزامنة أو قاعدة البيانات فارغة.'); 
+                    enableButtons(database.length > 0); 
+                } 
+            } catch(e) { 
+                showToast('حدث خطأ أثناء المزامنة.'); 
+                console.error(e);
+            } finally { 
+                hideLoader(); 
+            } 
+        }
+        
+        const fetchDataFromGoogleSheet = async () => { 
+            if (!appsScriptUrl || appsScriptUrl.includes("PASTE_YOUR")) return null; 
+            try {
+                const response = await fetch(appsScriptUrl);
+                return response.ok ? await response.json() : null; 
+            } catch (error) {
+                console.error("Error fetching data:", error);
+                showToast("خطأ في جلب البيانات من الخادم");
+                return null;
+            }
+        };
+        
+        const loadDataFromLocalStorage = () => { 
+            enteredRecords = JSON.parse(localStorage.getItem('enteredRecords') || '[]'); 
+            barcodeHeader = localStorage.getItem('barcodeHeader') || ''; 
+            nameHeader = localStorage.getItem('nameHeader') || ''; 
+            renderEnteredRecords(); 
+        };
+        
+        const enableButtons = (isEnabled) => { 
+            [el.searchButton, el.exportButton, el.scanButton].forEach(btn => btn.disabled = !isEnabled); 
+        };
+        
+        const handleSearch = () => { 
+            const barcode = el.searchInput.value.trim(); 
+            if (!barcode) return; 
+            const foundItem = database.find(item => item[barcodeHeader]?.toString() === barcode); 
+            if (foundItem) showWorkspace(foundItem); 
+            else showToast('العنصر غير موجود!'); 
+        };
+        
+        const saveEntry = () => { 
+            const entryNodes = el.expiryInputs.querySelectorAll('.expiry-input-group'); 
+            if (entryNodes.length === 0) return showToast('يرجى إضافة مدخل انتهاء صلاحية واحد على الأقل.'); 
+            const recordData = editingRecordIndex !== null ? { ...enteredRecords[editingRecordIndex] } : { ...currentItem }; 
+            Object.keys(recordData).forEach(key => { 
+                if (key.startsWith('expiryDate') || key.startsWith('quantity')) { 
+                    delete recordData[key]; 
+                } 
+            }); 
+            let hasError = false; 
+            entryNodes.forEach((node, i) => { 
+                const dateInput = node.querySelector('.expiry-date'); 
+                const qtyInput = node.querySelector('input[type="number"]'); 
+                if (!dateInput.value || !qtyInput.value) { 
+                    hasError = true; 
+                } 
+                recordData[`expiryDate${i + 1}`] = dateInput.value; 
+                recordData[`quantity${i + 1}`] = parseInt(qtyInput.value, 10) || ''; 
+            }); 
+            if(hasError) return showToast('يرجى ملء جميع حقول التاريخ والكمية.'); 
+            recordData.recordTime = new Date().toLocaleString('ar-SA'); 
+            if (editingRecordIndex !== null) { 
+                enteredRecords[editingRecordIndex] = recordData; 
+                showToast('تم تحديث الإدخال بنجاح!'); 
+            } else { 
+                enteredRecords.unshift(recordData); 
+                showToast(`تم حفظ الإدخال مع ${entryNodes.length} تاريخ انتهاء صلاحية!`); 
+            } 
+            localStorage.setItem('enteredRecords', JSON.stringify(enteredRecords)); 
+            renderEnteredRecords(); 
+            hideWorkspace(); 
+        };
+        
+        const renderEnteredRecords = () => { 
+            const table = el.recordsTable; 
+            if (enteredRecords.length === 0) { 
+                table.innerHTML = '<tbody><tr><td colspan="5" style="text-align:center; padding: 48px; color: var(--text-secondary);">لا توجد إدخالات مسجلة بعد.</td></tr></tbody>'; 
+                el.exportButton.disabled = true;
+                return; 
+            } 
+            let maxExpiryPairs = 0; 
+            enteredRecords.forEach(rec => { 
+                const keys = Object.keys(rec).filter(k => k.startsWith('expiryDate')); 
+                if (keys.length > maxExpiryPairs) maxExpiryPairs = keys.length; 
+            }); 
+            let headers = ['العنصر', 'الباركود']; 
+            for (let i = 1; i <= maxExpiryPairs; i++) { 
+                headers.push(`انتهاء الصلاحية ${i}`); 
+                headers.push(`الكمية ${i}`); 
+            } 
+            headers.push('الإجراءات'); 
+            const head = `<thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead>`; 
+            const body = `<tbody>${enteredRecords.map((rec, index) => { 
+                let rowHtml = `<tr data-index="${index}"><td>${rec[nameHeader] || '–'}</td><td>${rec[barcodeHeader] || '–'}</td>`; 
+                for (let i = 1; i <= maxExpiryPairs; i++) { 
+                    rowHtml += `<td>${rec[`expiryDate${i}`] || ''}</td><td>${rec[`quantity${i}`] || ''}</td>`; 
+                } 
+                rowHtml += `<td class="action-cell"><button class="action-btn edit-btn" onclick="handleEdit(${index})"><span class="material-icons-outlined">edit</span></button><button class="action-btn delete-btn" onclick="showDeleteConfirmation(${index})"><span class="material-icons-outlined">delete</span></button></td></tr>`; 
+                return rowHtml; 
+            }).join('')}</tbody>`; 
+            table.innerHTML = head + body; 
+            el.exportButton.disabled = false;
+        };
+        
+        const showDeleteConfirmation = (index) => {
+            pendingDeleteIndex = index;
+            const itemName = enteredRecords[index][nameHeader] || 'هذا العنصر';
+            el.dialogTitle.textContent = 'تأكيد الحذف';
+            el.dialogMessage.textContent = `هل أنت متأكد من أنك تريد حذف الإدخال الخاص بـ "${itemName}"؟`;
+            el.confirmationDialog.classList.add('visible');
+        };
+        
+        const handleDelete = () => {
+            if (pendingDeleteIndex !== null) {
+                enteredRecords.splice(pendingDeleteIndex, 1);
+                localStorage.setItem('enteredRecords', JSON.stringify(enteredRecords));
+                renderEnteredRecords();
+                showToast('تم حذف الإدخال.');
+                pendingDeleteIndex = null;
+            }
+            el.confirmationDialog.classList.remove('visible');
+        };
+        
+        const handleEdit = (index) => { 
+            editingRecordIndex = index; 
+            const recordToEdit = enteredRecords[index]; 
+            showWorkspace(recordToEdit); 
+            el.expiryInputs.innerHTML = ''; 
+            let i = 1; 
+            while (recordToEdit[`expiryDate${i}`]) { 
+                addExpiryEntry(recordToEdit[`expiryDate${i}`], recordToEdit[`quantity${i}`]); 
+                i++; 
+            } 
+        };
         
         // --- Barcode Scanner Logic ---
         let scannerState = { stream: null, isScanning: false, facingMode: 'environment', detectionInterval: null, barcodeDetector: null };
+        
         const isBarcodeDetectionSupported = () => 'BarcodeDetector' in window;
-        async function initScanner() { if (!isBarcodeDetectionSupported()) { showToast('Barcode Detection API not supported.'); el.scanButton.disabled = true; return; } try { const supportedFormats = await BarcodeDetector.getSupportedFormats(); scannerState.barcodeDetector = new BarcodeDetector({ formats: supportedFormats }); } catch (error) { console.error("Error initializing BarcodeDetector:", error); showToast('Could not initialize barcode scanner.'); el.scanButton.disabled = true; } }
-        async function startScanner() { if (!scannerState.barcodeDetector) { showToast('Scanner not ready.'); return; } el.scannerModal.classList.add('visible'); el.scannerStatus.textContent = 'Starting camera...'; try { const constraints = { video: { facingMode: scannerState.facingMode, width: { ideal: 1280 }, height: { ideal: 720 } } }; scannerState.stream = await navigator.mediaDevices.getUserMedia(constraints); el.scannerVideo.srcObject = scannerState.stream; scannerState.isScanning = true; el.scannerStatus.textContent = 'Point camera at a barcode...'; detectBarcodes(); } catch (error) { console.error('Error starting camera:', error); el.scannerStatus.textContent = `Camera error: ${error.name}`; showToast(`Camera error: ${error.message}`); stopScanner(); } }
-        function stopScanner() { scannerState.isScanning = false; if (scannerState.detectionInterval) { clearInterval(scannerState.detectionInterval); scannerState.detectionInterval = null; } if (scannerState.stream) { scannerState.stream.getTracks().forEach(track => track.stop()); scannerState.stream = null; el.scannerVideo.srcObject = null; } el.scannerModal.classList.remove('visible'); }
-        function switchCamera() { scannerState.facingMode = scannerState.facingMode === 'environment' ? 'user' : 'environment'; if (scannerState.isScanning) { stopScanner(); startScanner(); } }
-        function detectBarcodes() { if (!scannerState.isScanning) return; scannerState.detectionInterval = setInterval(async () => { if (!scannerState.isScanning || !scannerState.barcodeDetector) return; try { const barcodes = await scannerState.barcodeDetector.detect(el.scannerVideo); if (barcodes.length > 0) { handleBarcodeDetected(barcodes[0]); } } catch (error) { console.error('Barcode detection error:', error); } }, 300); }
-        function handleBarcodeDetected(barcode) { const detectedValue = barcode.rawValue; stopScanner(); el.searchInput.value = detectedValue; handleSearch(); showToast(`Scanned: ${detectedValue}`); }
+        
+        async function initScanner() { 
+            if (!isBarcodeDetectionSupported()) { 
+                showToast('واجهة برمجة تطبيقات كشف الباركود غير مدعومة في هذا المتصفح.'); 
+                el.scanButton.disabled = true; 
+                return; 
+            } 
+            try { 
+                const supportedFormats = await BarcodeDetector.getSupportedFormats(); 
+                scannerState.barcodeDetector = new BarcodeDetector({ formats: supportedFormats }); 
+            } catch (error) { 
+                console.error("Error initializing BarcodeDetector:", error); 
+                showToast('تعذر تهيئة ماسح الباركود.'); 
+                el.scanButton.disabled = true; 
+            } 
+        }
+        
+        async function startScanner() { 
+            if (!scannerState.barcodeDetector) { 
+                showToast('الماسح الضوئي غير جاهز.'); 
+                return; 
+            } 
+            el.scannerModal.classList.add('visible'); 
+            el.scannerStatus.textContent = 'جاري تشغيل الكاميرا...'; 
+            try { 
+                const constraints = { 
+                    video: { 
+                        facingMode: scannerState.facingMode, 
+                        width: { ideal: 1280 }, 
+                        height: { ideal: 720 } 
+                    } 
+                }; 
+                scannerState.stream = await navigator.mediaDevices.getUserMedia(constraints); 
+                el.scannerVideo.srcObject = scannerState.stream; 
+                scannerState.isScanning = true; 
+                el.scannerStatus.textContent = 'وجّه الكاميرا نحو الباركود...'; 
+                detectBarcodes(); 
+            } catch (error) { 
+                console.error('Error starting camera:', error); 
+                el.scannerStatus.textContent = `خطأ في الكاميرا: ${error.name}`; 
+                showToast(`خطأ في الكاميرا: ${error.message}`); 
+                stopScanner(); 
+            } 
+        }
+        
+        function stopScanner() { 
+            scannerState.isScanning = false; 
+            if (scannerState.detectionInterval) { 
+                clearInterval(scannerState.detectionInterval); 
+                scannerState.detectionInterval = null; 
+            } 
+            if (scannerState.stream) { 
+                scannerState.stream.getTracks().forEach(track => track.stop()); 
+                scannerState.stream = null; 
+                el.scannerVideo.srcObject = null; 
+            } 
+            el.scannerModal.classList.remove('visible'); 
+        }
+        
+        function switchCamera() { 
+            scannerState.facingMode = scannerState.facingMode === 'environment' ? 'user' : 'environment'; 
+            if (scannerState.isScanning) { 
+                stopScanner(); 
+                startScanner(); 
+            } 
+        }
+        
+        function detectBarcodes() { 
+            if (!scannerState.isScanning) return; 
+            scannerState.detectionInterval = setInterval(async () => { 
+                if (!scannerState.isScanning || !scannerState.barcodeDetector) return; 
+                try { 
+                    const barcodes = await scannerState.barcodeDetector.detect(el.scannerVideo); 
+                    if (barcodes.length > 0) { 
+                        handleBarcodeDetected(barcodes[0]); 
+                    } 
+                } catch (error) { 
+                    console.error('Barcode detection error:', error); 
+                } 
+            }, 300); 
+        }
+        
+        function handleBarcodeDetected(barcode) { 
+            const detectedValue = barcode.rawValue; 
+            stopScanner(); 
+            el.searchInput.value = detectedValue; 
+            handleSearch(); 
+            showToast(`تم مسح: ${detectedValue}`); 
+        }
 
         // === EVENT LISTENERS ===
-        document.addEventListener('DOMContentLoaded', () => { initializeApp(); initScanner(); });
+        document.addEventListener('DOMContentLoaded', () => { 
+            initializeApp(); 
+            initScanner(); 
+        });
+        
         el.syncButton.addEventListener('click', initializeApp);
         el.searchButton.addEventListener('click', handleSearch);
-        el.searchInput.addEventListener('keydown', e => { if (e.key === 'Enter') handleSearch(); });
+        el.searchInput.addEventListener('keydown', e => { 
+            if (e.key === 'Enter') handleSearch(); 
+        });
         el.addExpiryButton.addEventListener('click', () => addExpiryEntry());
         el.discardButton.addEventListener('click', hideWorkspace);
         el.saveButton.addEventListener('click', saveEntry);
-        el.exportButton.addEventListener('click', () => { if (enteredRecords.length === 0) return showToast('No records to export!'); if (confirm("Export entries to Excel and clear them from this session?")) { const ws = XLSX.utils.json_to_sheet(enteredRecords); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Inventory Records'); XLSX.writeFile(wb, `inventory_records_${new Date().toISOString().slice(0,10)}.xlsx`); enteredRecords = []; localStorage.setItem('enteredRecords', '[]'); renderEnteredRecords(); showToast("Data exported and cleared."); } });
+        el.exportButton.addEventListener('click', () => { 
+            if (enteredRecords.length === 0) return showToast('لا توجد سجلات للتصدير!'); 
+            if (confirm("هل تريد تصدير الإدخالات إلى Excel ومسحها من هذه الجلسة؟")) { 
+                const ws = XLSX.utils.json_to_sheet(enteredRecords); 
+                const wb = XLSX.utils.book_new(); 
+                XLSX.utils.book_append_sheet(wb, ws, 'سجلات المخزون'); 
+                XLSX.writeFile(wb, `سجلات_المخزون_${new Date().toISOString().slice(0,10)}.xlsx`); 
+                enteredRecords = []; 
+                localStorage.setItem('enteredRecords', '[]'); 
+                renderEnteredRecords(); 
+                showToast("تم تصدير البيانات ومسحها."); 
+            } 
+        });
         el.scanButton.addEventListener('click', startScanner);
         el.scannerCloseButton.addEventListener('click', stopScanner);
         el.scannerSwitchButton.addEventListener('click', switchCamera);
+        el.dialogCancel.addEventListener('click', () => {
+            el.confirmationDialog.classList.remove('visible');
+            pendingDeleteIndex = null;
+        });
+        el.dialogConfirm.addEventListener('click', handleDelete);
     </script>
 </body>
 </html>
