@@ -112,20 +112,18 @@
         border: 1px solid var(--border-color);
         border-radius: var(--border-radius-md);
         display: flex;
-        flex-wrap: wrap; /* Allow wrapping on small screens */
+        align-items: stretch; /* Make children same height */
     }
 
     .input-row .input-wrapper {
         padding: 12px 16px;
-        flex-grow: 1;
-        min-width: 150px;
+        flex-grow: 1; /* Date field takes remaining space */
     }
 
-    .input-row .input-wrapper:first-child {
-        flex-basis: 60%;
-    }
     .input-row .input-wrapper:last-child {
-        flex-basis: 40%;
+        flex-grow: 0;
+        flex-shrink: 0;
+        width: 130px; /* Fixed width for quantity */
     }
     
     /* Vertical divider */
@@ -143,9 +141,10 @@
         border: none !important;
         background: none !important;
         padding: 0 !important;
-        font-size: 1.1rem;
-        font-weight: 500;
+        font-size: 1.25rem; /* Increased font size */
+        font-weight: 600;
         box-shadow: none !important;
+        height: 30px; /* Increased height */
     }
     
     .date-actions { display: flex; gap: 8px; margin-top: 12px; }
@@ -267,7 +266,6 @@
     
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
-    
     <script>
     // === CONFIGURATION ===
     const appsScriptUrl = "https://script.google.com/macros/s/AKfycbx0ZJzBcj0Qtz6fgVEdUKC8gIQa_KJGVCe3CmPoz63NRJPcuL9LkLuFaj6nhYnk-QYMdg/exec";
