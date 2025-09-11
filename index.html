@@ -12,7 +12,7 @@
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 
-<style>
+    <style>
     :root {
         --font-family: 'Cairo', 'Inter', sans-serif;
         --bg-color: #f4f7f9;
@@ -40,19 +40,9 @@
         -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
     }
 
-    #app-container { max-width: 960px; margin: 0 auto; padding: 24px 16px; }
+    #app-container { max-width: 960px; margin: 0 auto; padding: 32px 16px; } /* Added top padding */
     
     h1, h2, h3, p, li, button, input { text-align: start; }
-
-    .app-header {
-        text-align: center; margin-bottom: 32px;
-        background: linear-gradient(45deg, var(--accent-primary), #63b3ed);
-        color: white; padding: 24px; border-radius: var(--border-radius-lg); box-shadow: var(--shadow-md);
-    }
-    .app-header h1 { margin: 0; font-size: 1.75rem; font-weight: 700; }
-    .app-header p { margin: 4px 0 0 0; opacity: 0.9; }
-    .app-header a { color: #bee3f8; text-decoration: none; display: block; margin-top: 12px; font-size: 0.9rem; transition: color 0.3s; }
-    .app-header a:hover { color: white; }
 
     .card {
         background-color: var(--card-bg-color); border-radius: var(--border-radius-lg);
@@ -107,7 +97,7 @@
     .item-details-list li { display: flex; flex-wrap: wrap; align-items: baseline; }
     .item-details-list li strong { color: var(--text-secondary); flex-shrink: 0; margin-inline-end: 8px; font-weight: 500; }
     
-    /* === MODERN EXPIRY ENTRY LAYOUT === */
+    /* === MODERN EXPIRY ENTRY LAYOUT (UPDATED) === */
     #expiry-inputs-container { display: flex; flex-direction: column; gap: 16px; }
     
     .entry-card {
@@ -120,12 +110,30 @@
     .entry-card-content {
         display: grid; gap: 16px;
     }
+    /* Side-by-side layout on wider screens */
     @media (min-width: 600px) {
-        .entry-card-content { grid-template-columns: 1fr 120px; }
+        .entry-card-content { grid-template-columns: 1fr 90px; } /* Smaller quantity field */
     }
     .input-wrapper { display: flex; flex-direction: column; gap: 8px; }
     .input-wrapper label { font-weight: 500; font-size: 0.9rem; color: var(--text-secondary); }
     
+    /* ENHANCED DATE INPUT */
+    .input-with-icon {
+        position: relative;
+    }
+    .input-with-icon .material-icons-outlined {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        inset-inline-start: 12px; /* For RTL support */
+        color: var(--text-secondary);
+        font-size: 20px;
+        pointer-events: none; /* Allows clicking through to the input */
+    }
+    .input-with-icon input {
+        padding-inline-start: 44px !important; /* Make space for the icon */
+    }
+
     .date-actions { display: flex; gap: 8px; margin-top: 4px; }
     .date-pill {
         background: #edf2f7; border: 1px solid var(--border-color);
@@ -201,12 +209,6 @@
     </div>
 
     <div id="app-container">
-        <header class="app-header">
-            <h1>Product Expiry Report</h1>
-            <p>Keep The Records.</p>
-            <a href="../index.html">→ العودة إلى لوحة التحكم</a>
-        </header>
-
         <main>
             <section class="card">
                 <h2 class="card-title"><span class="material-icons-outlined">search</span>Find an Item</h2>
@@ -251,7 +253,6 @@
     
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
-    
     <script>
     // === CONFIGURATION ===
     const appsScriptUrl = "https://script.google.com/macros/s/AKfycbx0ZJzBcj0Qtz6fgVEdUKC8gIQa_KJGVCe3CmPoz63NRJPcuL9LkLuFaj6nhYnk-QYMdg/exec";
@@ -323,7 +324,10 @@
             <div class="entry-card-content">
                 <div class="input-wrapper">
                     <label>تاريخ الانتهاء</label>
-                    <input type="text" placeholder="${DATE_FORMAT.replace('Y','yyyy').replace('m','mm').replace('d','dd')}" class="expiry-date" value="${date}">
+                    <div class="input-with-icon">
+                        <span class="material-icons-outlined">calendar_today</span>
+                        <input type="text" placeholder="${DATE_FORMAT.replace('Y','yyyy').replace('m','mm').replace('d','dd')}" class="expiry-date" value="${date}">
+                    </div>
                     <div class="date-actions">
                         <button type="button" class="date-pill" data-action="today">اليوم</button>
                         <button type="button" class="date-pill" data-action="plus_one_year">+1 سنة</button>
