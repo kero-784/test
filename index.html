@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="en">
+<!-- Added lang="ar" and dir="rtl" for Arabic layout -->
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,13 +9,15 @@
     <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Using a font that supports Arabic, like Cairo -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 
     <style>
         :root {
-            --font-family: 'Inter', sans-serif;
+            /* Using Cairo for better Arabic support */
+            --font-family: 'Cairo', 'Inter', sans-serif;
             --bg-color: #f8f9fa;
             --card-bg-color: #ffffff;
             --text-primary: #212529;
@@ -41,6 +44,9 @@
         }
 
         #app-container { max-width: 960px; margin: 0 auto; padding: 24px 16px; }
+        
+        /* Using text-align: start for RTL support */
+        h1, h2, h3, p, li, button, input { text-align: start; }
 
         .app-header {
             text-align: center; margin-bottom: 32px;
@@ -49,7 +55,8 @@
         }
         .app-header h1 { margin: 0; font-size: 1.75rem; font-weight: 700; }
         .app-header p { margin: 4px 0 0 0; opacity: 0.8; }
-        .app-header a { color: #e9ecef; text-decoration: none; display: inline-block; margin-top: 12px; font-size: 0.9rem; transition: color var(--transition-speed); }
+        /* Updated back link style */
+        .app-header a { color: #e9ecef; text-decoration: none; display: block; margin-top: 12px; font-size: 0.9rem; transition: color var(--transition-speed); }
         .app-header a:hover { color: white; }
 
         .card {
@@ -101,20 +108,59 @@
         }
 
         .item-details-list { list-style: none; padding: 0; margin: 0 0 24px 0; display: grid; gap: 12px; }
-        .item-details-list li { display: flex; font-size: 0.95rem; }
-        .item-details-list li strong { color: var(--text-secondary); width: 120px; flex-shrink: 0; }
+        .item-details-list li { display: flex; font-size: 0.95rem; flex-wrap: wrap; }
+        .item-details-list li strong { color: var(--text-secondary); flex-shrink: 0; margin-inline-end: 8px; }
         
-        .expiry-input-group { display: grid; grid-template-columns: 1fr 100px; gap: 12px; align-items: center; margin-bottom: 12px; position: relative; padding-right: 56px; }
-        .remove-row-btn { position: absolute; right: 0; top: 50%; transform: translateY(-50%); }
-        .date-input-wrapper { position: relative; display: flex; align-items: center; }
-        .date-input-wrapper input { padding-right: 80px; }
-        .date-quick-actions { position: absolute; right: 6px; display: flex; gap: 4px; }
-        .date-quick-actions button { font-size: 0.75rem; padding: 4px 8px; border-radius: 6px; background-color: #f1f3f5; color: var(--text-secondary); font-weight: 600; }
+        /* === REVAMPED EXPIRY INPUT STYLES === */
+        .expiry-input-group {
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 12px;
+            margin-bottom: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .input-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .input-container input {
+            padding-inline-start: 16px;
+            padding-inline-end: 50px; /* Space for the icon/buttons */
+        }
+        .date-quick-actions {
+            position: absolute;
+            inset-inline-start: 6px; /* Position left in RTL */
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            gap: 4px;
+        }
+        .date-quick-actions button {
+            font-size: 0.75rem; padding: 4px 8px; border-radius: 6px;
+            background-color: #f1f3f5; color: var(--text-secondary); font-weight: 600;
+        }
         .date-quick-actions button:hover { background-color: #e9ecef; color: var(--text-primary); }
+
+        .remove-row-btn {
+            position: absolute;
+            inset-inline-start: 6px; /* Position left in RTL */
+            top: 50%;
+            transform: translateY(-50%);
+            background: #f1f3f5;
+            color: var(--text-secondary);
+            padding: 8px;
+            border-radius: 6px;
+        }
+        .remove-row-btn:hover { background: #e9ecef; color: var(--accent-danger); }
+
+        /* === END REVAMPED STYLES === */
 
         .table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; -webkit-mask-image: linear-gradient(to right, transparent, black 10px, black 95%, transparent); mask-image: linear-gradient(to right, transparent, black 10px, black 95%, transparent); }
         #records-table { width: 100%; border-collapse: collapse; white-space: nowrap;}
-        #records-table th, #records-table td { padding: 14px 12px; text-align: left; border-bottom: 1px solid var(--border-color); font-size: 0.9rem; vertical-align: middle; }
+        #records-table th, #records-table td { padding: 14px 12px; border-bottom: 1px solid var(--border-color); font-size: 0.9rem; vertical-align: middle; }
         #records-table th { font-weight: 600; color: var(--text-secondary); }
         .action-cell { display: flex; gap: 8px; }
         .action-btn { background: none; padding: 6px; border-radius: 50%; }
@@ -123,49 +169,22 @@
         .action-btn.edit-btn { color: var(--accent-primary); }
         .action-btn.delete-btn { color: var(--accent-danger); }
 
+        /* Loader, Toast, Scanner styles unchanged */
         #loader-overlay { position: fixed; inset: 0; z-index: 9999; background-color: rgba(255, 255, 255, 0.7); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); display: none; justify-content: center; align-items: center; }
         #loader-overlay.visible { display: flex; }
         .spinner { width: 48px; height: 48px; border-radius: 50%; border: 5px solid #dee2e6; border-top-color: var(--accent-primary); animation: spin 1s linear infinite; margin-bottom: 16px; }
         #loader-text { font-size: 1.1rem; font-weight: 500; }
         @keyframes spin { to { transform: rotate(360deg); } }
-
         #toast { position: fixed; bottom: -100px; left: 50%; transform: translateX(-50%); background-color: var(--text-primary); color: white; padding: 12px 24px; border-radius: 8px; box-shadow: var(--shadow-md); font-weight: 500; z-index: 10001; transition: bottom 0.5s ease-in-out; max-width: 90%; text-align: center; }
         #toast.show { bottom: 24px; }
-        
-        /* === NEW Barcode Scanner Modal (Adapted from provided code) === */
-        #scanner-modal {
-            position: fixed; inset: 0; z-index: 10000;
-            background-color: rgba(0,0,0,0.8);
-            backdrop-filter: blur(5px);
-            display: none; align-items: center; justify-content: center; flex-direction: column;
-            padding: 20px;
-        }
+        #scanner-modal { position: fixed; inset: 0; z-index: 10000; background-color: rgba(0,0,0,0.8); backdrop-filter: blur(5px); display: none; align-items: center; justify-content: center; flex-direction: column; padding: 20px; }
         #scanner-modal.visible { display: flex; }
-        .scanner-container {
-            position: relative; width: 100%; max-width: 600px;
-            margin: 20px 0; border-radius: 15px; overflow: hidden;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
+        .scanner-container { position: relative; width: 100%; max-width: 600px; margin: 20px 0; border-radius: 15px; overflow: hidden; box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.2); }
         #scanner-video { width: 100%; background-color: #000; display: block; }
-        .scan-line {
-            position: absolute; width: 100%; height: 3px;
-            background: linear-gradient(to right, #ff416c, #ff4b2b);
-            top: 30%; animation: scan 2s infinite ease-in-out;
-            border-radius: 4px; left: 0;
-        }
+        .scan-line { position: absolute; width: 100%; height: 3px; background: linear-gradient(to right, #ff416c, #ff4b2b); top: 30%; animation: scan 2s infinite ease-in-out; border-radius: 4px; left: 0; }
         @keyframes scan { 0% { top: 20%; } 50% { top: 80%; } 100% { top: 20%; } }
-        
-        .scanner-controls {
-            margin-top: 20px; display: flex; flex-wrap: wrap; justify-content: center; gap: 15px;
-        }
-        .scanner-controls button {
-            backdrop-filter: blur(10px); color: white;
-            font-weight: bold; transition: all 0.3s ease;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            background: rgba(255, 255, 255, 0.1);
-        }
+        .scanner-controls { margin-top: 20px; display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; }
+        .scanner-controls button { backdrop-filter: blur(10px); color: white; font-weight: bold; transition: all 0.3s ease; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); border: 1px solid rgba(255, 255, 255, 0.2); background: rgba(255, 255, 255, 0.1); }
         .scanner-controls button:hover { background: rgba(255, 255, 255, 0.2); transform: translateY(-2px); }
         .scanner-controls #scanner-close-button { background: rgba(220, 53, 69, 0.5); }
         #scanner-status { color: white; margin-top: 15px; font-style: italic; }
@@ -173,11 +192,31 @@
         @media (max-width: 600px) {
             .app-header h1 { font-size: 1.5rem; }
             .card { padding: 16px; }
-            .expiry-input-group { grid-template-columns: 1fr; gap: 8px; padding-right: 0; }
-            .remove-row-btn { top: auto; bottom: 10px; right: 10px; transform: none;}
-            .workspace-actions { display: flex; flex-direction: column; gap: 12px; align-items: stretch; }
-            .workspace-actions > div { display: flex; justify-content: flex-end; gap: 12px; }
-            .data-management-buttons { grid-template-columns: 1fr !important; }
+            .workspace-actions {
+                display: flex;
+                flex-wrap: wrap; /* Allow wrapping */
+                gap: 12px;
+                justify-content: space-between;
+            }
+            /* Make Add Row button full width on mobile */
+            .workspace-actions > #add-expiry-button {
+                flex-basis: 100%;
+                order: 1; /* Move it to the first line */
+            }
+            /* Keep save/discard on the second line */
+            .workspace-actions > div {
+                flex-basis: 100%;
+                display: flex;
+                justify-content: space-between; /* Space them out */
+                gap: 12px;
+                order: 2;
+            }
+             .workspace-actions > div > button {
+                flex-grow: 1; /* Make them share space */
+            }
+            .data-management-buttons {
+                grid-template-columns: 1fr !important;
+            }
         }
     </style>
 </head>
@@ -185,7 +224,6 @@
     <div id="loader-overlay"><div style="text-align:center;"><div class="spinner"></div><p id="loader-text">Initializing...</p></div></div>
     <div id="toast"></div>
 
-    <!-- NEW: Barcode Scanner Modal -->
     <div id="scanner-modal">
         <div class="scanner-container">
             <video id="scanner-video" playsinline autoplay></video>
@@ -202,7 +240,8 @@
         <header class="app-header">
             <h1>Product Expiry Report</h1>
             <p>Keep The Records.</p>
-            <a href="../index.html">← Back to Dashboard</a>
+            <!-- Updated Link -->
+            <a href="../index.html">→ العودة إلى لوحة التحكم</a>
         </header>
 
         <main>
@@ -224,7 +263,8 @@
                 
                 <h3 class="card-title" style="font-size: 1.1rem; margin-bottom: 16px;"><span class="material-icons-outlined">edit_calendar</span>Record Expiry &amp; Quantity</h3>
                 <div id="expiry-inputs"></div>
-                <div class="workspace-actions" style="margin-top: 16px; display: flex; gap: 12px; flex-wrap: wrap; justify-content: space-between;">
+                <!-- Updated layout for action buttons -->
+                <div class="workspace-actions" style="margin-top: 16px;">
                     <button id="add-expiry-button" class="btn-secondary"><span class="material-icons-outlined">add</span>Add Row</button>
                     <div>
                         <button id="discard-button" class="btn-secondary">Discard</button>
@@ -256,11 +296,6 @@
         const appsScriptUrl = "https://script.google.com/macros/s/AKfycbx0ZJzBcj0Qtz6fgVEdUKC8gIQa_KJGVCe3CmPoz63NRJPcuL9LkLuFaj6nhYnk-QYMdg/exec";
         const DATE_FORMAT = "d-m-Y";
 
-        // === GLOBAL VARIABLES ===
-        let database = [], currentItem = null, enteredRecords = [];
-        let barcodeHeader = '', nameHeader = '';
-        let editingRecordIndex = null;
-
         // === DOM ELEMENT CACHE ===
         const el = { 
             loader: document.getElementById('loader-overlay'), loaderText: document.getElementById('loader-text'), 
@@ -271,133 +306,84 @@
             addExpiryButton: document.getElementById('add-expiry-button'), discardButton: document.getElementById('discard-button'), 
             saveButton: document.getElementById('save-button'), recordsTable: document.getElementById('records-table'), 
             syncButton: document.getElementById('syncButton'), exportButton: document.getElementById('exportButton'),
-            // NEW Scanner elements
-            scannerModal: document.getElementById('scanner-modal'),
-            scannerVideo: document.getElementById('scanner-video'),
-            scannerStatus: document.getElementById('scanner-status'),
-            scannerCloseButton: document.getElementById('scanner-close-button'),
+            scannerModal: document.getElementById('scanner-modal'), scannerVideo: document.getElementById('scanner-video'),
+            scannerStatus: document.getElementById('scanner-status'), scannerCloseButton: document.getElementById('scanner-close-button'),
             scannerSwitchButton: document.getElementById('scanner-switch-button')
         };
         
-        // --- Core App Logic (Unchanged) ---
+        // Unchanged global variables
+        let database = [], currentItem = null, enteredRecords = [];
+        let barcodeHeader = '', nameHeader = '';
+        let editingRecordIndex = null;
+        
+        // --- Core App Logic (Unchanged, except for addExpiryEntry) ---
         const showLoader = (msg) => { el.loader.classList.add('visible'); el.loaderText.textContent = msg; };
         const hideLoader = () => el.loader.classList.remove('visible');
         let toastTimeout;
         const showToast = (msg) => { clearTimeout(toastTimeout); el.toast.textContent = msg; el.toast.classList.add('show'); toastTimeout = setTimeout(() => el.toast.classList.remove('show'), 3000); };
         const showWorkspace = (item) => { currentItem = item; el.itemTitle.innerHTML = `<span class="material-icons-outlined">inventory_2</span> ${item[nameHeader] || 'Item Details'}`; const detailsToShow = [nameHeader, barcodeHeader, 'supplier name', 'status'].filter(h => item[h]); el.itemDetails.innerHTML = detailsToShow.map(header => `<li><strong>${header.charAt(0).toUpperCase() + header.slice(1)}:</strong> <span>${item[header]}</span></li>`).join(''); el.expiryInputs.innerHTML = ''; addExpiryEntry(); el.workspace.classList.add('visible'); el.saveButton.disabled = false; window.scrollTo({ top: el.workspace.offsetTop - 20, behavior: 'smooth' }); };
         const hideWorkspace = () => { currentItem = null; editingRecordIndex = null; el.workspace.classList.remove('visible'); el.searchInput.value = ''; el.searchInput.focus(); el.saveButton.disabled = true; };
+        
+        // === REVAMPED addExpiryEntry FUNCTION ===
+        const addExpiryEntry = (date = '', quantity = '') => {
+            const div = document.createElement('div');
+            div.className = 'expiry-input-group';
+            // New structure matching the screenshot
+            div.innerHTML = `
+                <div class="input-container">
+                    <input type="text" placeholder="${DATE_FORMAT.replace('Y','yyyy').replace('m','mm').replace('d','dd')}" class="expiry-date" value="${date}">
+                    <div class="date-quick-actions">
+                        <button type="button" class="quick-date-btn" data-action="today">Today</button>
+                        <button type="button" class="quick-date-btn" data-action="plus_one_year">+1Y</button>
+                    </div>
+                </div>
+                <div class="input-container">
+                    <input type="number" placeholder="الكمية" min="1" value="${quantity}">
+                    <button type="button" class="btn-icon remove-row-btn" title="Remove row" onclick="this.closest('.expiry-input-group').remove()">
+                        <span class="material-icons-outlined">delete_outline</span>
+                    </button>
+                </div>
+            `;
+            el.expiryInputs.appendChild(div);
+            
+            const dateInput = div.querySelector('.expiry-date');
+            const fpInstance = flatpickr(dateInput, { dateFormat: DATE_FORMAT, allowInput: true, minDate: "today" });
+            
+            div.querySelectorAll('.quick-date-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const action = btn.dataset.action;
+                    let newDate = new Date();
+                    if (action === 'plus_one_year') newDate.setFullYear(newDate.getFullYear() + 1);
+                    fpInstance.setDate(newDate, true);
+                });
+            });
+            
+            if (!date) dateInput.focus();
+        };
+
+        // --- Rest of the app logic (unchanged) ---
         async function initializeApp() { showLoader('Syncing database...'); loadDataFromLocalStorage(); try { const inventoryData = await fetchDataFromGoogleSheet(); if (inventoryData?.length) { database = inventoryData; const headers = Object.keys(database[0]); barcodeHeader = headers.find(h => h.toLowerCase().includes('barcode')) || ''; nameHeader = headers.find(h => h.toLowerCase().includes('name')) || ''; if (!barcodeHeader || !nameHeader) { alert("Data Error: Sheet needs 'barcode' and 'name' columns."); enableButtons(false); } else { localStorage.setItem('barcodeHeader', barcodeHeader); localStorage.setItem('nameHeader', nameHeader); enableButtons(true); showToast('Data synced successfully!'); } } else { showToast('Sync failed or database is empty.'); enableButtons(database.length > 0); } } catch(e) { showToast('An error occurred during sync.'); } finally { hideLoader(); } }
         const fetchDataFromGoogleSheet = async () => { if (!appsScriptUrl || appsScriptUrl.includes("PASTE_YOUR")) return null; const response = await fetch(appsScriptUrl); return response.ok ? await response.json() : null; };
         const loadDataFromLocalStorage = () => { enteredRecords = JSON.parse(localStorage.getItem('enteredRecords') || '[]'); barcodeHeader = localStorage.getItem('barcodeHeader') || ''; nameHeader = localStorage.getItem('nameHeader') || ''; renderEnteredRecords(); };
         const enableButtons = (isEnabled) => { [el.searchButton, el.exportButton, el.scanButton].forEach(btn => btn.disabled = !isEnabled); };
         const handleSearch = () => { const barcode = el.searchInput.value.trim(); if (!barcode) return; const foundItem = database.find(item => item[barcodeHeader]?.toString() === barcode); if (foundItem) showWorkspace(foundItem); else showToast('Item not found!'); };
-        const addExpiryEntry = (date = '', quantity = '') => { const div = document.createElement('div'); div.className = 'expiry-input-group'; div.innerHTML = `<div class="date-input-wrapper"><input type="text" placeholder="${DATE_FORMAT.replace('Y','yyyy').replace('m','mm').replace('d','dd')}" class="expiry-date" value="${date}"><div class="date-quick-actions"><button type="button" class="quick-date-btn" data-action="today">Today</button><button type="button" class="quick-date-btn" data-action="plus_one_year">+1Y</button></div></div><input type="number" placeholder="Qty" min="1" value="${quantity}"><button type="button" class="btn-secondary btn-icon remove-row-btn" title="Remove row" onclick="this.parentElement.remove()"><span class="material-icons-outlined">delete_outline</span></button>`; el.expiryInputs.appendChild(div); const dateInput = div.querySelector('.expiry-date'); const fpInstance = flatpickr(dateInput, { dateFormat: DATE_FORMAT, allowInput: true, minDate: "today" }); div.querySelectorAll('.quick-date-btn').forEach(btn => { btn.addEventListener('click', () => { const action = btn.dataset.action; let newDate = new Date(); if (action === 'plus_one_year') newDate.setFullYear(newDate.getFullYear() + 1); fpInstance.setDate(newDate, true); }); }); if (!date) dateInput.focus(); };
         const saveEntry = () => { const entryNodes = el.expiryInputs.querySelectorAll('.expiry-input-group'); if (entryNodes.length === 0) return showToast('Please add at least one expiry entry.'); const recordData = editingRecordIndex !== null ? { ...enteredRecords[editingRecordIndex] } : { ...currentItem }; Object.keys(recordData).forEach(key => { if (key.startsWith('expiryDate') || key.startsWith('quantity')) { delete recordData[key]; } }); let hasError = false; entryNodes.forEach((node, i) => { const dateInput = node.querySelector('.expiry-date'); const qtyInput = node.querySelector('input[type="number"]'); if (!dateInput.value || !qtyInput.value) { hasError = true; } recordData[`expiryDate${i + 1}`] = dateInput.value; recordData[`quantity${i + 1}`] = parseInt(qtyInput.value, 10) || ''; }); if(hasError) return showToast('Please fill all date and quantity fields.'); recordData.recordTime = new Date().toLocaleString('en-GB'); if (editingRecordIndex !== null) { enteredRecords[editingRecordIndex] = recordData; showToast('Entry updated successfully!'); } else { enteredRecords.unshift(recordData); showToast(`Entry saved with ${entryNodes.length} expiry date(s)!`); } localStorage.setItem('enteredRecords', JSON.stringify(enteredRecords)); renderEnteredRecords(); hideWorkspace(); };
         const renderEnteredRecords = () => { const table = el.recordsTable; if (enteredRecords.length === 0) { table.innerHTML = '<tbody><tr><td colspan="5" style="text-align:center; padding: 48px; color: var(--text-secondary);">No entries recorded yet.</td></tr></tbody>'; return; } let maxExpiryPairs = 0; enteredRecords.forEach(rec => { const keys = Object.keys(rec).filter(k => k.startsWith('expiryDate')); if (keys.length > maxExpiryPairs) maxExpiryPairs = keys.length; }); let headers = ['Item', 'Barcode']; for (let i = 1; i <= maxExpiryPairs; i++) { headers.push(`Expiry ${i}`); headers.push(`Qty ${i}`); } headers.push('Actions'); const head = `<thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead>`; const body = `<tbody>${enteredRecords.map((rec, index) => { let rowHtml = `<tr data-index="${index}"><td>${rec[nameHeader] || '–'}</td><td>${rec[barcodeHeader] || '–'}</td>`; for (let i = 1; i <= maxExpiryPairs; i++) { rowHtml += `<td>${rec[`expiryDate${i}`] || ''}</td><td>${rec[`quantity${i}`] || ''}</td>`; } rowHtml += `<td class="action-cell"><button class="action-btn edit-btn" onclick="handleEdit(${index})"><span class="material-icons-outlined">edit</span></button><button class="action-btn delete-btn" onclick="handleDelete(${index})"><span class="material-icons-outlined">delete</span></button></td></tr>`; return rowHtml; }).join('')}</tbody>`; table.innerHTML = head + body; };
         const handleDelete = (index) => { if (confirm(`Are you sure you want to delete the entry for "${enteredRecords[index][nameHeader]}"?`)) { enteredRecords.splice(index, 1); localStorage.setItem('enteredRecords', JSON.stringify(enteredRecords)); renderEnteredRecords(); showToast('Entry deleted.'); } };
         const handleEdit = (index) => { editingRecordIndex = index; const recordToEdit = enteredRecords[index]; showWorkspace(recordToEdit); el.expiryInputs.innerHTML = ''; let i = 1; while (recordToEdit[`expiryDate${i}`]) { addExpiryEntry(recordToEdit[`expiryDate${i}`], recordToEdit[`quantity${i}`]); i++; } };
         
-
-        // --- NEW: Barcode Scanner Logic using BarcodeDetector API ---
-        let scannerState = {
-            stream: null,
-            isScanning: false,
-            facingMode: 'environment', // 'environment' for back, 'user' for front
-            detectionInterval: null,
-            barcodeDetector: null
-        };
-
+        // --- Barcode Scanner Logic (Unchanged) ---
+        let scannerState = { stream: null, isScanning: false, facingMode: 'environment', detectionInterval: null, barcodeDetector: null };
         const isBarcodeDetectionSupported = () => 'BarcodeDetector' in window;
+        async function initScanner() { if (!isBarcodeDetectionSupported()) { showToast('Barcode Detection API not supported.'); el.scanButton.disabled = true; return; } try { const supportedFormats = await BarcodeDetector.getSupportedFormats(); scannerState.barcodeDetector = new BarcodeDetector({ formats: supportedFormats }); } catch (error) { console.error("Error initializing BarcodeDetector:", error); showToast('Could not initialize barcode scanner.'); el.scanButton.disabled = true; } }
+        async function startScanner() { if (!scannerState.barcodeDetector) { showToast('Scanner not ready.'); return; } el.scannerModal.classList.add('visible'); el.scannerStatus.textContent = 'Starting camera...'; try { const constraints = { video: { facingMode: scannerState.facingMode, width: { ideal: 1280 }, height: { ideal: 720 } } }; scannerState.stream = await navigator.mediaDevices.getUserMedia(constraints); el.scannerVideo.srcObject = scannerState.stream; scannerState.isScanning = true; el.scannerStatus.textContent = 'Point camera at a barcode...'; detectBarcodes(); } catch (error) { console.error('Error starting camera:', error); el.scannerStatus.textContent = `Camera error: ${error.name}`; showToast(`Camera error: ${error.message}`); stopScanner(); } }
+        function stopScanner() { scannerState.isScanning = false; if (scannerState.detectionInterval) { clearInterval(scannerState.detectionInterval); scannerState.detectionInterval = null; } if (scannerState.stream) { scannerState.stream.getTracks().forEach(track => track.stop()); scannerState.stream = null; el.scannerVideo.srcObject = null; } el.scannerModal.classList.remove('visible'); }
+        function switchCamera() { scannerState.facingMode = scannerState.facingMode === 'environment' ? 'user' : 'environment'; if (scannerState.isScanning) { stopScanner(); startScanner(); } }
+        function detectBarcodes() { if (!scannerState.isScanning) return; scannerState.detectionInterval = setInterval(async () => { if (!scannerState.isScanning || !scannerState.barcodeDetector) return; try { const barcodes = await scannerState.barcodeDetector.detect(el.scannerVideo); if (barcodes.length > 0) { handleBarcodeDetected(barcodes[0]); } } catch (error) { console.error('Barcode detection error:', error); } }, 300); }
+        function handleBarcodeDetected(barcode) { const detectedValue = barcode.rawValue; stopScanner(); el.searchInput.value = detectedValue; handleSearch(); showToast(`Scanned: ${detectedValue}`); }
 
-        async function initScanner() {
-            if (!isBarcodeDetectionSupported()) {
-                showToast('Barcode Detection API not supported.');
-                el.scanButton.disabled = true;
-                return;
-            }
-            try {
-                const supportedFormats = await BarcodeDetector.getSupportedFormats();
-                scannerState.barcodeDetector = new BarcodeDetector({ formats: supportedFormats });
-            } catch (error) {
-                console.error("Error initializing BarcodeDetector:", error);
-                showToast('Could not initialize barcode scanner.');
-                el.scanButton.disabled = true;
-            }
-        }
-
-        async function startScanner() {
-            if (!scannerState.barcodeDetector) {
-                showToast('Scanner not ready.');
-                return;
-            }
-            el.scannerModal.classList.add('visible');
-            el.scannerStatus.textContent = 'Starting camera...';
-
-            try {
-                const constraints = { video: { facingMode: scannerState.facingMode, width: { ideal: 1280 }, height: { ideal: 720 } } };
-                scannerState.stream = await navigator.mediaDevices.getUserMedia(constraints);
-                el.scannerVideo.srcObject = scannerState.stream;
-                scannerState.isScanning = true;
-                el.scannerStatus.textContent = 'Point camera at a barcode...';
-                detectBarcodes();
-            } catch (error) {
-                console.error('Error starting camera:', error);
-                el.scannerStatus.textContent = `Camera error: ${error.name}`;
-                showToast(`Camera error: ${error.message}`);
-                stopScanner();
-            }
-        }
-        
-        function stopScanner() {
-            scannerState.isScanning = false;
-            if (scannerState.detectionInterval) {
-                clearInterval(scannerState.detectionInterval);
-                scannerState.detectionInterval = null;
-            }
-            if (scannerState.stream) {
-                scannerState.stream.getTracks().forEach(track => track.stop());
-                scannerState.stream = null;
-                el.scannerVideo.srcObject = null;
-            }
-            el.scannerModal.classList.remove('visible');
-        }
-
-        function switchCamera() {
-            scannerState.facingMode = scannerState.facingMode === 'environment' ? 'user' : 'environment';
-            if (scannerState.isScanning) {
-                stopScanner(); // Stop current stream before starting new one
-                startScanner();
-            }
-        }
-        
-        function detectBarcodes() {
-            if (!scannerState.isScanning) return;
-            scannerState.detectionInterval = setInterval(async () => {
-                if (!scannerState.isScanning || !scannerState.barcodeDetector) return;
-                try {
-                    const barcodes = await scannerState.barcodeDetector.detect(el.scannerVideo);
-                    if (barcodes.length > 0) {
-                        handleBarcodeDetected(barcodes[0]);
-                    }
-                } catch (error) {
-                    console.error('Barcode detection error:', error);
-                }
-            }, 300); // Check for barcodes frequently
-        }
-
-        function handleBarcodeDetected(barcode) {
-            const detectedValue = barcode.rawValue;
-            stopScanner(); // Stop immediately after detection
-            el.searchInput.value = detectedValue;
-            handleSearch();
-            showToast(`Scanned: ${detectedValue}`);
-        }
-
-        // === EVENT LISTENERS ===
-        document.addEventListener('DOMContentLoaded', () => {
-            initializeApp();
-            initScanner(); // Initialize the scanner on load
-        });
+        // === EVENT LISTENERS (Unchanged) ===
+        document.addEventListener('DOMContentLoaded', () => { initializeApp(); initScanner(); });
         el.syncButton.addEventListener('click', initializeApp);
         el.searchButton.addEventListener('click', handleSearch);
         el.searchInput.addEventListener('keydown', e => { if (e.key === 'Enter') handleSearch(); });
@@ -405,8 +391,6 @@
         el.discardButton.addEventListener('click', hideWorkspace);
         el.saveButton.addEventListener('click', saveEntry);
         el.exportButton.addEventListener('click', () => { if (enteredRecords.length === 0) return showToast('No records to export!'); if (confirm("Export entries to Excel and clear them from this session?")) { const ws = XLSX.utils.json_to_sheet(enteredRecords); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Inventory Records'); XLSX.writeFile(wb, `inventory_records_${new Date().toISOString().slice(0,10)}.xlsx`); enteredRecords = []; localStorage.setItem('enteredRecords', '[]'); renderEnteredRecords(); showToast("Data exported and cleared."); } });
-        
-        // NEW Scanner event listeners
         el.scanButton.addEventListener('click', startScanner);
         el.scannerCloseButton.addEventListener('click', stopScanner);
         el.scannerSwitchButton.addEventListener('click', switchCamera);
