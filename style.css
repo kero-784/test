@@ -1,0 +1,36 @@
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+body { background-color: #f4f6f9; color: #333; }
+.hidden { display: none !important; }
+
+/* Login Box */
+.screen { height: 100vh; width: 100vw; }
+#login-screen { display: flex; justify-content: center; align-items: center; background: #2c3e50; }
+.login-box { background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 300px; display: flex; flex-direction: column; gap: 15px; }
+.login-box input { padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
+.login-box button { padding: 10px; background: #3498db; color: #fff; border: none; border-radius: 4px; cursor: pointer; }
+.error-msg { color: red; font-size: 0.8em; text-align: center; }
+
+/* Dashboard Layout */
+#dashboard-screen { display: flex; }
+.sidebar { width: 250px; background: #2c3e50; color: #ecf0f1; height: 100vh; position: fixed; display: flex; flex-direction: column; }
+.sidebar-header { padding: 20px; background: #1a252f; text-align: center; }
+.nav-list { list-style: none; flex-grow: 1; padding-top: 20px; }
+.nav-list li { padding: 15px 20px; cursor: pointer; border-bottom: 1px solid #34495e; transition: 0.3s; }
+.nav-list li:hover, .nav-list li.active { background: #3498db; }
+.logout-btn { padding: 15px; background: #e74c3c; color: #fff; border: none; cursor: pointer; }
+
+/* Main Content & Tabs */
+.main-content { margin-left: 250px; width: calc(100% - 250px); display: flex; flex-direction: column; height: 100vh; }
+.horizontal-tabs { background: #fff; display: flex; border-bottom: 2px solid #ddd; padding: 0 20px; }
+.tab-btn { padding: 15px 20px; border: none; background: none; cursor: pointer; font-weight: bold; color: #7f8c8d; border-bottom: 3px solid transparent; }
+.tab-btn:hover { color: #2c3e50; }
+.tab-btn.active { color: #3498db; border-bottom: 3px solid #3498db; }
+.module-container { padding: 20px; flex-grow: 1; overflow-y: auto; }
+
+/* Tables & Forms for Modules */
+table { width: 100%; border-collapse: collapse; margin-top: 15px; background: #fff; }
+th, td { padding: 12px; border: 1px solid #ddd; text-align: left; }
+th { background: #3498db; color: white; }
+.form-group { margin-bottom: 15px; }
+.form-group label { display: block; margin-bottom: 5px; }
+.form-group input { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
