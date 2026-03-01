@@ -4,39 +4,53 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Clinic Management System</title>
+    
+    <!-- FIX: Prevents the 404 favicon.ico error -->
+    <link rel="icon" href="data:,"> 
+    
+    <!-- Link to your CSS file (Ensure your file is named exactly 'styles.css' all lowercase) -->
     <link rel="stylesheet" href="styles.css">
+    
     <!-- Supabase JS Client via CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
-    <!-- LOGIN SCREEN -->
+    <!-- ==================== LOGIN SCREEN ==================== -->
     <div id="login-screen" class="screen">
         <div class="login-box">
             <h2>Clinic Login</h2>
-            <input type="text" id="login-username" placeholder="Username">
-            <input type="password" id="login-code" placeholder="Login Code">
-            <button onclick="handleLogin()">Login</button>
+            
+            <!-- FIX: Wrapped inputs in a <form> to prevent browser warnings -->
+            <form onsubmit="handleLogin(event)" style="display: flex; flex-direction: column; gap: 15px;">
+                <input type="text" id="login-username" placeholder="Username" required autocomplete="username">
+                <input type="password" id="login-code" placeholder="Login Code" required autocomplete="current-password">
+                <button type="submit">Login</button>
+            </form>
+            
             <p id="login-error" class="error-msg"></p>
         </div>
     </div>
 
-    <!-- DASHBOARD SCREEN -->
+    <!-- ==================== DASHBOARD SCREEN ==================== -->
     <div id="dashboard-screen" class="screen hidden">
-        <!-- Fixed Left Sidebar -->
+        
+        <!-- Fixed Left Sidebar for Global Navigation -->
         <aside class="sidebar">
             <div class="sidebar-header">
                 <h3>Clinic CMS</h3>
                 <p id="user-display">Role: Admin</p>
             </div>
-            <ul id="sidebar-nav" class="nav-list">
-                <!-- Links injected dynamically via JS based on role -->
-            </ul>
+            
+            <!-- Global navigation links injected here dynamically -->
+            <ul id="sidebar-nav" class="nav-list"></ul>
+            
             <button class="logout-btn" onclick="handleLogout()">Logout</button>
         </aside>
 
         <!-- Main Content Area -->
         <main class="main-content">
+            
             <!-- Horizontal Tabs for Secondary Navigation -->
             <div class="horizontal-tabs" id="horizontal-tabs">
                 <!-- Secondary tabs injected here by the active module -->
@@ -45,11 +59,14 @@
             <!-- Module Content Injected Here -->
             <div id="module-container" class="module-container">
                 <h2>Welcome to the Clinic Management System</h2>
-                <p>Select a module from the sidebar.</p>
+                <p>Select a module from the sidebar on the left to get started.</p>
             </div>
+
         </main>
     </div>
 
+    <!-- ==================== JAVASCRIPT IMPORTS ==================== -->
+    <!-- Make sure these files exist inside a folder named 'js' -->
     <script src="js/supabase-client.js"></script>
     <script src="js/app.js"></script>
     <script src="js/dashboard.js"></script>
